@@ -55,8 +55,8 @@ Serveur : https://discord.gg/4QHYUJeZ5j
 
 On est assis ensemble, donc on se parle à voix haute. Discord sert à ce qui ne se dit pas.
 
-- `#général` : un message pour tout le monde sans couper ceux qui sont concentrés.
-- `#liens-importants` : URL de démo, maquettes, accès, docs.
+- `#💬-général` : un message pour tout le monde sans couper ceux qui sont concentrés. Pour que tout le monde le voie tout de suite, ajoutez `@everyone`.
+- `#🔗-liens-importants` : URL de démo, maquettes, accès, docs.
 - `#🤖-github-log` : rempli automatiquement par le repo.
 
 ## Planning
