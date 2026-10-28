@@ -51,6 +51,8 @@ Avant chaque push, le linter et le build passent. Si `main` est cassé, on répa
 
 ## Discord
 
+Serveur : https://discord.gg/4QHYUJeZ5j
+
 On est assis ensemble, donc on se parle à voix haute. Discord sert à ce qui ne se dit pas.
 
 - `#général` : un message pour tout le monde sans couper ceux qui sont concentrés.
