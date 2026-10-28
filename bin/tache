@@ -1,0 +1,189 @@
+#!/usr/bin/env node
+// Team task board stored in TACHES.md, one file that humans edit by hand
+// and agents edit through this script. Sections: À faire, En cours, Fait.
+//
+//   bin/tache liste                        show the board
+//   bin/tache nouvelle "Titre" [détails]   add a task to « À faire »
+//   bin/tache prendre NN|mots [prénom]     claim a task (pushed immediately)
+//   bin/tache finir NN|mots "note"         move it to « Fait » with a short note
+//
+// On Windows: node bin/tache liste
+//
+// Every change is a commit of TACHES.md alone, pushed right away. If the push
+// is rejected, someone pushed first: we drop our commit, pull, and replay the
+// change on the fresh board (a task taken meanwhile is then reported as taken).
+
+const { execFileSync } = require("child_process");
+const fs = require("fs");
+const path = require("path");
+
+const SECTIONS = ["À faire", "En cours", "Fait"];
+
+function git(...args) {
+  return execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+}
+function tryGit(...args) {
+  try { git(...args); return true; } catch { return false; }
+}
+function fail(msg, code = 1) {
+  console.error("!! " + msg);
+  process.exit(code);
+}
+
+const root = git("rev-parse", "--show-toplevel");
+process.chdir(root);
+const FILE = "TACHES.md";
+
+function sync() {
+  if (!tryGit("pull", "--rebase", "--autostash", "-q")) {
+    tryGit("rebase", "--abort");
+    fail("git pull a échoué : règle le conflit puis relance.");
+  }
+}
+
+// Parse TACHES.md into { head, sections: { name: [task] } }.
+// A task is a "- " line plus the indented lines under it.
+function parse() {
+  const lines = fs.readFileSync(FILE, "utf8").split("\n");
+  const board = { head: [], sections: {}, order: [] };
+  let cur = null;
+  for (const line of lines) {
+    const h = line.match(/^##\s+(.*?)\s*$/);
+    if (h) {
+      cur = h[1];
+      board.sections[cur] = [];
+      board.order.push(cur);
+      continue;
+    }
+    if (cur === null) { board.head.push(line); continue; }
+    const items = board.sections[cur];
+    if (/^[-*]\s+/.test(line)) items.push({ first: line.replace(/^[*]/, "-"), more: [] });
+    else if (/^\s+\S/.test(line) && items.length) items[items.length - 1].more.push(line);
+    // Blank lines and stray text inside a section are dropped on rewrite.
+  }
+  for (const s of SECTIONS) if (!board.sections[s]) { board.sections[s] = []; board.order.push(s); }
+  return board;
+}
+
+function write(board) {
+  while (board.head.length && board.head[board.head.length - 1] === "") board.head.pop();
+  let out = board.head.join("\n") + "\n";
+  for (const s of board.order) {
+    out += `\n## ${s}\n\n`;
+    for (const t of board.sections[s]) out += [t.first, ...t.more].join("\n") + "\n";
+  }
+  fs.writeFileSync(FILE, out);
+}
+
+const numOf = (t) => { const m = t.first.match(/^-\s+(?:\[.\]\s+)?(\d+)\s+·/); return m ? parseInt(m[1], 10) : null; };
+const label = (t) => t.first.replace(/^-\s+(?:\[.\]\s+)?/, "");
+const pad = (n) => String(n).padStart(2, "0");
+
+// Give a number to tasks humans added without one.
+function numberAll(board) {
+  let max = 0;
+  for (const s of board.order) for (const t of board.sections[s]) max = Math.max(max, numOf(t) || 0);
+  for (const s of board.order) for (const t of board.sections[s]) {
+    if (numOf(t) === null) t.first = `- ${pad(++max)} · ${label(t)}`;
+  }
+  return max;
+}
+
+function find(board, section, key) {
+  const items = board.sections[section];
+  if (/^\d+$/.test(key)) return items.filter((t) => numOf(t) === parseInt(key, 10));
+  const k = key.toLowerCase();
+  return items.filter((t) => t.first.toLowerCase().includes(k));
+}
+
+function show(board) {
+  for (const s of SECTIONS) {
+    console.log(`── ${s}`);
+    for (const t of board.sections[s]) console.log("   " + label(t));
+  }
+}
+
+// Apply a change to the board, commit TACHES.md only, push; replay on conflict.
+function change(apply) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    sync();
+    const board = parse();
+    numberAll(board);
+    const { message, done } = apply(board);
+    write(board);
+    git("add", FILE);
+    git("commit", "-q", "-m", message, "--", FILE);
+    if (tryGit("push", "-q")) { done(); return; }
+    // Someone pushed first: drop our commit (uncommitted work is kept) and retry.
+    if (tryGit("pull", "--rebase", "--autostash", "-q") && tryGit("push", "-q")) { done(); return; }
+    tryGit("rebase", "--abort");
+    git("reset", "-q", "--keep", "HEAD~1");
+  }
+  fail("Impossible de pousser après 5 essais. Relance dans un instant.");
+}
+
+function whoDefault() {
+  try { return git("config", "user.name").split(/\s+/)[0].toLowerCase(); } catch { return ""; }
+}
+
+const [cmd = "liste", a, b] = process.argv.slice(2);
+
+switch (cmd) {
+  case "liste":
+    tryGit("pull", "--rebase", "--autostash", "-q");
+    show(parse());
+    break;
+
+  case "nouvelle": {
+    if (!a) fail('usage : bin/tache nouvelle "Titre" [détails]');
+    change((board) => {
+      const n = pad(numberAll(board) + 1);
+      board.sections["À faire"].push({ first: `- ${n} · ${a}`, more: b ? [`  - ${b}`] : [] });
+      return { message: `task ${n}: new (${a})`, done: () => console.log(`Créée : ${n} · ${a}`) };
+    });
+    break;
+  }
+
+  case "prendre": {
+    if (!a) fail("usage : bin/tache prendre NN|mots [prénom]");
+    const who = b || whoDefault();
+    if (!who) fail(`Donne ton prénom : bin/tache prendre ${a} prenom`);
+    change((board) => {
+      const hits = find(board, "À faire", a);
+      if (hits.length === 0) {
+        const taken = find(board, "En cours", a);
+        if (taken.length) fail(`Déjà prise : ${label(taken[0])}`, 2);
+        fail(`Pas de tâche « ${a} » dans « À faire ».`, 2);
+      }
+      if (hits.length > 1) fail(`Plusieurs tâches correspondent :\n   ${hits.map(label).join("\n   ")}`);
+      const t = hits[0];
+      board.sections["À faire"].splice(board.sections["À faire"].indexOf(t), 1);
+      t.first += ` (${who})`;
+      board.sections["En cours"].push(t);
+      return {
+        message: `task ${pad(numOf(t))}: taken by ${who}`,
+        done: () => console.log(`À toi : ${label(t)}${t.more.length ? "\n" + t.more.join("\n") : ""}`),
+      };
+    });
+    break;
+  }
+
+  case "finir": {
+    if (!a || !b) fail('usage : bin/tache finir NN|mots "ce qui a été fait, en 1 à 3 lignes"');
+    change((board) => {
+      const hits = find(board, "En cours", a);
+      if (hits.length === 0) fail(`Pas de tâche « ${a} » dans « En cours ».`, 2);
+      if (hits.length > 1) fail(`Plusieurs tâches correspondent :\n   ${hits.map(label).join("\n   ")}`);
+      const t = hits[0];
+      board.sections["En cours"].splice(board.sections["En cours"].indexOf(t), 1);
+      t.more.push(`  - Fait : ${b}`);
+      board.sections["Fait"].push(t);
+      return { message: `task ${pad(numOf(t))}: done`, done: () => console.log(`Terminée : ${label(t)}`) };
+    });
+    break;
+  }
+
+  default:
+    console.log(fs.readFileSync(__filename, "utf8").split("\n").slice(1, 10).join("\n"));
+    process.exit(1);
+}
