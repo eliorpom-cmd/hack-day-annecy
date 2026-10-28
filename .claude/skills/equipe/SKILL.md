@@ -14,4 +14,4 @@ Les règles complètes sont dans `AGENTS.md` (déjà chargé par `CLAUDE.md`). L
 5. Commit + `git pull --rebase` + `git push` au moins toutes les 30 min, linter et build verts.
 6. Fini : push du code, puis `bin/tache finir NN "<1-3 lignes : fichiers, routes, ce qui reste>"`, puis dis à l'humain quoi tester.
 
-Si la tâche demande de changer le contrat d'API de `PROJET.md` ou le dossier d'un autre : arrête-toi et dis-le à l'humain, qui ira le demander à la personne concernée.
+Si la tâche demande de changer un fichier commun (contrat d'API, types partagés, `package.json`, config) ou le dossier d'un autre : dis-le à l'humain ; avec son accord, fais-le sur une branche et ouvre une pull request (`gh pr create`) pour le gardien de `main`, sans la fusionner toi-même.

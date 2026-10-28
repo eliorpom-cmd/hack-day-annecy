@@ -14,7 +14,8 @@ Ce fichier est lu par chaque agent IA de l'équipe, quel que soit le modèle (Cl
 - Ne modifie que **ton dossier** (voir « Qui possède quoi » dans `CLAUDE.md` ou `PROJET.md`). S'il faut toucher au dossier d'un autre, arrête-toi et dis à ton humain d'aller le demander à la personne concernée.
 - Respecte le **contrat d'API** et les types de `PROJET.md`. Si le contrat doit changer, ne le change pas toi-même : dis-le à ton humain.
 - Suis `DESIGN.md` pour toute interface : couleurs, typo, espacements, composants. N'invente pas de style.
-- Petits commits, `git pull --rebase` puis `git push` **au moins toutes les 30 min**. On travaille tous sur `main`.
+- Petits commits, `git pull --rebase` puis `git push` **au moins toutes les 30 min**.
+- **Ton dossier et `TACHES.md`** : push direct sur `main`. **Un fichier commun** (contrat d'API et types partagés, `package.json` et lockfile, config) **ou le dossier d'un autre** : branche + pull request (`gh pr create`), que le gardien de `main` relit. Ne fusionne jamais toi-même ta PR.
 - Avant chaque push : le linter et le build passent. Un push qui casse `main` se corrige avant toute autre chose.
 - Une nouvelle tâche découverte en route ne se fait pas en douce : `bin/tache nouvelle "Titre" "détails"`.
 - Les humains modifient aussi `TACHES.md` à la main (tâches sans numéro, déplacées à la main) : c'est normal, le script les numérote. Toi, passe toujours par `bin/tache` pour ce fichier.
