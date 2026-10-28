@@ -57,7 +57,7 @@ On est assis ensemble, donc on se parle à voix haute. Discord sert à ce qui ne
 
 - `#général` : un message pour tout le monde sans couper ceux qui sont concentrés.
 - `#liens-importants` : URL de démo, maquettes, accès, docs.
-- `#github` : rempli automatiquement par le repo.
+- `#🤖-github-log` : rempli automatiquement par le repo.
 
 ## Planning
 
