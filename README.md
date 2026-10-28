@@ -1,80 +1,49 @@
 # Hack Day Annecy
 
-Notre projet pour le Hacktoberfest Hack Day Annecy (jeudi 29/10). Le problème, les écrans, la stack et qui fait quoi sont dans [`PROJET.md`](PROJET.md).
+Projet de l'équipe au Hacktoberfest Hack Day Annecy (29/10). Spec, stack, contrat d'API et ownership : [`PROJET.md`](PROJET.md).
 
-On a 8 h 30, chacun avec ou sans agent IA. Ce repo sert de tableau commun pour ne pas faire deux fois la même chose ni se marcher dessus.
-
-## Démarrer
+## Setup
 
 ```
 gh repo clone eliorpom-cmd/hack-day-annecy && cd hack-day-annecy
 git config user.name "Prénom Nom"
 ```
 
-- Avec Claude Code : tapez `/equipe`.
-- Avec un autre agent : « Lis AGENTS.md et suis-le. »
-- Sans agent : lisez [`TACHES.md`](TACHES.md) et la suite de cette page.
+Agents : Claude Code → `/equipe` ; les autres → « lis AGENTS.md et suis-le ».
 
-## Les tâches
+## Tâches
 
-Toutes les tâches sont dans [`TACHES.md`](TACHES.md), en trois parties : À faire, En cours, Fait.
+[`TACHES.md`](TACHES.md), trois sections : À faire / En cours / Fait. Le fichier vit sur `main`.
 
-- **Ajouter** : une ligne `- Titre` sous « À faire », commit, push. Le numéro s'ajoute tout seul.
-- **Prendre** : déplacez la ligne sous « En cours » avec votre prénom entre parenthèses, puis commit et push **tout de suite**. Sans tâche prise, on ne code pas.
-- **Finir** : déplacez-la sous « Fait » avec, en dessous, `  - Fait : ce que vous avez changé`.
-
-Le tableau vit toujours sur `main`. À la main, le plus simple est sur GitHub avec le crayon ; dans votre éditeur, faites `git pull` juste avant, sur `main`. Au terminal, `bin/tache` écrit directement sur `main`, même si vous êtes sur une branche, sans toucher à votre code en cours :
+- À la main (GitHub ou éditeur après `git pull`) : ajouter `- Titre` sous « À faire » ; pour prendre, déplacer la ligne sous « En cours » avec `(prénom)` et pousser tout de suite ; pour finir, la déplacer sous « Fait » avec `  - Fait : …`.
+- En CLI (Node ; `node bin/tache` sous Windows). Écrit directement sur `origin/main` depuis n'importe quelle branche, sans toucher au working tree :
 
 ```
-bin/tache liste                        # le tableau
-bin/tache nouvelle "Titre" "détails"   # ajouter
-bin/tache prendre 03 prenom            # prendre la tâche 03
-bin/tache finir 03 "ce que j'ai fait"  # finir, avec une note pour les suivants
+bin/tache liste
+bin/tache nouvelle "Titre" "détails"
+bin/tache prendre 03 prenom      # ou quelques mots du titre
+bin/tache finir 03 "note : fichiers, routes, ce qui reste"
 ```
 
-Sous Windows : `node bin/tache liste`.
+Pas de code sans tâche prise. On finit une tâche après avoir poussé le code.
 
-## Pousser son code
+## Git
 
-Un conflit arrive quand deux personnes modifient le même fichier. Chacun a donc son dossier (« Qui possède quoi » dans `PROJET.md`), et la règle dépend de ce qu'on touche :
-
-| Ce que vous modifiez | Comment |
+| Changement | Workflow |
 |---|---|
-| Votre dossier, `TACHES.md` | Push direct sur `main`. `git pull --rebase` avant chaque push, au moins toutes les 30 min. |
-| Un fichier commun : contrat d'API et types partagés, `package.json` et lockfile, config, le dossier d'un autre | Branche + pull request. Le gardien de `main` la relit et la fusionne. |
+| Son dossier (ownership dans `PROJET.md`), `TACHES.md` | Push direct sur `main`, `git pull --rebase` avant, au moins toutes les 30 min |
+| Fichiers communs (contrat d'API, types partagés, `package.json`/lockfile, config) ou dossier d'un autre | Branche + PR, relue et mergée par le gardien de `main` |
 
-Une pull request ne contient que ce que vous avez changé sur votre branche : les fichiers que vous n'avez pas touchés (dont `TACHES.md`) n'y sont pas, même s'ils ont bougé sur `main` depuis.
+Pas de `push --force`, pas de secret commité (`.env`).
 
-Pour finir une tâche : d'abord le code (push sur `main` ou PR ouverte), ensuite `bin/tache finir`.
+## Tests et CI
 
-Avant chaque push, le linter et le build passent. Si `main` est cassé, on répare avant toute autre chose.
+Chaque tâche livre ses tests quand c'est testable (logique, routes d'API, parsing des réponses de l'IA). La CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) lance `lint`, `build` et `test` sur chaque push et chaque PR. Un `main` rouge se répare avant toute autre chose.
 
 ## Discord
 
-Serveur : https://discord.gg/4QHYUJeZ5j
+https://discord.gg/4QHYUJeZ5j · notifications en mentions uniquement.
 
-On est assis ensemble, donc on se parle à voix haute. Discord sert à ce qui ne se dit pas.
-
-- `#💬-général` : un message pour tout le monde sans couper ceux qui sont concentrés. Pour que tout le monde le voie tout de suite, ajoutez `@everyone`.
-- `#🔗-liens-importants` : URL de démo, maquettes, accès, docs.
-- `#🤖-github-log` : rempli automatiquement par le repo.
-
-## Planning
-
-| Heure | Quoi |
-|---|---|
-| 13 h 30 – 14 h 15 | Problème, 3 écrans, contrat d'API, `PROJET.md`, découpage en tâches |
-| 14 h 15 – 19 h | On construit en parallèle |
-| 19 h | **Plus de nouvelles fonctions.** On rend la démo solide |
-| 20 h – 21 h 30 | Corrections, 2 répétitions du pitch |
-| 22 h | Code freeze |
-
-## Les fichiers
-
-| Fichier | Rôle |
-|---|---|
-| `PROJET.md` | Le contrat commun : problème, écrans, stack, API, qui possède quoi |
-| `TACHES.md` | Le tableau des tâches |
-| `AGENTS.md` | Les règles pour les agents IA (Claude, Codex, Qwen…) |
-| `DESIGN.md` | Le style de l'interface |
-| `docs/ENTRETIEN.md` | Les questions à poser à l'entreprise |
+- `#💬-général` : annonces ; `@everyone` si c'est urgent
+- `#🔗-liens-importants` : URL de démo, maquettes, accès, docs
+- `#🤖-github-log` : pushs et PR, automatique

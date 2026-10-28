@@ -16,7 +16,8 @@ Ce fichier est lu par chaque agent IA de l'équipe, quel que soit le modèle (Cl
 - Suis `DESIGN.md` pour toute interface : couleurs, typo, espacements, composants. N'invente pas de style.
 - Petits commits, `git pull --rebase` puis `git push` **au moins toutes les 30 min**.
 - **Ton dossier et `TACHES.md`** : push direct sur `main`. **Un fichier commun** (contrat d'API et types partagés, `package.json` et lockfile, config) **ou le dossier d'un autre** : branche + pull request (`gh pr create`), que le gardien de `main` relit. Ne fusionne jamais toi-même ta PR.
-- Avant chaque push : le linter et le build passent. Un push qui casse `main` se corrige avant toute autre chose.
+- **Tests** : chaque tâche livre ses tests quand c'est testable (logique, routes d'API, parsing des réponses de l'IA), dans le framework du projet (`npm test`). Pas de test pour du pur visuel.
+- Avant chaque push : `lint`, `build` et `test` passent en local. La CI (`.github/workflows/ci.yml`) les relance sur chaque push et PR ; si `main` est rouge, on répare avant toute autre chose.
 - Une nouvelle tâche découverte en route ne se fait pas en douce : `bin/tache nouvelle "Titre" "détails"`.
 - `bin/tache` écrit toujours sur `main`, même depuis une branche, sans toucher à ton code : ne modifie jamais `TACHES.md` à la main sur une branche.
 - Les humains modifient aussi `TACHES.md` à la main (tâches sans numéro, déplacées à la main) : c'est normal, le script les numérote. Toi, passe toujours par `bin/tache` pour ce fichier.

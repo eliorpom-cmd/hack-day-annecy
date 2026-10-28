@@ -1,0 +1,46 @@
+# Lint, build and test on every push and pull request.
+# Works for any Node project found at the root or in one subfolder
+# (app/, web/, front/, api/...): each folder with a package.json is checked.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  find:
+    runs-on: ubuntu-latest
+    outputs:
+      dirs: ${{ steps.dirs.outputs.dirs }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: dirs
+        run: |
+          dirs=$(find . -maxdepth 2 -name package.json -not -path '*/node_modules/*' -exec dirname {} \; | sort | jq -R . | jq -sc .)
+          echo "dirs=$dirs" >> "$GITHUB_OUTPUT"
+          echo "Projets trouvés : $dirs"
+
+  check:
+    needs: find
+    if: needs.find.outputs.dirs != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: ${{ fromJson(needs.find.outputs.dirs) }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.dir }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        run: |
+          if [ -f pnpm-lock.yaml ]; then npm i -g pnpm && pnpm install --frozen-lockfile
+          elif [ -f package-lock.json ]; then npm ci
+          else npm install; fi
+      - run: npm run lint --if-present
+      - run: npm run build --if-present
+      - run: npm test --if-present
