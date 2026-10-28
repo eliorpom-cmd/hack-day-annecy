@@ -14,4 +14,4 @@ Les règles complètes sont dans `AGENTS.md` (déjà chargé par `CLAUDE.md`). L
 5. Écris les tests de la tâche quand elle est testable. Commit + `git pull --rebase` + `git push` au moins toutes les 30 min, `lint`, `build` et `test` verts.
 6. Fini : push du code, puis `bin/tache finir NN "<1-3 lignes : fichiers, routes, ce qui reste>"`, puis dis à l'humain quoi tester.
 
-Si la tâche demande de changer un fichier commun (contrat d'API, types partagés, `package.json`, config) ou le dossier d'un autre : dis-le à l'humain ; avec son accord, fais-le sur une branche et ouvre une pull request (`gh pr create`) pour le gardien de `main`, sans la fusionner toi-même.
+Si la tâche demande de changer un fichier commun (contrat d'API, types partagés, `package.json`, config) ou le dossier d'un autre : dis-le à l'humain ; avec son accord, fais-le sur une branche et ouvre une pull request (`gh pr create`) pour l'intégrateur, sans la fusionner toi-même.

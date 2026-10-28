@@ -32,7 +32,7 @@ Pas de code sans tâche prise. On finit une tâche après avoir poussé le code.
 | Changement | Workflow |
 |---|---|
 | Son dossier (ownership dans `PROJET.md`), `TACHES.md` | Push direct sur `main`, `git pull --rebase` avant, au moins toutes les 30 min |
-| Fichiers communs (contrat d'API, types partagés, `package.json`/lockfile, config) ou dossier d'un autre | Branche + PR, relue et mergée par le gardien de `main` |
+| Fichiers communs (contrat d'API, types partagés, `package.json`/lockfile, config) ou dossier d'un autre | Branche + PR, relue et mergée par l'intégrateur |
 
 Pas de `push --force`, pas de secret commité (`.env`).
 
