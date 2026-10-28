@@ -18,11 +18,12 @@ Ce fichier est lu par chaque agent IA de l'équipe, quel que soit le modèle (Cl
 - **Ton dossier et `TACHES.md`** : push direct sur `main`. **Un fichier commun** (contrat d'API et types partagés, `package.json` et lockfile, config) **ou le dossier d'un autre** : branche + pull request (`gh pr create`), que le gardien de `main` relit. Ne fusionne jamais toi-même ta PR.
 - Avant chaque push : le linter et le build passent. Un push qui casse `main` se corrige avant toute autre chose.
 - Une nouvelle tâche découverte en route ne se fait pas en douce : `bin/tache nouvelle "Titre" "détails"`.
+- `bin/tache` écrit toujours sur `main`, même depuis une branche, sans toucher à ton code : ne modifie jamais `TACHES.md` à la main sur une branche.
 - Les humains modifient aussi `TACHES.md` à la main (tâches sans numéro, déplacées à la main) : c'est normal, le script les numérote. Toi, passe toujours par `bin/tache` pour ce fichier.
 
 ## Après
 
-1. Commit et push du code.
+1. Commit et push du code (ou pull request ouverte, pour un fichier commun).
 2. `bin/tache finir NN "ce que j'ai changé, en 1 à 3 lignes : fichiers, routes, ce qui reste"`.
 3. Dis à ton humain que c'est fini et ce qu'il doit tester.
 

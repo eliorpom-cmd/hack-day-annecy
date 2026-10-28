@@ -9,13 +9,16 @@
 //
 // On Windows: node bin/tache liste
 //
-// Every change is a commit of TACHES.md alone, pushed right away. If the push
-// is rejected, someone pushed first: we drop our commit, pull, and replay the
-// change on the fresh board (a task taken meanwhile is then reported as taken).
+// The board always lives on main, whatever branch you are on: every change is
+// made in a throwaway worktree of origin/main, committed and pushed to main
+// right away, so your own branch and uncommitted work are never touched. If
+// the push is rejected, someone pushed first: we refetch and replay the change
+// on the fresh board (a task taken meanwhile is then reported as taken).
 
 const { execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 
 const SECTIONS = ["À faire", "En cours", "Fait"];
 
@@ -25,26 +28,37 @@ function git(...args) {
 function tryGit(...args) {
   try { git(...args); return true; } catch { return false; }
 }
+// Thrown instead of exiting so the temporary worktree is always removed.
+class Stop extends Error {
+  constructor(msg, code) { super(msg); this.code = code; }
+}
 function fail(msg, code = 1) {
-  console.error("!! " + msg);
-  process.exit(code);
+  throw new Stop(msg, code);
 }
 
 const root = git("rev-parse", "--show-toplevel");
 process.chdir(root);
 const FILE = "TACHES.md";
 
-function sync() {
+function fetchMain() {
+  if (!tryGit("fetch", "-q", "origin", "main")) fail("Impossible de joindre GitHub (git fetch origin main).");
+}
+
+// Bring the local main up to date when we are on it, so the editor shows the new board.
+function refreshLocal() {
+  let branch = "";
+  try { branch = git("symbolic-ref", "--short", "HEAD"); } catch {}
+  if (branch !== "main") return;
   if (!tryGit("pull", "--rebase", "--autostash", "-q")) {
     tryGit("rebase", "--abort");
-    fail("git pull a échoué : règle le conflit puis relance.");
+    console.error("!! Le tableau est à jour sur GitHub, mais ton main local n'a pas pu se mettre à jour : fais git pull.");
   }
 }
 
 // Parse TACHES.md into { head, sections: { name: [task] } }.
 // A task is a "- " line plus the indented lines under it.
-function parse() {
-  const lines = fs.readFileSync(FILE, "utf8").split("\n");
+function parse(text) {
+  const lines = text.split("\n");
   const board = { head: [], sections: {}, order: [] };
   let cur = null;
   for (const line of lines) {
@@ -65,14 +79,14 @@ function parse() {
   return board;
 }
 
-function write(board) {
+function render(board) {
   while (board.head.length && board.head[board.head.length - 1] === "") board.head.pop();
   let out = board.head.join("\n") + "\n";
   for (const s of board.order) {
     out += `\n## ${s}\n\n`;
     for (const t of board.sections[s]) out += [t.first, ...t.more].join("\n") + "\n";
   }
-  fs.writeFileSync(FILE, out);
+  return out;
 }
 
 const numOf = (t) => { const m = t.first.match(/^-\s+(?:\[.\]\s+)?(\d+)\s+·/); return m ? parseInt(m[1], 10) : null; };
@@ -103,23 +117,36 @@ function show(board) {
   }
 }
 
-// Apply a change to the board, commit TACHES.md only, push; replay on conflict.
+// Apply a change to the board on origin/main in a throwaway worktree, commit
+// TACHES.md, push to main; on rejection, refetch and replay.
 function change(apply) {
-  for (let attempt = 0; attempt < 5; attempt++) {
-    sync();
-    const board = parse();
-    numberAll(board);
-    const { message, done } = apply(board);
-    write(board);
-    git("add", FILE);
-    git("commit", "-q", "-m", message, "--", FILE);
-    if (tryGit("push", "-q")) { done(); return; }
-    // Someone pushed first: drop our commit (uncommitted work is kept) and retry.
-    if (tryGit("pull", "--rebase", "--autostash", "-q") && tryGit("push", "-q")) { done(); return; }
-    tryGit("rebase", "--abort");
-    git("reset", "-q", "--keep", "HEAD~1");
+  fetchMain();
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "tache-"));
+  const g = (...args) => git("-C", tmp, ...args);
+  git("worktree", "add", "-q", "--detach", tmp, "origin/main");
+  try {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const file = path.join(tmp, FILE);
+      const board = parse(fs.readFileSync(file, "utf8"));
+      numberAll(board);
+      const { message, done } = apply(board);
+      fs.writeFileSync(file, render(board));
+      g("commit", "-q", "-m", message, "--", FILE);
+      try {
+        g("push", "-q", "origin", "HEAD:main");
+        done();
+        refreshLocal();
+        return;
+      } catch {
+        // Someone pushed first: start again from the new main.
+        g("fetch", "-q", "origin", "main");
+        g("reset", "-q", "--hard", "origin/main");
+      }
+    }
+    fail("Impossible de pousser après 5 essais. Relance dans un instant.");
+  } finally {
+    tryGit("worktree", "remove", "--force", tmp);
   }
-  fail("Impossible de pousser après 5 essais. Relance dans un instant.");
 }
 
 function whoDefault() {
@@ -128,10 +155,11 @@ function whoDefault() {
 
 const [cmd = "liste", a, b] = process.argv.slice(2);
 
+try {
 switch (cmd) {
   case "liste":
-    tryGit("pull", "--rebase", "--autostash", "-q");
-    show(parse());
+    fetchMain();
+    show(parse(git("show", `origin/main:${FILE}`)));
     break;
 
   case "nouvelle": {
@@ -186,4 +214,9 @@ switch (cmd) {
   default:
     console.log(fs.readFileSync(__filename, "utf8").split("\n").slice(1, 10).join("\n"));
     process.exit(1);
+}
+} catch (e) {
+  if (!(e instanceof Stop)) throw e;
+  console.error("!! " + e.message);
+  process.exit(e.code);
 }

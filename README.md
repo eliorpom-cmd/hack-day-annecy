@@ -23,7 +23,7 @@ Toutes les tâches sont dans [`TACHES.md`](TACHES.md), en trois parties : À fai
 - **Prendre** : déplacez la ligne sous « En cours » avec votre prénom entre parenthèses, puis commit et push **tout de suite**. Sans tâche prise, on ne code pas.
 - **Finir** : déplacez-la sous « Fait » avec, en dessous, `  - Fait : ce que vous avez changé`.
 
-Ça se fait à la main (éditeur, ou sur GitHub avec le crayon) ou au terminal :
+Le tableau vit toujours sur `main`. À la main, le plus simple est sur GitHub avec le crayon ; dans votre éditeur, faites `git pull` juste avant, sur `main`. Au terminal, `bin/tache` écrit directement sur `main`, même si vous êtes sur une branche, sans toucher à votre code en cours :
 
 ```
 bin/tache liste                        # le tableau
@@ -42,6 +42,10 @@ Un conflit arrive quand deux personnes modifient le même fichier. Chacun a donc
 |---|---|
 | Votre dossier, `TACHES.md` | Push direct sur `main`. `git pull --rebase` avant chaque push, au moins toutes les 30 min. |
 | Un fichier commun : contrat d'API et types partagés, `package.json` et lockfile, config, le dossier d'un autre | Branche + pull request. Le gardien de `main` la relit et la fusionne. |
+
+Une pull request ne contient que ce que vous avez changé sur votre branche : les fichiers que vous n'avez pas touchés (dont `TACHES.md`) n'y sont pas, même s'ils ont bougé sur `main` depuis.
+
+Pour finir une tâche : d'abord le code (push sur `main` ou PR ouverte), ensuite `bin/tache finir`.
 
 Avant chaque push, le linter et le build passent. Si `main` est cassé, on répare avant toute autre chose.
 
