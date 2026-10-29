@@ -24,6 +24,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - portable de l'artisan ~15 s, puis l'agent si pas de réponse ou refus ; hors horaires : l'agent direct
 - 08 · SMS instantané à l'artisan en cas d'urgence
   - déclenché par l'agent ; + transfert de l'appel si possible
+- 09 · Mail récap de la semaine
+  - appels, urgences, leads ; envoi programmé
 
 ## En cours
 
