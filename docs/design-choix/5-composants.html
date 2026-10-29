@@ -17,15 +17,15 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px}
 /* buttons */
 .btn{height:56px;border-radius:16px;border:0;font-family:inherit;font-weight:700;font-size:17px;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
-.p{background:var(--primary);color:var(--onprimary)}
+.p{background:var(--primary);color:var(--onprimary);box-shadow:inset 0 0 0 1px #2fc777}
 .s1{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .s2{background:transparent;color:var(--acc)}
-.s3{background:var(--tint);color:var(--ink)}
+.s3{background:var(--tint);color:var(--ink);box-shadow:inset 0 0 0 1px #b4e6c6}
 .p2{background:var(--ink);color:#fff}
 /* chips */
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .c1{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px;border-radius:999px;padding:5px 11px}
-.c1.r{color:var(--red);background:var(--redbg)} .c1.o{color:var(--orange);background:var(--orangebg)} .c1.g{color:var(--grey);background:var(--greybg)}
+.c1.r{color:var(--red);background:var(--redbg);box-shadow:inset 0 0 0 1px #f5c2c8} .c1.o{color:var(--orange);background:var(--orangebg);box-shadow:inset 0 0 0 1px #f1d2b0} .c1.g{color:var(--grey);background:var(--greybg);box-shadow:inset 0 0 0 1px #d3dbe4}
 .c2{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px;border-radius:999px;padding:5px 11px;color:#fff}
 .c2.r{background:var(--red)} .c2.o{background:var(--orange)} .c2.g{background:var(--grey)}
 .c3{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:14px}
@@ -34,9 +34,9 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
 .li{display:flex;align-items:center;gap:12px;padding:12px 14px;border-top:1px solid var(--line)} .li:first-child{border-top:0}
 .li .g{flex:1;min-width:0} .li .n{font-weight:700} .li .s{font-size:14px;color:var(--muted)} .li .t{font-size:14px;color:var(--muted)}
 .dot{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;flex:none} .dot svg{width:18px;height:18px}
-.dot.r{background:var(--redbg);color:var(--red)} .dot.o{background:var(--orangebg);color:var(--orange)} .dot.gr{background:var(--greybg);color:var(--grey)}
+.dot.r{background:var(--redbg);color:var(--red);box-shadow:inset 0 0 0 1px #f5c2c8} .dot.o{background:var(--orangebg);color:var(--orange);box-shadow:inset 0 0 0 1px #f1d2b0} .dot.gr{background:var(--greybg);color:var(--grey);box-shadow:inset 0 0 0 1px #d3dbe4}
 .bar{width:4px;align-self:stretch;border-radius:4px;flex:none} .bar.r{background:var(--red)} .bar.o{background:var(--orange)} .bar.gr{background:transparent}
-.callb{width:40px;height:40px;border-radius:12px;background:var(--tint);color:var(--acc);display:grid;place-items:center;flex:none}
+.callb{width:40px;height:40px;border-radius:12px;background:var(--tint);color:var(--acc);display:grid;place-items:center;flex:none;box-shadow:inset 0 0 0 1px #b4e6c6}
 /* inputs */
 .f label{display:block;font-weight:700;font-size:15px;margin-bottom:6px} .f .h{font-size:14px;color:var(--muted);margin-top:6px}
 .in1{height:54px;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:0 14px;display:flex;align-items:center;color:var(--muted)}
@@ -50,11 +50,11 @@ svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-l
 .st3{display:flex;gap:8px;flex-wrap:wrap} .st3 span{font-size:14px;font-weight:700;border-radius:999px;padding:6px 12px;background:var(--card);border:1px solid var(--line);color:var(--muted)} .st3 span.on{background:var(--ink);color:#fff;border-color:var(--ink)} .st3 span.done{color:var(--acc);background:var(--tint);border-color:var(--tint)}
 </style></head><body>
 <header><h1>Étape 5 sur 6 · Les composants</h1>
-<p>Police, palette et formes déjà choisies. Pour chaque composant, 2 ou 3 variantes. Réponds par ligne, par exemple « 5a A, 5b B… ».</p></header>
+<p>Police, palette et formes déjà choisies. Règle de la bordure : toute surface remplie (bloc, bouton, pastille, icône) a un trait fin un ton plus foncé que son fond ; un simple lien n'a pas de surface, donc pas de bordure. Pour chaque composant, 2 ou 3 variantes. Réponds par ligne, par exemple « 5a A, 5b B… ».</p></header>
 <div class="group"><h2>5a · Bouton secondaire</h2><p>Le bouton principal reste vert menthe, texte marine (choisi). Le secondaire accompagne, par exemple « Marquer comme rappelé ».</p><div class="row">
 <div class="opt"><div class="lab">A · Bordure<span>blanc, bordure fine, comme les blocs</span></div><button class="btn p"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button><button class="btn s1"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Marquer comme rappelé</button></div>
 <div class="opt"><div class="lab">B · Teinté<span>fond vert très clair</span></div><button class="btn p"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button><button class="btn s3"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Marquer comme rappelé</button></div>
-<div class="opt"><div class="lab">C · Simple lien<span>texte vert, sans fond</span></div><button class="btn p"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button><button class="btn s2"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Marquer comme rappelé</button></div>
+<div class="opt"><div class="lab">C · Simple lien<span>texte vert, sans fond ni bordure (pas de surface)</span></div><button class="btn p"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button><button class="btn s2"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Marquer comme rappelé</button></div>
 </div></div>
 
 <div class="group"><h2>5b · Pastille de priorité</h2><p>Sur la page d'un appel et dans la liste.</p><div class="row">
