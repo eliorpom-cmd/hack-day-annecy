@@ -1,0 +1,19 @@
+---
+// One generator block of the « Fiche Google » page: icon, title, one line, then its content
+import GIcon, { type GIconName } from "./GIcon.astro";
+interface Props { id: string; icon: GIconName; title: string; line: string; class?: string }
+const { id, icon, title, line, class: cls } = Astro.props;
+---
+<section class={`panel ${cls ?? ""}`} id={id}>
+  <div class="row items-start">
+    <span class="icon-tile"><GIcon name={icon} size={18} class="text-ink" /></span>
+    <div class="flex min-w-0 flex-1 flex-col">
+      <h2 class="font-bold">{title}</h2>
+      <p class="mt-0.5 text-small text-muted">{line}</p>
+    </div>
+  </div>
+  <div class="flex flex-col gap-3 px-[14px] pb-[14px]">
+    <slot />
+    <p class="text-small font-bold text-ink" data-error role="alert" hidden></p>
+  </div>
+</section>

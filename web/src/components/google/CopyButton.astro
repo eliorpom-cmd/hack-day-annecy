@@ -1,0 +1,9 @@
+---
+// « Copier » shortcut: copies the text of the element named by `target` (a CSS selector)
+import GIcon from "./GIcon.astro";
+interface Props { target: string; label?: string }
+const { target, label = "Copier" } = Astro.props;
+---
+<button type="button" class="shortcut" data-copy-target={target} data-copy-default={label}>
+  <GIcon name="copy" class="text-action-ink" /><span data-copy-label>{label}</span>
+</button>

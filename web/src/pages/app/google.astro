@@ -1,0 +1,176 @@
+---
+// « Fiche Google »: texts ready to paste on the artisan's Google profile (description, review
+// replies, seasonal posts). Direct publishing is announced only. Layout: DESIGN.md, texts: COPY.md.
+import AppShell from "../../layouts/AppShell.astro";
+import HubIcon from "../../components/hub/HubIcon.astro";
+import SoonRow from "../../components/hub/SoonRow.astro";
+import GIcon from "../../components/google/GIcon.astro";
+import ToolCard from "../../components/google/ToolCard.astro";
+import CopyButton from "../../components/google/CopyButton.astro";
+import { DESCRIPTION_MAX, REVIEW_MAX } from "../../lib/google.ts";
+
+const b = Astro.locals.business;
+if (!b) return Astro.redirect("/onboarding");
+const signer = b.first_name?.trim() || "";
+const area = "w-full resize-none rounded-block bg-page px-3 py-2 text-body outline-none shadow-[inset_0_0_0_1px_var(--color-line)] focus:shadow-[inset_0_0_0_2px_var(--color-ink)]";
+---
+<AppShell title="Fiche Google" active="google">
+  <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-[14px] px-4 pt-4 pb-6 lg:max-w-[1040px] lg:px-8 lg:pt-10">
+    <a href="/app" class="flex items-center gap-1 self-start font-bold text-ink lg:hidden" style="min-height:48px"><HubIcon name="chevron-left" />Appels</a>
+    <div>
+      <h1 class="text-title font-bold">Fiche Google</h1>
+      <p class="mt-2 text-muted">Des textes prêts à coller sur votre fiche Google.</p>
+    </div>
+
+    <div class="grid gap-[14px] lg:grid-cols-2 lg:items-start">
+      <ToolCard id="g-desc" icon="pen" title="Votre description" line={`Le texte de présentation de votre fiche. ${DESCRIPTION_MAX} caractères au plus.`}>
+        <div data-result hidden class="flex flex-col gap-2">
+          <label for="g-desc-text" class="sr-only">Description</label>
+          <textarea id="g-desc-text" rows="9" maxlength={DESCRIPTION_MAX} class={area} data-text></textarea>
+          <p class="self-end text-small text-muted" aria-live="polite"><span data-count class="font-bold">0</span> sur {DESCRIPTION_MAX} caractères</p>
+          <div class="flex gap-2">
+            <CopyButton target="#g-desc-text" />
+            <button type="button" class="shortcut" data-run data-again><GIcon name="rotate" class="text-action-ink" /><span data-label>Régénérer</span></button>
+          </div>
+        </div>
+        <button type="button" class="btn btn-secondary w-full" data-run data-first><GIcon name="pen" /><span data-label>Écrire ma description</span></button>
+      </ToolCard>
+
+      <ToolCard id="g-review" icon="reply" title="Répondre à un avis" line={`Collez l’avis d’un client. La réponse est signée ${signer || "de votre prénom"}.`}>
+        <fieldset>
+          <legend class="pb-1 text-small font-bold text-muted">Note du client</legend>
+          <div class="flex gap-1" data-stars>
+            {[1, 2, 3, 4, 5].map((n) => (
+              <label class="star grid size-12 cursor-pointer place-items-center rounded-call text-line">
+                <input type="radio" name="stars" value={n} class="sr-only" />
+                <GIcon name="star" size={28} />
+                <span class="sr-only">{n} étoile{n > 1 ? "s" : ""}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <label class="field field-area">
+          <textarea class="field-input" placeholder=" " rows="4" maxlength={REVIEW_MAX} data-review></textarea>
+          <span class="field-label">Avis du client</span>
+        </label>
+        <button type="button" class="btn btn-secondary w-full" data-run><GIcon name="reply" /><span data-label>Écrire la réponse</span></button>
+        <div data-result hidden class="flex flex-col gap-2">
+          <p id="g-reply-text" class="whitespace-pre-line rounded-block bg-page px-3 py-2" data-text></p>
+          <div class="flex gap-2"><CopyButton target="#g-reply-text" label="Copier la réponse" /></div>
+        </div>
+      </ToolCard>
+
+      <ToolCard id="g-posts" icon="news" title="Idées de publications Google" line="3 actualités de saison pour votre métier, prêtes à publier." class="lg:col-span-2">
+        <ol data-result hidden class="grid gap-2 lg:grid-cols-3" data-list></ol>
+        <button type="button" class="btn btn-secondary w-full lg:max-w-[360px]" data-run><GIcon name="news" /><span data-label>Proposer 3 idées</span></button>
+      </ToolCard>
+
+      <ul class="panel lg:col-span-2">
+        <SoonRow icon="store" label="Publier directement sur Google" line="Connexion à votre fiche Google, pour publier sans copier-coller." />
+      </ul>
+    </div>
+  </main>
+
+  <template id="g-post-tpl">
+    <li class="flex flex-col gap-2 rounded-block bg-page p-3">
+      <h3 class="font-bold" data-title></h3>
+      <p data-body></p>
+      <button type="button" class="shortcut mt-auto flex-none" data-copy-own><GIcon name="copy" class="text-action-ink" /><span data-copy-label>Copier</span></button>
+    </li>
+  </template>
+</AppShell>
+
+<style>
+  .star:has(input:focus-visible) { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+  .star.on { color: var(--color-ink); }
+  .star.on :global(svg) { fill: var(--color-ink); }
+  .field-area { height: auto; }
+  .field-area .field-input { position: relative; display: block; width: 100%; min-height: 128px; padding-top: 28px; resize: vertical; }
+  .field-area .field-label { top: 18px; transform: none; }
+</style>
+
+<script>
+  type Res = { ok: boolean; data: Record<string, unknown> & { hint?: string } };
+  const FAILED = "Le texte n’a pas pu être écrit. Réessayez dans un instant.";
+
+  async function post(url: string, body: unknown): Promise<Res> {
+    try {
+      const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      return { ok: r.ok, data: (await r.json().catch(() => ({}))) as Res["data"] };
+    } catch {
+      return { ok: false, data: { hint: "Pas de connexion. Vérifiez votre réseau et réessayez." } };
+    }
+  }
+
+  // Runs one generator: busy labels, error line, then `show` with the answer
+  function wire(card: HTMLElement, url: string, body: () => unknown | string, show: (d: Record<string, unknown>) => void, busy: string, done: string) {
+    const err = card.querySelector<HTMLElement>("[data-error]")!;
+    const buttons = [...card.querySelectorAll<HTMLButtonElement>("[data-run]")];
+    const labels = new Map(buttons.map((b) => [b, b.querySelector("[data-label]")!.textContent!]));
+    buttons.forEach((btn) => btn.addEventListener("click", async () => {
+      const payload = body();
+      if (typeof payload === "string") { err.textContent = payload; err.hidden = false; return; }
+      err.hidden = true;
+      buttons.forEach((b) => { b.disabled = true; });
+      btn.querySelector("[data-label]")!.textContent = busy;
+      const res = await post(url, payload);
+      buttons.forEach((b) => { b.disabled = false; b.querySelector("[data-label]")!.textContent = labels.get(b)!; });
+      if (!res.ok) { err.textContent = (typeof res.data.hint === "string" && res.data.hint) || FAILED; err.hidden = false; return; }
+      card.querySelector<HTMLElement>("[data-result]")!.hidden = false;
+      show(res.data);
+      const first = card.querySelector<HTMLButtonElement>("[data-first]");
+      if (first) first.hidden = true;
+      else btn.querySelector("[data-label]")!.textContent = labels.set(btn, done).get(btn)!;
+    }));
+  }
+
+  // Description: editable, live character count
+  const desc = document.getElementById("g-desc")!;
+  const descText = desc.querySelector<HTMLTextAreaElement>("[data-text]")!;
+  // Grows the text box with its content, so the whole description shows
+  const count = () => {
+    desc.querySelector("[data-count]")!.textContent = String(descText.value.length);
+    descText.style.height = "auto";
+    descText.style.height = `${descText.scrollHeight + 2}px`;
+  };
+  descText.addEventListener("input", count);
+  wire(desc, "/api/google/description", () => ({ previous: descText.value }), (d) => { descText.value = String(d.description ?? ""); count(); }, "Écriture…", "Régénérer");
+
+  // Review: stars + pasted text
+  const review = document.getElementById("g-review")!;
+  const stars = [...review.querySelectorAll<HTMLLabelElement>(".star")];
+  const picked = () => Number(review.querySelector<HTMLInputElement>("input[name=stars]:checked")?.value ?? 0);
+  review.querySelector("[data-stars]")!.addEventListener("change", () => stars.forEach((s, i) => s.classList.toggle("on", i < picked())));
+  wire(review, "/api/google/review", () => {
+    const text = review.querySelector<HTMLTextAreaElement>("[data-review]")!.value.trim();
+    if (!picked()) return "Choisissez la note du client, de 1 à 5 étoiles.";
+    if (!text) return "Collez l’avis du client avant de demander une réponse.";
+    return { text, stars: picked() };
+  }, (d) => { review.querySelector("[data-text]")!.textContent = String(d.reply ?? ""); }, "Écriture…", "Écrire une autre réponse");
+
+  // Seasonal post ideas
+  const posts = document.getElementById("g-posts")!;
+  const tpl = document.getElementById("g-post-tpl") as HTMLTemplateElement;
+  wire(posts, "/api/google/posts", () => ({}), (d) => {
+    const list = posts.querySelector("[data-list]")!;
+    list.replaceChildren(...((d.ideas as { title: string; text: string }[]) ?? []).map((idea) => {
+      const li = tpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
+      li.querySelector("[data-title]")!.textContent = idea.title;
+      li.querySelector("[data-body]")!.textContent = idea.text;
+      return li;
+    }));
+  }, "Recherche d’idées…", "Proposer d’autres idées");
+
+  // Every « Copier »: the target's text (textarea value or element text), short confirmation
+  document.addEventListener("click", async (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-copy-target],[data-copy-own]");
+    if (!btn) return;
+    const el = btn.dataset.copyTarget ? document.querySelector<HTMLElement>(btn.dataset.copyTarget) : btn.closest("li")?.querySelector<HTMLElement>("[data-body]");
+    const text = el instanceof HTMLTextAreaElement ? el.value : (el?.textContent ?? "");
+    const label = btn.querySelector("[data-copy-label]")!;
+    const initial = btn.dataset.copyDefault ?? "Copier";
+    try { await navigator.clipboard.writeText(text); label.textContent = "Copié"; }
+    catch { label.textContent = "Copie impossible"; }
+    setTimeout(() => (label.textContent = initial), 2000);
+  });
+</script>
