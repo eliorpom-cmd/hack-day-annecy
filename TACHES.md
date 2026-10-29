@@ -14,6 +14,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
 - 09 · Mail récap de la semaine
   - appels, urgences, leads ; envoi programmé
+- 11 · Back de l'onboarding et du dashboard (API)
+  - scan du site, voix, agent ElevenLabs, numéros, fiche, horaires, FAQ, appels, leads, stats ; voir le contrat dans PROJET.md
 
 ## En cours
 
