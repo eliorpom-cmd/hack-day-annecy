@@ -10,8 +10,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 
 - 01 · Inviter Mathieu sur GitHub
   - demander son pseudo, rôle Write
-- 02 · Ajouter au dépôt le code de l'agent ElevenLabs de Mathieu
-  - dans un dossier à lui ; noter dans PROJET.md ce que l'agent sait déjà faire
 - 03 · Brainstorm : choisir le métier visé et ce que montre la démo
   - s'appuyer sur etude-marche/README.md ; remplir Problème, Démo et Hors périmètre dans PROJET.md
 - 04 · Fixer la stack, le contrat d'API et qui possède quoi
@@ -29,6 +27,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 
 ## En cours
 
+- 02 · Ajouter au dépôt le code de l'agent ElevenLabs de Mathieu (Elior)
+  - dans un dossier à lui ; noter dans PROJET.md ce que l'agent sait déjà faire
 
 ## Fait
 
