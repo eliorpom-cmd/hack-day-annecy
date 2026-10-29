@@ -62,7 +62,8 @@ test("calendar connected: the two free slots, else never an appointment", () => 
   const withCal = buildSystemPrompt({ ...biz, first_name: "Marc" }, [], [], { calendar: true });
   assert.match(withCal, /créneau 1 : \{\{slot_1\}\}/);
   assert.match(withCal, /Sinon, Marc peut passer \{\{slot_2\}\}/);
-  assert.match(withCal, /Le rendez-vous est dans son agenda/);
+  assert.match(withCal, /c'est dans l'agenda de Marc/);
+  assert.match(withCal, /ne dites jamais « je relis »/);
   const without = buildSystemPrompt({ ...biz, first_name: "Marc" }, [], []);
   assert.doesNotMatch(without, /\{\{slot_1\}\}/);
   assert.match(without, /ne proposez jamais de date ni d'heure de rendez-vous/);
