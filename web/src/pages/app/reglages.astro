@@ -1,0 +1,100 @@
+---
+// « Réglages » (mode avancé, PROJET.md): list of settings, each row opens its edit view with ?section=….
+// Values: DESIGN.md (blocks, rows, bottom bar), texts: COPY.md. Saves go through the JSON API.
+import Base from "../../layouts/Base.astro";
+import Icon from "../../components/Icon.astro";
+import EditView from "../../components/settings/EditView.astro";
+import SettingRow from "../../components/settings/SettingRow.astro";
+import HoursEditor from "../../components/settings/HoursEditor.astro";
+import BusinessForm from "../../components/settings/BusinessForm.astro";
+import FaqEditor from "../../components/settings/FaqEditor.astro";
+import { db } from "../../lib/db";
+import { docSummary, hoursSummary, parseSection, type SettingsHour } from "../../lib/settings";
+import { formatFrPhone } from "../../lib/telephony/postcall";
+
+const b = Astro.locals.business;
+if (!b) return Astro.redirect("/login");
+if (b.onboarding_step !== "done") return Astro.redirect("/onboarding");
+
+const section = parseSection(Astro.url.searchParams.get("section"));
+const [hours, faqs, numbers] = await Promise.all([
+  db().prepare("SELECT weekday, opens, closes FROM business_hours WHERE business_id = ? ORDER BY weekday, opens").bind(b.id).all<SettingsHour>(),
+  db().prepare("SELECT id, question, answer, kind FROM faqs WHERE business_id = ? ORDER BY created_at").bind(b.id)
+    .all<{ id: string; question: string; answer: string; kind: "info" | "price" }>(),
+  db().prepare("SELECT e164 FROM phone_numbers WHERE business_id = ?").bind(b.id).all<{ e164: string }>(),
+]);
+const number = numbers.results[0]?.e164 ?? null;
+const phone = b.artisan_phone ? formatFrPhone(b.artisan_phone) : null;
+---
+<Base title="Réglages">
+  {section === "horaires" ? (
+    <EditView title="Horaires" lead="Pendant ces heures, votre portable sonne avant le répondeur." save="Enregistrer les horaires">
+      <HoursEditor hours={hours.results} />
+    </EditView>
+  ) : section === "sonnerie" ? (
+    <EditView title="Durée de sonnerie" lead="Le temps pendant lequel votre portable sonne avant que le répondeur décroche." save="Enregistrer">
+      <BusinessForm kind="sonnerie" ring={b.ring_seconds} />
+    </EditView>
+  ) : section === "portable" ? (
+    <EditView title="Votre portable" lead="Il sonne en premier quand un client appelle pendant vos horaires." save="Enregistrer">
+      <BusinessForm kind="portable" phone={phone} />
+    </EditView>
+  ) : section === "accueil" ? (
+    <EditView title="Message d’accueil" lead="La première phrase que le répondeur dit en décrochant." save="Enregistrer">
+      <BusinessForm kind="accueil" greeting={b.greeting} />
+    </EditView>
+  ) : section === "documentation" ? (
+    <EditView title="Documentation" lead="Le répondeur s’en sert pour répondre aux clients qui appellent.">
+      <FaqEditor faqs={faqs.results} />
+    </EditView>
+  ) : section === "numero" ? (
+    <EditView title="Votre numéro" lead="Vos clients appellent ce numéro. Donnez-le sur votre site, vos devis et votre camion.">
+      {number ? (
+        <div class="panel flex flex-col gap-1 px-[14px] py-4">
+          <span class="text-small text-muted">Numéro du répondeur</span>
+          <span class="text-title font-bold">{formatFrPhone(number)}</span>
+        </div>
+      ) : (
+        <p class="panel flex items-start gap-3 px-[14px] py-3">
+          <span class="icon-tile"><Icon name="alert" size={18} /></span>
+          <span><span class="font-bold">Pas encore de numéro.</span> Choisissez-en un pour recevoir vos appels.</span>
+        </p>
+      )}
+      <a href="/onboarding?etape=3" class="btn btn-secondary w-full">{number ? "Changer de numéro" : "Choisir un numéro"}</a>
+    </EditView>
+  ) : (
+    <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-[14px] px-4 pt-4 pb-6">
+      <a href="/app" class="flex items-center gap-1 self-start font-bold text-ink" style="min-height:48px"><Icon name="chevron-left" />Appels</a>
+      <h1 class="text-title font-bold">Réglages</h1>
+
+      <section>
+        <h2 class="px-[14px] pb-2 text-small font-bold text-muted">Quand un client appelle</h2>
+        <div class="panel">
+          <SettingRow href="?section=horaires" icon="clock" label="Horaires" value={hoursSummary(hours.results)} />
+          <SettingRow href="?section=sonnerie" icon="timer" label="Durée de sonnerie" value={`${b.ring_seconds} secondes`} />
+          <SettingRow href="?section=portable" icon="smartphone" label="Votre portable" value={phone ?? "Pas encore indiqué"} />
+        </div>
+      </section>
+
+      <section>
+        <h2 class="px-[14px] pb-2 text-small font-bold text-muted">Ce que dit le répondeur</h2>
+        <div class="panel">
+          <SettingRow href="?section=accueil" icon="message" label="Message d’accueil" value={b.greeting || "Phrase par défaut"} />
+          <SettingRow href="?section=documentation" icon="file-text" label="Documentation" value={docSummary(faqs.results)} />
+          <SettingRow href="/onboarding?etape=2" icon="mic" label="Voix du répondeur" value={b.voice_name ?? "Pas encore choisie"} />
+        </div>
+      </section>
+
+      <section>
+        <h2 class="px-[14px] pb-2 text-small font-bold text-muted">Vos clients appellent</h2>
+        <div class="panel">
+          <SettingRow href="?section=numero" icon="phone" label="Votre numéro" value={number ? formatFrPhone(number) : "Pas encore de numéro"} />
+        </div>
+      </section>
+
+      <form method="post" action="/api/auth/logout" class="mt-auto pt-6">
+        <button class="panel row w-full justify-center font-bold"><Icon name="log-out" />Se déconnecter</button>
+      </form>
+    </main>
+  )}
+</Base>

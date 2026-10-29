@@ -1,0 +1,121 @@
+---
+// « Documentation » edit view body: questions and prices the répondeur uses. Tap a row to edit it in a window,
+// or add one. Each change saves at once through /api/faqs, then updates the répondeur (POST /api/agent).
+import Field from "../setup/Field.astro";
+type Faq = { id: string; question: string; answer: string; kind: "info" | "price" };
+interface Props { faqs: Faq[] }
+const { faqs } = Astro.props;
+---
+<h2 class="mt-2 text-small font-bold text-muted">Questions</h2>
+<div class="panel" data-faq-list="info"></div>
+<h2 class="mt-2 text-small font-bold text-muted">Prix</h2>
+<div class="panel" data-faq-list="price"></div>
+<p class="-mt-2 mx-4 text-small text-muted">Sans prix noté, le répondeur dit que vous rappelez pour le prix.</p>
+<script type="application/json" id="faqs-init" set:html={JSON.stringify(faqs).replace(/</g, "\\u003c")} />
+
+<dialog data-faq-dialog class="dialog">
+  <form method="dialog" class="flex flex-col gap-[14px]" novalidate>
+    <h2 data-faq-title class="text-[22px] font-bold leading-tight"></h2>
+    <Field id="faq-question" label="Question" multiline maxlength={300} />
+    <Field id="faq-answer" label="Réponse" multiline maxlength={2000} />
+    <p data-faq-error class="text-small font-bold" role="alert" hidden></p>
+    <div class="flex flex-col gap-2">
+      <button type="button" data-faq-save class="btn btn-primary w-full">Enregistrer</button>
+      <button type="button" data-faq-delete class="btn btn-secondary w-full">Supprimer</button>
+      <button type="button" data-faq-cancel class="min-h-12 text-small font-bold text-muted">Annuler</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  import { api, busy, el, icon, readInit, refreshAgent, status, SAVE_FAILED } from "./client";
+
+  type Kind = "info" | "price";
+  type Faq = { id: string; question: string; answer: string; kind: Kind };
+  const dialog = document.querySelector<HTMLDialogElement>("[data-faq-dialog]");
+  if (dialog) {
+    let faqs = readInit<Faq[]>("faqs-init");
+    let editing: { id: string | null; kind: Kind } = { id: null, kind: "info" };
+
+    const q = document.getElementById("faq-question") as HTMLTextAreaElement;
+    const a = document.getElementById("faq-answer") as HTMLTextAreaElement;
+    const label = (id: string) => document.querySelector<HTMLElement>(`[data-field="${id}"] .field-label`)!;
+    const title = dialog.querySelector<HTMLElement>("[data-faq-title]")!;
+    const error = dialog.querySelector<HTMLElement>("[data-faq-error]")!;
+    const saveBtn = dialog.querySelector<HTMLButtonElement>("[data-faq-save]")!;
+    const deleteBtn = dialog.querySelector<HTMLButtonElement>("[data-faq-delete]")!;
+    const showError = (msg: string | null) => { error.textContent = msg ?? ""; error.hidden = !msg; };
+
+    function open(faq: Faq | null, kind: Kind) {
+      editing = { id: faq?.id ?? null, kind };
+      const price = kind === "price";
+      title.textContent = faq ? (price ? "Modifier le prix" : "Modifier la question") : (price ? "Ajouter un prix" : "Ajouter une question");
+      label("faq-question").textContent = price ? "Prestation" : "Question";
+      label("faq-answer").textContent = price ? "Prix" : "Réponse";
+      q.value = faq?.question ?? "";
+      a.value = faq?.answer ?? "";
+      deleteBtn.hidden = !faq;
+      showError(null);
+      status(null);
+      dialog!.showModal();
+      q.focus();
+    }
+
+    function render() {
+      for (const kind of ["info", "price"] as Kind[]) {
+        const box = document.querySelector<HTMLElement>(`[data-faq-list="${kind}"]`)!;
+        const rows = faqs.filter((f) => f.kind === kind).map((f) => {
+          const b = el("button", { type: "button", class: "row w-full items-start text-left" },
+            icon(kind === "price" ? "euro" : "help"),
+            el("span", { class: "flex min-w-0 flex-1 flex-col" },
+              el("span", { class: "font-bold" }, f.question),
+              el("span", { class: "text-small text-muted line-clamp-2" }, f.answer)),
+            icon("chevron"));
+          b.addEventListener("click", () => open(f, kind));
+          return b;
+        });
+        const add = el("button", { type: "button", class: "row w-full text-left font-bold" },
+          el("span", { class: "icon-tile" }, icon("plus")), kind === "price" ? "Ajouter un prix" : "Ajouter une question");
+        add.addEventListener("click", () => open(null, kind));
+        box.replaceChildren(...rows, add);
+      }
+    }
+    render();
+
+    async function after(ok: boolean, hint?: string) {
+      busy(saveBtn, false); busy(deleteBtn, false);
+      if (!ok) { showError(hint ?? SAVE_FAILED); return; }
+      dialog!.close();
+      render();
+      status("saved");
+      await refreshAgent();
+    }
+
+    saveBtn.addEventListener("click", async () => {
+      const body = { question: q.value.trim(), answer: a.value.trim(), kind: editing.kind };
+      if (!body.question || !body.answer) {
+        showError(editing.kind === "price" ? "Indiquez la prestation et son prix." : "Indiquez la question et sa réponse.");
+        return;
+      }
+      busy(saveBtn, true);
+      if (editing.id) {
+        const r = await api<{ faq: Faq }>("PUT", `/api/faqs/${editing.id}`, body);
+        if (r.ok) faqs = faqs.map((f) => (f.id === editing.id ? r.data.faq : f));
+        return after(r.ok, r.data.hint);
+      }
+      const r = await api<{ faq: Faq }>("POST", "/api/faqs", body);
+      if (r.ok) faqs.push(r.data.faq);
+      return after(r.ok, r.data.hint);
+    });
+
+    deleteBtn.addEventListener("click", async () => {
+      if (!editing.id) return;
+      busy(deleteBtn, true);
+      const r = await api("DELETE", `/api/faqs/${editing.id}`);
+      if (r.ok) faqs = faqs.filter((f) => f.id !== editing.id);
+      return after(r.ok, r.data.hint);
+    });
+
+    dialog.querySelector("[data-faq-cancel]")!.addEventListener("click", () => dialog.close());
+  }
+</script>

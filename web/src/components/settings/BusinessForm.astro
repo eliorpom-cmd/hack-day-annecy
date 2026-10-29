@@ -1,0 +1,72 @@
+---
+// Edit view body for single business fields (« Durée de sonnerie », « Votre portable », « Message d'accueil »).
+// Every element with data-biz="<column>" is sent with PUT /api/business. data-agent: also update the répondeur.
+import Icon from "../Icon.astro";
+import Field from "../setup/Field.astro";
+interface Props { kind: "sonnerie" | "portable" | "accueil"; ring?: number; phone?: string | null; greeting?: string }
+const { kind, ring = 15, phone, greeting } = Astro.props;
+---
+<form data-biz-form data-agent={kind === "accueil" ? "1" : undefined} class="flex flex-col gap-[14px]" novalidate>
+  {kind === "sonnerie" && (
+    <>
+      <div class="panel">
+        <div class="row">
+          <span class="icon-tile"><Icon name="timer" size={18} /></span>
+          <div class="flex-1"><p class="text-small text-muted">Durée de sonnerie</p><p><span data-ring-label>{ring}</span> secondes</p></div>
+          <button type="button" class="step-btn" data-ring-step="-5" aria-label="5 secondes de moins"><Icon name="minus" /></button>
+          <button type="button" class="step-btn" data-ring-step="5" aria-label="5 secondes de plus"><Icon name="plus" /></button>
+        </div>
+      </div>
+      <input type="hidden" data-biz="ring_seconds" data-number value={ring} />
+      <p class="-mt-2 mx-4 text-small text-muted">Entre 5 et 40 secondes. Ensuite, le répondeur décroche.</p>
+    </>
+  )}
+  {kind === "portable" && (
+    <Field id="artisan_phone" label="Votre portable" type="tel" inputmode="tel" autocomplete="tel" value={phone} help="Exemple : 06 12 34 56 78" />
+  )}
+  {kind === "accueil" && (
+    <Field id="greeting" label="Phrase d’accueil" value={greeting} multiline maxlength={300} help="Le répondeur la dit en décrochant." />
+  )}
+</form>
+
+<script>
+  import { api, busy, clearOnInput, refreshAgent, status } from "./client";
+
+  const form = document.querySelector<HTMLFormElement>("[data-biz-form]");
+  if (form) {
+    clearOnInput(form);
+    // Fields rendered by Field.astro carry their column name as id
+    const inputs = () => [
+      ...form.querySelectorAll<HTMLInputElement>("[data-biz]"),
+      ...form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("#artisan_phone, #greeting"),
+    ];
+
+    // Ring duration stepper: 5 to 40 s, by 5
+    const ring = form.querySelector<HTMLInputElement>('[data-biz="ring_seconds"]');
+    const ringLabel = form.querySelector<HTMLElement>("[data-ring-label]");
+    form.querySelectorAll<HTMLButtonElement>("[data-ring-step]").forEach((b) => b.addEventListener("click", () => {
+      if (!ring || !ringLabel) return;
+      const v = Math.min(40, Math.max(5, Number(ring.value) + Number(b.dataset.ringStep)));
+      ring.value = String(v);
+      ringLabel.textContent = String(v);
+      status(null);
+    }));
+
+    const save = document.querySelector<HTMLButtonElement>("[data-save]");
+    const submit = async () => {
+      const body: Record<string, unknown> = {};
+      for (const i of inputs()) {
+        const key = i.dataset.biz ?? i.id;
+        body[key] = i.dataset.number !== undefined ? Number(i.value) : i.value.trim();
+      }
+      busy(save, true);
+      const r = await api("PUT", "/api/business", body);
+      if (!r.ok) { busy(save, false); status("error", r.data.hint); return; }
+      status("saved");
+      if (form.dataset.agent) await refreshAgent();
+      busy(save, false);
+    };
+    save?.addEventListener("click", submit);
+    form.addEventListener("submit", (e) => { e.preventDefault(); submit(); });
+  }
+</script>

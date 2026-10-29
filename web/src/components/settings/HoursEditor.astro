@@ -1,0 +1,76 @@
+---
+// « Horaires » edit view body: one row per weekday, slots editable, « Fermé » when none.
+// Saves with PUT /api/business/hours, then updates the répondeur (POST /api/agent).
+import type { SettingsHour } from "../../lib/settings";
+interface Props { hours: SettingsHour[] }
+const { hours } = Astro.props;
+---
+<div class="panel" data-hours-editor></div>
+<p class="-mt-2 mx-4 text-small text-muted">Pendant vos horaires, votre portable sonne d’abord.</p>
+<script type="application/json" id="hours-init" set:html={JSON.stringify(hours)} />
+
+<script>
+  import { DAYS } from "../setup/steps";
+  import { api, busy, clearOnInput, el, icon, readInit, refreshAgent, status } from "./client";
+
+  type Hour = { weekday: number; opens: string; closes: string };
+  const box = document.querySelector<HTMLElement>("[data-hours-editor]");
+  if (box) {
+    let hours = readInit<Hour[]>("hours-init").map((h) => ({ ...h }));
+    clearOnInput(box);
+
+    const timeInput = (value: string, label: string, onChange: (v: string) => void) => {
+      const t = el("input", { type: "time", class: "time-input", "aria-label": label, step: "900" }) as HTMLInputElement;
+      t.value = value;
+      t.addEventListener("change", () => onChange(t.value));
+      return t;
+    };
+
+    const render = () => {
+      box.replaceChildren(...DAYS.map((day, weekday) => {
+        const slots = hours.filter((h) => h.weekday === weekday);
+        const add = el("button", { type: "button", class: "step-btn", "aria-label": `Ajouter un créneau le ${day.toLowerCase()}` }, icon("plus"));
+        add.addEventListener("click", () => {
+          const last = slots[slots.length - 1];
+          // A second slot of the day starts in the afternoon
+          hours.push(last
+            ? { weekday, opens: last.closes < "14:00" ? "14:00" : last.closes, closes: last.closes < "14:00" ? "18:00" : "20:00" }
+            : { weekday, opens: "08:00", closes: "18:00" });
+          status(null);
+          render();
+        });
+        const lines = slots.map((h) => {
+          const remove = el("button", { type: "button", class: "step-btn text-muted", "aria-label": `Retirer ce créneau du ${day.toLowerCase()}` }, icon("trash"));
+          remove.addEventListener("click", () => { hours.splice(hours.indexOf(h), 1); status(null); render(); });
+          return el("div", { class: "flex items-center gap-2" },
+            timeInput(h.opens, `${day}, ouverture`, (v) => { h.opens = v; }),
+            el("span", { class: "text-muted" }, "à"),
+            timeInput(h.closes, `${day}, fermeture`, (v) => { h.closes = v; }),
+            el("span", { class: "flex-1" }),
+            remove);
+        });
+        return el("div", { class: "row flex-col items-stretch gap-2" },
+          el("div", { class: "flex items-center gap-3" },
+            icon("clock"),
+            el("p", { class: "flex-1" }, el("span", { class: "font-bold" }, day), slots.length ? "" : el("span", { class: "text-muted" }, " · Fermé")),
+            add),
+          ...lines);
+      }));
+    };
+    render();
+
+    const save = document.querySelector<HTMLButtonElement>("[data-save]");
+    save?.addEventListener("click", async () => {
+      const bad = hours.find((h) => !h.opens || !h.closes || h.opens >= h.closes);
+      if (bad) { status("error", `${DAYS[bad.weekday]} : l’heure de fermeture doit être après l’ouverture.`); return; }
+      busy(save, true);
+      const r = await api<{ hours: Hour[] }>("PUT", "/api/business/hours", hours);
+      if (!r.ok) { busy(save, false); status("error", r.data.hint); return; }
+      hours = r.data.hours.map((h) => ({ ...h }));
+      render();
+      status("saved");
+      await refreshAgent();
+      busy(save, false);
+    });
+  }
+</script>

@@ -1,0 +1,41 @@
+---
+// Frame of a settings edit view: « ‹ Réglages », title, one sentence on what it is used for, the editor,
+// then the bottom bar with the status line and the single green button (DESIGN.md « Barre du bas »).
+import Icon from "../Icon.astro";
+interface Props { title: string; lead: string; save?: string }
+const { title, lead, save } = Astro.props;
+---
+<main class="mx-auto flex min-h-dvh max-w-[480px] flex-col">
+  <div class="flex flex-1 flex-col gap-[14px] px-4 pt-4 pb-4">
+    <a href="/app/reglages" class="flex items-center gap-1 self-start font-bold text-ink" style="min-height:48px"><Icon name="chevron-left" />Réglages</a>
+    <div>
+      <h1 class="text-title font-bold">{title}</h1>
+      <p class="mt-2 text-muted">{lead}</p>
+    </div>
+    <slot />
+  </div>
+
+  <div class="sticky bottom-0 flex flex-col gap-2 bg-page px-4 pt-3 pb-6">
+    <p data-status-ok class="flex items-center justify-center gap-1 text-small font-bold text-action-ink" role="status" hidden><Icon name="check" size={18} />Enregistré</p>
+    <p data-agent-error class="mx-4 -mt-1 text-center text-small text-muted" role="status" hidden>Le répondeur n’a pas été mis à jour. Réessayez plus tard.</p>
+    <p data-status-error class="mx-4 text-small font-bold" role="alert" hidden></p>
+    {save && <button type="button" data-save class="btn btn-primary w-full">{save}</button>}
+  </div>
+
+  <!-- Icons cloned by the client scripts into rows they build -->
+  <template data-icon="clock"><span class="icon-tile"><Icon name="clock" size={18} /></span></template>
+  <template data-icon="euro"><span class="icon-tile"><Icon name="euro" size={18} /></span></template>
+  <template data-icon="help"><span class="icon-tile"><Icon name="help" size={18} /></span></template>
+  <template data-icon="trash"><Icon name="trash" /></template>
+  <template data-icon="plus"><Icon name="plus" /></template>
+  <template data-icon="chevron"><Icon name="chevron-right" class="flex-none text-muted" /></template>
+</main>
+
+<style is:global>
+  /* 48 px square icon button (add, remove, steppers) */
+  .step-btn { flex: none; display: grid; place-items: center; width: 48px; height: 48px; margin: -6px -8px -6px 0; border-radius: var(--radius-call); color: var(--color-ink); }
+  .step-btn:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+  /* Time slot input, filled like a Material field */
+  .time-input { width: 108px; height: 44px; padding: 0 10px; border-radius: 4px 4px 0 0; background: var(--color-neutral-bg); box-shadow: inset 0 -1px 0 var(--color-muted); font-size: var(--text-body); color: var(--color-ink); }
+  .time-input:focus { outline: none; box-shadow: inset 0 -2px 0 var(--color-ink); }
+</style>

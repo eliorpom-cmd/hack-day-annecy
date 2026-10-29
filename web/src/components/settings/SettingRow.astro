@@ -1,0 +1,20 @@
+---
+// One line of the settings list: icon tile, label, current value, chevron. The whole row is the link (≥ 48 px).
+import type { ComponentProps } from "astro/types";
+import Icon from "../Icon.astro";
+type IconName = ComponentProps<typeof Icon>["name"];
+interface Props { href: string; icon: IconName; label: string; value: string }
+const { href, icon, label, value } = Astro.props;
+---
+<a href={href} class="row settings-row">
+  <span class="icon-tile"><Icon name={icon} size={18} /></span>
+  <span class="flex min-w-0 flex-1 flex-col">
+    <span class="text-small text-muted">{label}</span>
+    <span class="truncate">{value}</span>
+  </span>
+  <Icon name="chevron-right" class="flex-none text-muted" />
+</a>
+
+<style is:global>
+  .settings-row:focus-visible { outline: 2px solid var(--color-ink); outline-offset: -2px; border-radius: var(--radius-block); }
+</style>

@@ -3,6 +3,7 @@
 import Base from "../../layouts/Base.astro";
 import CallRow from "../../components/CallRow.astro";
 import SegmentedFilter from "../../components/SegmentedFilter.astro";
+import Icon from "../../components/Icon.astro";
 import { leadsForBusiness } from "../../lib/leads-list";
 import { groupByDay, hourLabel, toCallBack } from "../../lib/leads-group";
 
@@ -16,7 +17,10 @@ const groups = view === "tous" ? groupByDay(leads) : [];
 ---
 <Base title="Appels">
   <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-[14px] px-4 pt-6 pb-6">
-    <h1 class="text-title font-bold">Appels</h1>
+    <div class="flex items-center justify-between">
+      <h1 class="text-title font-bold">Appels</h1>
+      <a href="/app/reglages" aria-label="Réglages" class="-mr-3 grid h-12 w-12 place-items-center rounded-call text-ink"><Icon name="settings" /></a>
+    </div>
     <SegmentedFilter view={view} count={pending.length} />
 
     {leads.length === 0 ? (
