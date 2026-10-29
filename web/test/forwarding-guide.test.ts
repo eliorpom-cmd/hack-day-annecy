@@ -21,7 +21,7 @@ test("iPhone copies and pastes the code, Android dials it", () => {
 test("the no-answer delay follows the ring time, within 5 to 30 s", () => {
   const steps = guideSteps({ platform: "android", answering: "+33450123456", mobile: null, seconds: 40 });
   assert.equal(steps[0]!.kind === "code" && steps[0]!.code, "**61*+33450123456**30#");
-  assert.match(steps[3]!.lines[1]!, /30 secondes/);
+  assert.match(steps[3]!.lines[1]!, /30\u00a0secondes/);
 });
 
 test("platform and phone helpers", () => {
