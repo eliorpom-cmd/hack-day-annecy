@@ -22,6 +22,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
 - 07 · Routage des appels par horaires
   - portable de l'artisan ~15 s, puis l'agent si pas de réponse ou refus ; hors horaires : l'agent direct
+- 08 · SMS instantané à l'artisan en cas d'urgence
+  - déclenché par l'agent ; + transfert de l'appel si possible
 
 ## En cours
 
