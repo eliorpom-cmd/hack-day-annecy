@@ -16,8 +16,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - aperçu audio de chaque voix (ElevenLabs preview_url, ou phrase d'accueil générée en TTS) ; nécessite la clé
 - 28 · Publicités Meta : étudier l'intégration
   - API Marketing de Meta : accès, validation de l'app, coût ; v2, pour le pitch
-- 30 · Fiche Google : j'ai une fiche / je n'en ai pas (démo)
-  - Choix en haut de la page Fiche Google ; « j'ai une fiche » charge 3 s puis montre la fiche Le plombier annecy et ses derniers avis, avec une réponse pré-remplie à envoyer en un clic.
 
 ## En cours
 
@@ -27,6 +25,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - scénario demande de devis : un appelle, un joue l'artisan
 - 14 · Slides du pitch (~5 min) (Maxime)
   - deck web exportable PDF/PPTX
+- 30 · Fiche Google : j'ai une fiche / je n'en ai pas (démo) (Mathieu)
+  - Choix en haut de la page Fiche Google ; « j'ai une fiche » charge 3 s puis montre la fiche Le plombier annecy et ses derniers avis, avec une réponse pré-remplie à envoyer en un clic.
 
 ## Fait
 
