@@ -48,7 +48,7 @@ const phone = b.artisan_phone ? formatFrPhone(b.artisan_phone) : null;
       <FaqEditor faqs={faqs.results} />
     </EditView>
   ) : section === "numero" ? (
-    <EditView title="Votre numéro" lead="Vos clients appellent ce numéro. Donnez-le sur votre site, vos devis et votre camion.">
+    <EditView title="Votre numéro" lead={b.forwarding_mode === "renvoi" ? "Votre portable renvoie ici les appels que vous ne prenez pas. Vous n’avez pas à le donner." : "Vos clients appellent ce numéro. Donnez-le sur votre site, vos devis et votre camion."}>
       {number ? (
         <div class="panel flex flex-col gap-1 px-[14px] py-4">
           <span class="text-small text-muted">Numéro du répondeur</span>
@@ -88,7 +88,14 @@ const phone = b.artisan_phone ? formatFrPhone(b.artisan_phone) : null;
       <section>
         <h2 class="px-[14px] pb-2 text-small font-bold text-muted">Vos clients appellent</h2>
         <div class="panel">
-          <SettingRow href="?section=numero" icon="phone" label="Votre numéro" value={number ? formatFrPhone(number) : "Pas encore de numéro"} />
+          {b.forwarding_mode === "renvoi" ? (
+            <>
+              <SettingRow href="?renvoi=guide" icon="forward" label="Renvoi d’appel" value={b.forwarding_done_at ? "Activé sur votre portable" : "À activer sur votre portable"} />
+              <SettingRow href="?section=numero" icon="phone" label="Numéro du répondeur" value={number ? formatFrPhone(number) : "Pas encore de numéro"} />
+            </>
+          ) : (
+            <SettingRow href="?section=numero" icon="phone" label="Votre numéro" value={number ? formatFrPhone(number) : "Pas encore de numéro"} />
+          )}
         </div>
       </section>
 

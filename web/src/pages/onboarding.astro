@@ -10,6 +10,7 @@ import { db } from "../lib/db";
 import { demoSetup, isDemoSetupEmail } from "../lib/demo-setup";
 import { secret } from "../lib/env";
 import { normalizeE164 } from "../lib/phone";
+import { demoVoiceId, isDemoAccount } from "../lib/demo-voice";
 
 const b = Astro.locals.business;
 if (!b) return Astro.redirect("/login");
@@ -39,7 +40,12 @@ const init = {
   // The répondeur number already owned on the Twilio account: the only number offered on step 3
   demo_number: normalizeE164(secret("TWILIO_SMS_FROM") ?? ""),
   demo: null as ReturnType<typeof demoSetup> | null,
+  // Demo accounts: « ready » = the team's voice is cloned, one sentence is enough; « record » = record it (3 sentences)
+  demo_voice: null as "ready" | "record" | null,
 };
+if (isDemoAccount(Astro.locals.user)) {
+  init.demo_voice = Astro.url.searchParams.has("voix-demo") || !(await demoVoiceId()) ? "record" : "ready";
+}
 // Demo setup (« Essayer la configuration »): Plomberie Martin pre-filled, no AI call, nothing bought (lib/demo-setup.ts)
 const demo = isDemoSetupEmail(Astro.locals.user?.email) ? demoSetup({ origin: Astro.url.origin, mobile: secret("DEMO_MOBILE") }) : null;
 // Filled once: a company name, or the name of a self-employed artisan
@@ -182,9 +188,9 @@ init.demo = demo;
       <section data-step="3" class="flex flex-col gap-[14px]" hidden>
         <div>
           <h1 class="text-title font-bold">Votre numéro</h1>
-          <p class="mt-2 text-muted">Vos clients appellent ce numéro. Votre portable sonne d’abord, puis le répondeur décroche.</p>
+          <p class="mt-2 text-muted">Vos clients appellent toujours votre numéro. Si vous ne répondez pas, l’appel passe au répondeur.</p>
         </div>
-        <Field id="phone3" label="Votre portable" type="tel" inputmode="tel" autocomplete="tel" value={b.artisan_phone} help="Exemple : 06 12 34 56 78" />
+        <Field id="phone3" label="Votre portable" type="tel" inputmode="tel" autocomplete="tel" value={b.artisan_phone} help="Le numéro que vos clients connaissent. Exemple : 06 12 34 56 78" />
 
         <div class="panel">
           <div class="row">
@@ -194,9 +200,10 @@ init.demo = demo;
             <button type="button" class="step-btn" data-ring-step="5" aria-label="5 secondes de plus"><Icon name="plus" /></button>
           </div>
         </div>
-        <p class="-mt-2 mx-4 text-small text-muted">Ensuite, le répondeur décroche.</p>
+        <p class="-mt-2 mx-4 text-small text-muted">Ensuite, l’appel passe au répondeur.</p>
 
-        <h2 class="mt-2 text-small font-bold text-muted">Choisissez votre numéro</h2>
+        <h2 class="mt-2 text-small font-bold text-muted">Numéro du répondeur</h2>
+        <p class="-mt-2 mx-4 text-small text-muted">Votre portable lui renvoie les appels. Vous n’avez pas à le donner.</p>
         <p data-numbers-status class="text-muted" role="status">Recherche des numéros…</p>
         <div class="panel" data-numbers role="radiogroup" aria-label="Numéros" hidden></div>
         <p data-numbers-error class="panel flex items-start gap-3 px-[14px] py-3" hidden>
@@ -210,6 +217,13 @@ init.demo = demo;
         <div>
           <h1 class="text-title font-bold">Essai</h1>
           <p class="mt-2 font-bold" data-ready>Votre répondeur est prêt.</p>
+        </div>
+        <div data-renvoi-next class="flex flex-col gap-[14px]" hidden>
+          <div class="panel">
+            <div class="row"><span class="icon-tile"><Icon name="smartphone" size={18} /></span><div><p class="text-small text-muted">Votre portable</p><p class="font-bold" data-renvoi-mobile></p></div></div>
+            <div class="row"><span class="icon-tile"><Icon name="forward" size={18} /></span><div><p class="text-small text-muted">Renvoyé vers le répondeur</p><p class="font-bold" data-renvoi-number></p></div></div>
+          </div>
+          <p>Dernière étape : activer le renvoi d’appel sur votre portable. Cela prend 2 minutes, écran par écran.</p>
         </div>
         <div data-has-number class="flex flex-col gap-[14px]">
           <a data-test-link href="#" class="panel flex flex-col gap-1 px-[14px] py-4">
@@ -279,6 +293,7 @@ init.demo = demo;
         first_name: string; last_name: string; voice_gender: "female" | "male" | null; forwarding_mode: "renvoi" | "numero" | null };
       hours: Hour[]; faqs: (Faq & { id: string })[]; number: string | null; demo_number: string | null;
       demo: DemoSetup | null; // « Essayer la configuration »: pre-filled with Plomberie Martin
+      demo_voice: "ready" | "record" | null;
     };
     const init = JSON.parse(document.getElementById("setup-init")!.textContent!) as Init;
     const STEPS = JSON.parse(document.getElementById("setup-steps")!.textContent!) as string[];
@@ -762,7 +777,11 @@ init.demo = demo;
     }
 
     // ---- The artisan's own voice: 3 sentences recorded in the browser, sent as WAV to /api/voices/clone ----
-    const takes: ({ wav: Blob; url: string; seconds: number } | null)[] = CLONE_SENTENCES.map(() => null);
+    // Demo with the team's voice already cloned: one sentence, then that voice (api/voices/clone.ts)
+    const sentences: readonly string[] = init.demo_voice === "ready" ? CLONE_SENTENCES.slice(0, 1) : CLONE_SENTENCES;
+    const readLine = sentences.length === 1 ? "Vous lisez une phrase, le répondeur parle comme vous." : `Vous lisez ${sentences.length} phrases, le répondeur parle comme vous.`;
+    $("[data-clone-sub]").textContent = readLine;
+    const takes: ({ wav: Blob; url: string; seconds: number } | null)[] = sentences.map(() => null);
     let recordingAgain = false; // « Enregistrer à nouveau » after a voice was created
     let recorder: MediaRecorder | null = null;
     let recTimer = 0;
@@ -777,7 +796,7 @@ init.demo = demo;
       const ready = !!ownVoice && !recordingAgain;
       $("[data-clone-ready]").hidden = !(on && ready);
       $("[data-clone]").hidden = !(on && !ready);
-      $("[data-clone-sub]").textContent = ownVoice ? "Votre voix enregistrée." : "Vous lisez 3 phrases, le répondeur parle comme vous.";
+      $("[data-clone-sub]").textContent = ownVoice ? "Votre voix enregistrée." : readLine;
       syncGreeting();
       renderRecorder();
       voiceBar();
@@ -789,8 +808,9 @@ init.demo = demo;
     function renderRecorder() {
       const i = recorder ? recIndex : nextIndex();
       const done = i === -1;
-      $("[data-clone-count]").textContent = done ? "3 phrases enregistrées" : `Phrase ${i + 1} sur ${CLONE_SENTENCES.length}`;
-      $("[data-clone-sentence]").textContent = done ? "Vous pouvez réécouter chaque phrase avant de créer votre voix." : CLONE_SENTENCES[i];
+      const n = sentences.length;
+      $("[data-clone-count]").textContent = done ? (n === 1 ? "Phrase enregistrée" : `${n} phrases enregistrées`) : n === 1 ? "Lisez cette phrase" : `Phrase ${i + 1} sur ${n}`;
+      $("[data-clone-sentence]").textContent = done ? (n === 1 ? "Réécoutez-la avant de créer votre voix." : "Vous pouvez réécouter chaque phrase avant de créer votre voix.") : sentences[i]!;
       $("[data-rec-box]").hidden = done;
       const list = takes.map((t, n) => {
         if (!t) return null;
@@ -862,11 +882,12 @@ init.demo = demo;
 
     async function createOwnVoice() {
       if (recorder) return;
-      if (nextIndex() !== -1) { showError("Enregistrez les 3 phrases, ou choisissez une voix de la liste."); return; }
+      if (nextIndex() !== -1) { showError(sentences.length === 1 ? "Enregistrez la phrase, ou choisissez une voix de la liste." : `Enregistrez les ${sentences.length} phrases, ou choisissez une voix de la liste.`); return; }
       if (!$<HTMLInputElement>("[data-consent]").checked) { showError("Cochez la case pour accepter que votre voix soit utilisée."); return; }
       showError(null);
       const form = new FormData();
       form.append("consent", "true");
+      if (init.demo_voice === "record") form.append("demo_record", "true");
       takes.forEach((t, n) => form.append("files", t!.wav, `phrase-${n + 1}.wav`));
       busy(true, "Création de votre voix…");
       let r: ApiResult<{ voice: Voice; business: Init["business"] }>;
@@ -921,14 +942,16 @@ init.demo = demo;
     }
 
     // ---------- Step 3 · Votre numéro ----------
-    // Always « nouveau numéro »: clients call the répondeur number, the artisan's mobile rings first
-    const mode = "numero";
-    let ring = Math.min(40, Math.max(5, biz.ring_seconds || 15));
+    // « Garder mon numéro »: clients call the artisan's own number, his mobile forwards unanswered calls
+    // to the répondeur number (codes shown full screen in the app, components/ForwardingGuide.astro)
+    const mode = "renvoi";
+    // Forwarding on no answer accepts 5 to 30 s, by steps of 5
+    let ring = Math.min(30, Math.max(5, Math.round((biz.ring_seconds || 20) / 5) * 5));
     const ringOut = $("[data-ring]");
     ringOut.textContent = String(ring);
     for (const btn of $$<HTMLButtonElement>("[data-ring-step]")) {
       btn.addEventListener("click", () => {
-        ring = Math.min(40, Math.max(5, ring + Number(btn.dataset.ringStep)));
+        ring = Math.min(30, Math.max(5, ring + Number(btn.dataset.ringStep)));
         ringOut.textContent = String(ring);
       });
     }
@@ -1036,14 +1059,17 @@ init.demo = demo;
 
     // ---------- Step 4 · Essai ----------
     function enterTest() {
-      $("[data-has-number]").hidden = !attached;
+      $("[data-has-number]").hidden = !attached || mode === "renvoi";
+      $("[data-renvoi-next]").hidden = !attached || mode !== "renvoi";
       $("[data-no-number]").hidden = !!attached;
       $("[data-ready]").hidden = !attached;
       if (attached) {
         $("[data-test-number]").textContent = frPhone(attached);
         $<HTMLAnchorElement>("[data-test-link]").href = `tel:${attached}`;
+        $("[data-renvoi-mobile]").textContent = frPhone(biz.artisan_phone);
+        $("[data-renvoi-number]").textContent = frPhone(attached);
       }
-      bar("Terminer", "check", null);
+      bar(attached && mode === "renvoi" ? "Activer le renvoi" : "Terminer", "check", null);
       onPrimary = async () => {
         busy(true, "Enregistrement…");
         const r = await api("PUT", "/api/business", { onboarding_step: "done" });
