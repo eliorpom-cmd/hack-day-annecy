@@ -12,8 +12,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - clés de Mathieu dans web/.dev.vars puis wrangler secret ; créer l'agent, acheter ou relier un numéro, webhook post-call, bac à sable WhatsApp ; appel réel
 - 22 · Régler le prompt du répondeur sur le scénario de démo
   - après le script de Maxime (tâche 13) ; tester au téléphone
-- 26 · Garder son numéro : renvoi d'appel vers le répondeur
-  - étape Votre numéro : code de renvoi sur non-réponse / refus à composer (**61*, **67*) vers le numéro du répondeur ; l'artisan ne change rien sur Google ; un appel renvoyé va direct au répondeur
 - 27 · Écoute des voix avant de choisir
   - aperçu audio de chaque voix (ElevenLabs preview_url, ou phrase d'accueil générée en TTS) ; nécessite la clé
 - 28 · Publicités Meta : étudier l'intégration
@@ -31,6 +29,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - nom d'entreprise facultatif (auto-entrepreneur : prénom + nom + métier) ; « Pas d'horaires fixes » possible (le portable sonne toujours d'abord)
 - 25 · Documentation par questions : le répondeur interviewe l'artisan (Claude)
   - après la lecture du site, l'IA propose les questions qui manquent (prix du déplacement, week-end, zone…) ; l'artisan répond ; remplace « Ajouter une question » vide
+- 26 · Garder son numéro : renvoi d'appel vers le répondeur (Claude)
+  - étape Votre numéro : code de renvoi sur non-réponse / refus à composer (**61*, **67*) vers le numéro du répondeur ; l'artisan ne change rien sur Google ; un appel renvoyé va direct au répondeur
 
 ## Fait
 
