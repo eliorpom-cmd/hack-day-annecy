@@ -60,11 +60,14 @@ Code dans `web/`. Tables : `web/migrations/0001_init.sql`. Toutes les routes `/a
 | GET | /api/leads | – | `{leads}` |
 | PATCH | /api/leads/:id | `{status}` | `{lead}` |
 | GET | /api/stats?days=7 | – | `{calls, missed_saved, urgent, leads}` |
+| GET | /api/agent | – | aperçu du prompt de l'agent |
+| GET | /api/numbers | – | numéros déjà possédés sur le compte Twilio |
+| GET | /api/business/hours | – | `{hours}` |
 | POST | /api/twilio/voice?token= | webhook Twilio (appel entrant) | TwiML : sonne chez l'artisan pendant ses horaires, sinon l'agent |
 | POST | /api/twilio/fallback?token= | webhook Twilio (fin du `<Dial>`) | TwiML : l'agent si pas de réponse / refus |
 | POST | /api/elevenlabs/post-call | webhook ElevenLabs (fin d'appel) | enregistre l'appel + le lead, SMS si urgence |
 
-Secrets (`web/.dev.vars` en local, `wrangler secret put` en prod, jamais commités) : `ELEVENLABS_API_KEY`, `ELEVENLABS_WEBHOOK_SECRET`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WEBHOOK_TOKEN`, `RESEND_API_KEY`, `MAIL_FROM`.
+Secrets (`web/.dev.vars` en local, `wrangler secret put` en prod, jamais commités) : `ELEVENLABS_API_KEY`, `ELEVENLABS_WEBHOOK_SECRET`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WEBHOOK_TOKEN`, `RESEND_API_KEY`, `MAIL_FROM` ; pour les numéros français : `TWILIO_BUNDLE_SID`, `TWILIO_ADDRESS_SID`. `APP_URL` doit être une URL publique pour que Twilio joigne les webhooks.
 
 ## Ownership
 
@@ -84,6 +87,6 @@ Intégrateur (relit et merge les PR, répare `main`) :
 
 ## Commandes
 
-- Dev : `cd app && npm install && npm run dev`
+- Dev : `cd web && npm install && npm run db:local && CLOUDFLARE_ACCOUNT_ID=0bcd1b213f9a7a11ff83178c5ebd69d2 npm run dev` (http://localhost:4321 ; l'ID de compte est nécessaire car ce Mac a deux comptes Cloudflare et le scan du site utilise Workers AI à distance)
 - Lint / build / test : `npm run lint` (0 erreur, 28 avertissements), `npm run build` ; pas encore de `npm test`
 - URL de démo :

@@ -1,0 +1,79 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { buildAgentPayload, buildSystemPrompt, firstMessage, formatHoursFr, isPriceRange } from "../src/lib/prompt.ts";
+import { DEMO_VOICES, toVoices } from "../src/lib/voices.ts";
+import { parseAvailable, parseCountry, parseIncoming, twilioErrorHint } from "../src/lib/numbers.ts";
+
+const biz = { name: "Plomberie Dupont", trade: "plombier", city: "Annecy", description: "Dépannage 7j/7.", greeting: "" };
+
+test("first message introduces the artisan's assistant", () => {
+  assert.match(firstMessage(biz), /^Bonjour, vous êtes bien chez Plomberie Dupont\. Je suis l'assistant/);
+  assert.equal(firstMessage({ ...biz, greeting: "Plomberie Dupont, j'écoute" }), "Bonjour, Plomberie Dupont, j'écoute");
+  assert.equal(firstMessage({ ...biz, greeting: "Bonjour, ici Dupont" }), "Bonjour, ici Dupont");
+});
+
+test("hours in French, closed days included", () => {
+  const s = formatHoursFr([{ weekday: 0, opens: "08:00", closes: "12:30" }, { weekday: 0, opens: "14:00", closes: "18:00" }]);
+  assert.match(s, /lundi : 8 h – 12 h 30, 14 h – 18 h/);
+  assert.match(s, /dimanche : fermé/);
+});
+
+test("price ranges are detected", () => {
+  assert.ok(isPriceRange("Entre 90 et 150 € TTC"));
+  assert.ok(isPriceRange("De 900 à 1 800 euros"));
+  assert.ok(isPriceRange("90-150 €"));
+  assert.ok(!isPriceRange("49 € TTC"));
+});
+
+test("prompt carries business facts and the price rule", () => {
+  const p = buildSystemPrompt(biz, [], [
+    { question: "Déplacement ?", answer: "49 € TTC", kind: "price" },
+    { question: "Débouchage ?", answer: "Entre 90 et 150 €", kind: "price" },
+    { question: "Devis gratuit ?", answer: "Oui", kind: "info" },
+  ]);
+  assert.match(p, /assistant téléphonique de Plomberie Dupont, plombier à Annecy/);
+  assert.match(p, /- Déplacement \? → 49 € TTC\n/);
+  assert.match(p, /Débouchage \? → Entre 90 et 150 € \(fourchette : ajouter « le prix exact se fait sur devis »\)/);
+  assert.match(p, /Q : Devis gratuit \?\nR : Oui/);
+  assert.match(p, /N'inventez jamais un prix/);
+  assert.match(p, /l'artisan vous rappellera pour vous donner un prix/);
+  assert.match(p, /urgence/);
+  assert.doesNotMatch(p, /\n{3,}/);
+  const none = buildSystemPrompt({ ...biz, city: "" }, [], []);
+  assert.match(none, /Aucun tarif renseigné/);
+  assert.match(none, /Horaires non renseignés/);
+});
+
+test("agent payload is French with data collection", () => {
+  const body = buildAgentPayload({ business: biz, prompt: "P", voiceId: "v1", dataCollection: { name: { type: "string", description: "Nom" } } });
+  assert.equal(body.conversation_config.agent.language, "fr");
+  assert.equal(body.conversation_config.tts.voice_id, "v1");
+  assert.deepEqual(body.platform_settings.data_collection, { name: { type: "string", description: "Nom" } });
+  const noVoice = buildAgentPayload({ business: biz, prompt: "P", voiceId: null, dataCollection: {} });
+  assert.equal("voice_id" in noVoice.conversation_config.tts, false);
+});
+
+test("voices: cloned then French first", () => {
+  const v = toVoices([
+    { voice_id: "a", name: "Zoé", labels: {}, verified_languages: [] },
+    { voice_id: "b", name: "Bob", labels: { accent: "american" } },
+    { voice_id: "c", name: "Léa", verified_languages: [{ language: "fr", preview_url: "https://x/fr.mp3" }], preview_url: "https://x/en.mp3" },
+    { voice_id: "d", name: "Moi", category: "cloned" },
+  ]);
+  assert.deepEqual(v.map((x) => x.id), ["d", "c", "b", "a"]);
+  assert.equal(v[1]!.preview_url, "https://x/fr.mp3");
+  assert.ok(DEMO_VOICES.length > 0);
+});
+
+test("Twilio parsing and French error hints", () => {
+  assert.equal(parseCountry(null), "FR");
+  assert.equal(parseCountry("us"), "US");
+  assert.equal(parseCountry("DE"), null);
+  assert.deepEqual(parseAvailable({ available_phone_numbers: [{ phone_number: "+33450000000", friendly_name: "04 50", locality: "", capabilities: { voice: true } }] }, "local"),
+    [{ e164: "+33450000000", friendly_name: "04 50", locality: null, type: "local" }]);
+  assert.deepEqual(parseIncoming({ incoming_phone_numbers: [{ sid: "PN1", phone_number: "+1415", voice_url: "" }, { sid: "PN2" }] }),
+    [{ e164: "+1415", sid: "PN1", friendly_name: "+1415", voice_url: null }]);
+  assert.match(twilioErrorHint(400, JSON.stringify({ code: 21649, message: "Bundle required" })), /dossier réglementaire/);
+  assert.match(twilioErrorHint(401, "{}"), /identifiants/);
+  assert.match(twilioErrorHint(500, "boom"), /Twilio a refusé la demande \(500\) : boom/);
+});

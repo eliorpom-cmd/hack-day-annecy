@@ -9,6 +9,8 @@
 	// database_id is filled in by wrangler on first deploy (auto-provisioning)
 	"d1_databases": [{ "binding": "DB", "database_name": "hack-day-annecy", "migrations_dir": "migrations" }],
 	// Monday 08:00 Paris (07:00 UTC in winter): weekly recap e-mail
+	// Workers AI: website scan extraction (remote even in local dev)
+	"ai": { "binding": "AI", "remote": true },
 	"triggers": { "crons": ["0 7 * * 1"] },
 	"vars": { "APP_URL": "http://localhost:4321" },
 	"observability": { "enabled": true }
