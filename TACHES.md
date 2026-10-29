@@ -21,8 +21,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - scénario demande de devis : un appelle, un joue l'artisan
 - 14 · Slides du pitch (~5 min) (Maxime)
   - deck web exportable PDF/PPTX
-- 16 · Rappel automatique + question au retour (Claude)
-  - appui sur Rappeler = appel lancé (tel:) et rappel noté ; au retour dans l'app, fenêtre bloquante « Avez-vous eu Mme X ? » Oui / Non, pas répondu. Oui → statut Rappelé ; Non → reste à rappeler. Le bouton « Marquer comme rappelé » reste sur la fiche (le client a pu rappeler lui-même)
 
 ## Fait
 
@@ -55,3 +53,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 - 15 · Récap WhatsApp à l'artisan après chaque appel (Claude)
   - décision de Maxime : remplace le SMS d'urgence seul. Touche web/src/lib/telephony + post-call (agent téléphonie). Démo : sandbox WhatsApp Twilio ; prod : modèle validé par Meta. Change le contrat PROJET.md → à valider par l'intégrateur
   - Fait : déjà fait à 16 h 20 (commit 860773e) : message après chaque appel, WhatsApp puis SMS en secours ; textes dans COPY.md
+- 16 · Rappel automatique + question au retour (Claude)
+  - appui sur Rappeler = appel lancé (tel:) et rappel noté ; au retour dans l'app, fenêtre bloquante « Avez-vous eu Mme X ? » Oui / Non, pas répondu. Oui → statut Rappelé ; Non → reste à rappeler. Le bouton « Marquer comme rappelé » reste sur la fiche (le client a pu rappeler lui-même)
+  - Fait : web/src/pages/a/[token]/ : page publique de l'appel (lien du message), « Rappeler » note l'appel, fenêtre bloquante au retour, « Marquer comme rappelé » ; migrations 0005, 0006
