@@ -15,8 +15,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 
 ## En cours
 
-- 07 · Routage des appels par horaires (Claude)
-  - portable de l'artisan ~15 s, puis l'agent si pas de réponse ou refus ; hors horaires : l'agent direct
 - 08 · SMS instantané à l'artisan en cas d'urgence (Claude)
   - déclenché par l'agent ; + transfert de l'appel si possible
 - 11 · Back de l'onboarding et du dashboard (API) (Claude)
@@ -41,3 +39,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 - 09 · Mail récap de la semaine (Claude)
   - appels, urgences, leads ; envoi programmé
   - Fait : web/src/lib/recap*.ts : mail du lundi via Resend (cron du Worker), 9 tests ; aperçu recapPreview(businessId)
+- 07 · Routage des appels par horaires (Claude)
+  - portable de l'artisan ~15 s, puis l'agent si pas de réponse ou refus ; hors horaires : l'agent direct
+  - Fait : web/src/pages/api/twilio/{voice,fallback}.ts : sonne chez l'artisan pendant ses horaires (heure de Paris), sinon/à défaut l'agent ElevenLabs ; testé en local
