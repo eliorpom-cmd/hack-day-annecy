@@ -11,6 +11,7 @@ Specs à jour (source de vérité, écrite par l'équipe) : https://docs.google.
 - **Pitch** : « Trouvez plus de clients, et ne les perdez plus parce que vous n'êtes pas disponible pour leur répondre. » Des Google Ads ne servent à rien si personne ne décroche, surtout pour une urgence.
 - **Positionnement** : le tout-en-un de l'artisan. Le répondeur d'abord, puis site web, fiche Google, réseaux sociaux, pubs. Concurrents du répondeur seul : fonio, AUTILIA, Ainora, le modèle « plomberie » d'ElevenLabs.
 - **Point de départ** : le MVP de Mathieu, qui marche déjà. On reprend son code, on l'optimise et on **refait toute l'interface et l'onboarding**. Référence d'interface et d'onboarding : reception.ai.
+- **Surface principale** (décidé le 29/10, 16 h 30) : le **message WhatsApp/SMS** reçu après chaque appel, avec un lien vers la page web de l'appel. Le tableau de bord sert peu. Textes : `COPY.md`.
 - **Produit** : un mode simple par défaut, et un mode avancé (connecter son agenda, enrichir la base de connaissances, personnaliser l'accueil, etc.).
 - **Onboarding** : scanner le site de l'artisan s'il en a un, sinon saisie à la main → choisir une voix (clonage de sa voix ou voix de la bibliothèque) → acheter un numéro → dashboard. Agenda Google proposé mais facultatif : sans agenda, pas de prise de rendez-vous, juste un lead.
 - **Routage des appels** : le client appelle le numéro de l'artisan. Pendant les horaires de travail, son portable sonne ~15 s ; s'il ne décroche pas ou refuse, l'agent prend l'appel. Hors horaires, l'agent répond tout de suite.
@@ -50,7 +51,7 @@ Décision du 29/10 (15 h) : **on quitte Lovable / Supabase** et on passe sur la 
 - **Back** : un Cloudflare Worker en TypeScript, `wrangler`
 - **Données** : D1 (SQLite) avec migrations `wrangler d1 migrations`
 - **Tâches programmées** : Cron Triggers du Worker (mail récap du lundi)
-- **Front** : React + Vite + Tailwind + shadcn/ui, servi par le même Worker (static assets). On reprend les composants `ui/` du MVP.
+- **Front** : Astro 7 (rendu serveur, adaptateur Cloudflare) + Tailwind 4 + GSAP pour les animations, servi par le même Worker.
 - **Tests** : `node --test`
 - **IA vocale** : ElevenLabs (agents), téléphonie Twilio, agenda Google Calendar : on reprend la logique du MVP (`app/src/lib/elevenlabs`, `telephony`, `receptionist`, `crawler`, `calendar`, ~1 850 lignes, surtout des appels `fetch`, facile à porter).
 - **À remplacer** : l'auth Lovable Cloud, la base Supabase (20 tables → D1), la passerelle IA de Lovable utilisée par le scan du site.
@@ -110,5 +111,5 @@ Intégrateur (relit et merge les PR, répare `main`) :
 ## Commandes
 
 - Dev : `cd web && npm install && npm run db:local && CLOUDFLARE_ACCOUNT_ID=0bcd1b213f9a7a11ff83178c5ebd69d2 npm run dev` (http://localhost:4321 ; l'ID de compte est nécessaire car ce Mac a deux comptes Cloudflare et le scan du site utilise Workers AI à distance)
-- Lint / build / test : `npm run lint` (0 erreur, 28 avertissements), `npm run build` ; pas encore de `npm test`
+- Lint / build / test (dans `web/`) : `npm run lint` (astro check), `npm run build`, `npm test`
 - URL de démo :
