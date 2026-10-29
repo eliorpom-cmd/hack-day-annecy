@@ -4,12 +4,13 @@
 import AppShell from "../../layouts/AppShell.astro";
 import { isDemoAccount } from "../../lib/demo-voice";
 import { demoAgentMode, finalAgent, setDemoAgentMode } from "../../lib/demo-agent";
-import { checkFinalAgent, completeFinalAgentPatch, type AgentCheck } from "../../lib/demo-setup";
+import { DEMO_ACCOUNT_ID, checkFinalAgent, completeFinalAgentPatch, type AgentCheck } from "../../lib/demo-setup";
 import { DATA_COLLECTION } from "../../lib/telephony/agent-config";
 import { END_CALL_TOOL, buildSystemPrompt } from "../../lib/prompt";
 import { elRequest } from "../../lib/elevenlabs";
 
-if (!isDemoAccount(Astro.locals.user)) return Astro.redirect("/app");
+// Trial accounts of « Essayer la configuration » only: the public « Voir la démo » account cannot switch the agent
+if (!isDemoAccount(Astro.locals.user) || Astro.locals.user?.id === DEMO_ACCOUNT_ID) return Astro.redirect("/app");
 const { business } = Astro.locals;
 
 let refresh = false;
