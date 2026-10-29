@@ -14,6 +14,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
 - 12 · Schéma du parcours d'un appel (vue pitch + vue technique)
   - page web pour le pitch + docs/schema-appel.excalidraw pour l'équipe
+- 13 · Script de la démo de 3 min
+  - scénario demande de devis : un appelle, un joue l'artisan
 
 ## En cours
 
