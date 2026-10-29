@@ -5,7 +5,7 @@
 - **Surface** : 1) le message WhatsApp/SMS envoyé après chaque appel (surface principale) ; 2) la page web d'un appel, ouverte depuis le lien du message (mobile) ; 3) le tableau de bord (peu utilisé) ; 4) ce que dit le répondeur au téléphone.
 - **Langue** : français
 - **Origin** : created on 2026-10-29 (persona et choix d'Elior, défauts de la skill adn-copy)
-- **Updated** : 2026-10-29
+- **Updated** : 2026-10-29 (17 h, retours d'Elior)
 - **String files** : `web/src/lib/telephony/postcall.ts` (message), `web/src/lib/prompt.ts` (répondeur), `web/src/pages/**/*.astro` (pages)
 
 Lecteur : artisan de 30-40 ans en reconversion, au début de son activité, sur chantier, téléphone en main. Il lit le message en 3 secondes entre deux tâches.
@@ -26,8 +26,8 @@ Lecteur : artisan de 30-40 ans en reconversion, au début de son activité, sur 
 | Message après un appel normal | neutre, la demande en une phrase | 🟢 Devis salle de bain, M. Durand · Veut un devis pour remplacer la baignoire. |
 | Succès | participe passé, 1-2 mots | Enregistré |
 | Erreur | ce qui a échoué + quoi faire | Numéro introuvable · Vérifiez le numéro et réessayez. |
-| État vide | ce qui va apparaître ici + comment | Aucun appel · Vos appels s'afficheront ici dès le premier. |
-| Configuration | une étape = un bénéfice, la raison d'abord | Pour répondre à vos clients, indiquez votre métier et vos horaires. |
+| État vide | ce qui va apparaître ici, sans détail superflu | Aucun appel · Vos appels s'afficheront ici. |
+| Configuration | ce qu'on demande, puis à quoi ça sert concrètement | Votre métier et vos horaires · Le répondeur les donne aux clients qui appellent. |
 | Répondeur au téléphone | poli, court, comme un secrétariat | Bonjour, ici l'assistant de Plomberie Martin. Marc est sur un chantier, que puis-je faire pour vous ? |
 
 ## Mechanics
@@ -96,6 +96,8 @@ Détails : https://…/a/x7k2
 
 ### Page d'un appel (ouverte depuis le lien)
 
+Le moins de texte possible : l'artisan ne lit pas, il regarde. Priorité, panne, client, une ligne de raison, l'adresse, le bouton. Le reste est replié.
+
 - Titre = la ligne 1 du message, sans le point.
 - Bouton principal en bas : « Rappeler ». Bouton secondaire : « Marquer comme rappelé ».
 - Sections : « Demande », « Adresse », « Contenu de la conversation » (repliée).
@@ -103,11 +105,12 @@ Détails : https://…/a/x7k2
 ### Configuration
 
 - Titre d'étape = ce que l'artisan donne : « Votre activité », « La voix », « Votre numéro ».
-- Une phrase qui dit pourquoi, puis le champ, puis « Continuer ».
+- Une phrase qui dit à quoi sert l'information, en action concrète (« Le répondeur les donne aux clients qui appellent. »), jamais un but vague (« Pour répondre à vos clients »). Puis le champ, puis « Continuer ».
 - Progression : « Lecture de votre site… » ; fin : « Votre répondeur est prêt. »
 
 ### Répondeur au téléphone
 
 - Voix clonée de l'artisan : il répond comme lui-même : « Oui allô, Plomberie Martin. »
 - Voix de la bibliothèque : « Bonjour, ici l'assistant de Plomberie Martin. Marc est sur un chantier, que puis-je faire pour vous ? » (« l'assistante » si la voix choisie est féminine).
+- Client déjà suivi (chantier, devis, facture en cours) : le répondeur ne dit jamais où en est le dossier ; il note et promet le rappel. Le message dit « Suivi de dossier ».
 - Prix : exact s'il est dans la documentation, sinon une fourchette + « le prix exact se fait sur devis », sinon « Marc vous rappelle pour le prix ».
