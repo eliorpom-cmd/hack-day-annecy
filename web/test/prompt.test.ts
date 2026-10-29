@@ -60,6 +60,7 @@ test("agent payload is French with data collection", () => {
   const body = buildAgentPayload({ business: biz, prompt: "P", voiceId: "v1", dataCollection: { name: { type: "string", description: "Nom" } } });
   assert.equal(body.conversation_config.agent.language, "fr");
   assert.equal(body.conversation_config.tts.voice_id, "v1");
+  assert.equal(body.conversation_config.tts.model_id, "eleven_flash_v2_5");
   assert.deepEqual(body.platform_settings.data_collection, { name: { type: "string", description: "Nom" } });
   const noVoice = buildAgentPayload({ business: biz, prompt: "P", voiceId: null, dataCollection: {} });
   assert.equal("voice_id" in noVoice.conversation_config.tts, false);
