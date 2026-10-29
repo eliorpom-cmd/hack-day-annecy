@@ -23,6 +23,14 @@ Specs à jour (source de vérité, écrite par l'équipe) : https://docs.google.
 - **Hors périmètre aujourd'hui** : site web, réseaux sociaux, pubs, import CRM (on les cite dans le pitch).
 
 
+## État et suite (29/10, 17 h 30)
+
+**Fait** : brief, étude de marché, design (DESIGN.md, COPY.md, Figma), page d'un appel (lien du WhatsApp) avec la question « Avez-vous eu … ? », liste des appels, connexion, configuration en 4 étapes, routage par horaires, compte rendu + message WhatsApp/SMS après chaque appel, mail du lundi, schéma du parcours (docs/pitch/).
+
+**Bloquant** : les clés ElevenLabs et Twilio de Mathieu (absentes de `web/.dev.vars`), puis la mise en ligne sur Cloudflare (adresse publique pour Twilio).
+
+**Reste** (voir TACHES.md) : mise en ligne, appel réel de bout en bout, clonage de voix, prénom + accord de la voix dans l'accueil, réglages (mode avancé), prompt réglé sur le scénario de démo, script et slides (Maxime). Plus tard : vue ordinateur, page d'accueil du produit.
+
 ## Persona et voix (décidé le 29/10)
 
 **Persona** : 30-40 ans, en reconversion, au début de son activité d'artisan (sorti d'école). Il arrive sur un marché saturé, où les anciens tiennent déjà la clientèle. Ni technophile ni perdu avec le numérique. Il veut aller droit à l'essentiel.
