@@ -4,6 +4,8 @@ import { appUrl, requireBusiness } from "../../lib/env";
 import { handle, HttpError, isRecord, json, readJson } from "../../lib/http";
 import { templateHeadline } from "../../lib/site";
 import { aiHeadline, freeSlug, siteData, type SiteRow } from "../../lib/site-run";
+import { isDemoAccount } from "../../lib/demo-voice";
+import { demoHeadline } from "../../lib/demo-content";
 
 const view = (b: { site_slug: string | null; site_published: number; site_headline: string | null }) => ({
   slug: b.site_slug, published: !!b.site_published, headline: b.site_headline,
@@ -21,7 +23,8 @@ export const POST: APIRoute = handle(async ({ locals }) => {
   const b = requireBusiness(locals) as unknown as SiteRow;
   const { faqs } = await siteData(b.id);
   const slug = await freeSlug(b);
-  const headline = (await aiHeadline(b, faqs)) ?? templateHeadline(b);
+  // Demo: written in advance, no AI call
+  const headline = isDemoAccount(locals.user) ? demoHeadline(b) : (await aiHeadline(b, faqs)) ?? templateHeadline(b);
   const row = await db().prepare(
     "UPDATE businesses SET site_slug = ?, site_published = 1, site_headline = ?, site_updated_at = unixepoch() WHERE id = ? RETURNING site_slug, site_published, site_headline",
   ).bind(slug, headline, b.id).first<SiteRow>();

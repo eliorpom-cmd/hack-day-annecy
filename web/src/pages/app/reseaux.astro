@@ -10,6 +10,8 @@ import PostPreview from "../../components/social/PostPreview.astro";
 import PostHistory from "../../components/social/PostHistory.astro";
 import { composerUrl, initials, isNetwork, NETWORKS, NETWORK_RULES, pageLabel, parseSocialLinks, postAge, type Network } from "../../lib/social";
 import { recentPosts, topicsFor } from "../../lib/social-run";
+import { isDemoAccount } from "../../lib/demo-voice";
+import { demoPages } from "../../lib/demo-content";
 
 const b = Astro.locals.business;
 if (!b) return Astro.redirect("/login");
@@ -24,6 +26,8 @@ const shown = posts.find((p) => p.network === network) ?? null;
 const name = b.name || "Votre entreprise";
 // The artisan's existing pages: « Ouvrir Facebook » opens his own page once it is linked
 const links = parseSocialLinks(b.social_links);
+// Demo: the page addresses are pre-filled, « Relier la page » is enough
+const prefill = isDemoAccount(Astro.locals.user) ? demoPages(b) : null;
 const openUrl = (n: Network, text: string) => (n !== "linkedin" && links[n]) || composerUrl(n, text);
 const chip = "topic-chip flex min-h-12 items-center rounded-filter bg-surface px-3 text-small font-bold shadow-[inset_0_0_0_1px_var(--color-line)]";
 ---
@@ -54,7 +58,7 @@ const chip = "topic-chip flex min-h-12 items-center rounded-filter bg-surface px
               </div>
               <form class="flex flex-col gap-2" data-page-form hidden novalidate>
                 <label class="field">
-                  <input class="field-input" name="url" placeholder=" " autocomplete="url" inputmode="url" />
+                  <input class="field-input" name="url" placeholder=" " autocomplete="url" inputmode="url" value={prefill?.[n]} />
                   <span class="field-label">Adresse de votre page</span>
                 </label>
                 <p class="px-4 text-small text-muted" data-page-help>Exemple : {n === "instagram" ? "@plomberie.martin" : `${NETWORK_RULES[n].url.replace(/^https:\/\/www\./, "").replace(/feed\/$/, "")}${n === "linkedin" ? "company/" : ""}plomberie-martin`}</p>
@@ -261,7 +265,7 @@ const chip = "topic-chip flex min-h-12 items-center rounded-filter bg-surface px
       if (!value) { help.textContent = "Collez l’adresse de votre page."; help.classList.add("font-bold", "text-ink"); return; }
       const err = await save(value);
       if (err) { help.textContent = err; help.classList.add("font-bold", "text-ink"); return; }
-      form.hidden = true; form.reset(); help.textContent = helpText; help.classList.remove("font-bold", "text-ink");
+      form.hidden = true; help.textContent = helpText; help.classList.remove("font-bold", "text-ink");
       render();
     });
     unlinkBtn.addEventListener("click", async () => { if (!(await save(""))) render(); });
