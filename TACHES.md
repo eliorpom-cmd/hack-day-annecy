@@ -35,8 +35,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - deck web exportable PDF/PPTX
 - 23 · Landing page du produit (Claude)
   - web/src/pages/index.astro : pitch, comment ça marche, configuration, Visibilité, essai gratuit et démo ; COPY.md + DESIGN.md
-- 20 · Prénom de l'artisan et accord de la voix dans l'accueil (Claude)
-  - champ prénom à l'étape 1 ; « l'assistant » ou « l'assistante » selon la voix ; « Marc est sur un chantier »
 
 ## Fait
 
@@ -84,3 +82,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 - 19 · Clonage de la voix de l'artisan (Claude)
   - étape 2 de la configuration ; reprendre src/lib/voice/ du Lovable de Mathieu (enregistrement WAV + POST /v1/voices/add)
   - Fait : étape 2 : « Utiliser ma voix », 3 phrases enregistrées, envoi direct à ElevenLabs (/api/voices/clone) ; à tester avec la clé
+- 20 · Prénom de l'artisan et accord de la voix dans l'accueil (Claude)
+  - champ prénom à l'étape 1 ; « l'assistant » ou « l'assistante » selon la voix ; « Marc est sur un chantier »
+  - Fait : champ prénom (étape 1), accueil « l'assistant(e) de … Marc est sur un chantier » ou « Oui allô » pour la voix clonée (lib/greeting.ts)
