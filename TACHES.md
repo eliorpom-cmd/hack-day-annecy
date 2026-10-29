@@ -16,6 +16,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - page web pour le pitch + docs/schema-appel.excalidraw pour l'équipe
 - 13 · Script de la démo de 3 min
   - scénario demande de devis : un appelle, un joue l'artisan
+- 14 · Slides du pitch (~5 min)
+  - deck web exportable PDF/PPTX
 
 ## En cours
 
