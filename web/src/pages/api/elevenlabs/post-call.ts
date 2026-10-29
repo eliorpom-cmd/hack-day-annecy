@@ -28,8 +28,12 @@ export const POST: APIRoute = async ({ request }) => {
   // Other event types (audio, failures) are acknowledged and ignored
   if (!call) return json({ ok: true, ignored: true });
 
-  const business = await db().prepare("SELECT * FROM businesses WHERE elevenlabs_agent_id = ?")
-    .bind(call.agentId).first<Business>();
+  // The business that received this Twilio call first (a demo agent is shared, lib/demo-agent.ts), else the agent's
+  const business = (call.callSid
+      ? await db().prepare("SELECT b.* FROM calls c JOIN businesses b ON b.id = c.business_id WHERE c.twilio_call_sid = ? ORDER BY c.created_at DESC LIMIT 1")
+        .bind(call.callSid).first<Business>()
+      : null)
+    ?? await db().prepare("SELECT * FROM businesses WHERE elevenlabs_agent_id = ?").bind(call.agentId).first<Business>();
   if (!business) {
     logEvent("warn", "elevenlabs.unknown_agent", { agent: call.agentId });
     return json({ ok: true, ignored: true });

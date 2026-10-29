@@ -15,3 +15,21 @@ test("agenda: grouped by Paris day from today, booked ones kept, demo slots left
   assert.ok(!busyAt("2026-10-30T10:00:00Z"));
   assert.ok(!busyAt("2026-11-02T13:00:00Z"));
 });
+
+test("agenda week: Monday to Sunday in Paris, blocks placed on the hours", async () => {
+  const { weekOf, placeInWeek, parseDay } = await import("../src/lib/agenda.ts");
+  const now = Math.floor(Date.parse("2026-10-29T20:00:00Z") / 1000);
+  const w = weekOf(now, now);
+  assert.equal(w.monday, "2026-10-26");
+  assert.equal(w.next, "2026-11-02");
+  assert.equal(w.prev, "2026-10-19");
+  assert.equal(w.label, "26 oct. – 1er nov. 2026");
+  assert.ok(w.days[3]!.isToday);
+  // Friday 30/10 11 h Paris: column 4, 4 hours below 7 h, 1 hour tall
+  const fri = Math.floor(Date.parse("2026-10-30T10:00:00Z") / 1000);
+  assert.deepEqual(placeInWeek({ start: fri, end: fri + 3600 }, w), { col: 4, top: 4, height: 1 });
+  // Monday 2/11 is next week
+  const mon = Math.floor(Date.parse("2026-11-02T13:00:00Z") / 1000);
+  assert.equal(placeInWeek({ start: mon, end: mon + 3600 }, w), null);
+  assert.deepEqual(placeInWeek({ start: mon, end: mon + 3600 }, weekOf(parseDay("2026-11-02")!, now)), { col: 0, top: 7, height: 1 });
+});

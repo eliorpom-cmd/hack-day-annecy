@@ -108,3 +108,8 @@ export function pickDemoVoice(voices: { id: string; name?: string; gender?: stri
   const pick = library.find((v) => (v.name ?? "").startsWith(DEMO_VOICE_PREFIX)) ?? library.find((v) => v.gender === "male" && v.french !== false) ?? library.find((v) => v.gender === "male") ?? library[0];
   return pick?.id ?? null;
 }
+
+// Name of the ElevenLabs agent tuned by hand for the demo (lib/demo-agent.ts): both words, any case
+export function isFinalAgentName(name: string): boolean {
+  return /plomberie\s+martin/i.test(name) && /\bfinal\b/i.test(name);
+}

@@ -1,11 +1,12 @@
 ---
-// « Agenda »: coming appointments. The ones the répondeur booked during a call stand out (green, « Pris par le
-// répondeur », link to the call); demo accounts also show a fake week of jobs (lib/agenda.ts).
+// « Agenda »: a week grid like Google Calendar (7 days, 7 h to 20 h, blocks placed on the hours).
+// Fake jobs (demo accounts) in light navy, appointments booked by the répondeur in green, the last one booked in
+// solid green with a halo and « Nouveau ». The default week is the one of that last booking (lib/agenda.ts).
 import AppShell from "../../layouts/AppShell.astro";
 import Icon from "../../components/Icon.astro";
 import { db } from "../../lib/db";
 import { isDemoAccount } from "../../lib/demo-voice";
-import { demoJobs, groupAgenda, timeRange, type AgendaItem } from "../../lib/agenda";
+import { DAY_END, DAY_START, demoJobs, parseDay, placeInWeek, timeRange, weekOf, type AgendaItem } from "../../lib/agenda";
 
 const { business } = Astro.locals;
 if (!business) return Astro.redirect("/login");
@@ -13,53 +14,133 @@ if (business.onboarding_step !== "done") return Astro.redirect("/onboarding");
 
 const now = Math.floor(Date.now() / 1000);
 const { results } = await db().prepare(
-  `SELECT a.starts_at, a.ends_at, a.title, l.address, l.link_token
+  `SELECT a.starts_at, a.ends_at, a.title, a.created_at, l.address, l.link_token
    FROM appointments a LEFT JOIN leads l ON l.id = a.lead_id
-   WHERE a.business_id = ? AND a.ends_at > ? ORDER BY a.starts_at LIMIT 100`,
-).bind(business.id, now - 86400).all<{ starts_at: number; ends_at: number; title: string; address: string | null; link_token: string | null }>();
-const booked: AgendaItem[] = (results ?? []).map((r) => ({
-  start: r.starts_at, end: r.ends_at, title: r.title, place: r.address, booked: true, link_token: r.link_token,
+   WHERE a.business_id = ? ORDER BY a.starts_at LIMIT 300`,
+).bind(business.id).all<{ starts_at: number; ends_at: number; title: string; created_at: number; address: string | null; link_token: string | null }>();
+const rows = results ?? [];
+const latestRow = rows.reduce<(typeof rows)[number] | null>((a, r) => (!a || r.created_at > a.created_at ? r : a), null);
+const booked: AgendaItem[] = rows.map((r) => ({
+  start: r.starts_at, end: r.ends_at, title: r.title, place: r.address, booked: true, link_token: r.link_token, latest: r === latestRow,
 }));
-// Demo: fake jobs, minus any that would overlap a real booking
 const fake = isDemoAccount(Astro.locals.user)
   ? demoJobs().filter((f) => !booked.some((b) => b.start < f.end && f.start < b.end))
   : [];
-const days = groupAgenda([...booked, ...fake], now);
+
+// Week shown: ?du=YYYY-MM-DD, else the week of the last booking when it is still to come, else this week
+const anchor = parseDay(Astro.url.searchParams.get("du")) ?? (latestRow && latestRow.ends_at > now ? latestRow.starts_at : now);
+const week = weekOf(anchor, now);
+const placed = [...fake, ...booked]
+  .map((item) => ({ item, at: placeInWeek(item, week) }))
+  .filter((x): x is { item: AgendaItem; at: NonNullable<typeof x.at> } => !!x.at);
+const hours = Array.from({ length: DAY_END - DAY_START }, (_, i) => DAY_START + i);
+const HOUR_PX = 52;
+const latest = booked.find((b) => b.latest);
+const latestLabel = latest ? `${new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", weekday: "long", day: "numeric", month: "long" }).format(latest.start * 1000)}, ${timeRange(latest)}` : null;
 ---
 <AppShell title="Agenda" active="agenda">
-  <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-[14px] px-4 pt-4 pb-6 lg:max-w-[720px] lg:px-8 lg:pt-10">
-    <div>
-      <h1 class="text-title font-bold">Agenda</h1>
-      <p class="mt-2 text-muted">Les rendez-vous pris par le répondeur s’ajoutent ici tout seuls.</p>
+  <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-[14px] px-4 pt-4 pb-6 lg:max-w-[1100px] lg:px-8 lg:pt-10">
+    <div class="flex items-end justify-between gap-3">
+      <div>
+        <h1 class="text-title font-bold">Agenda</h1>
+        <p class="mt-1 text-small text-muted">{week.label}</p>
+      </div>
+      <nav class="flex items-center gap-1" aria-label="Changer de semaine">
+        <a href={`/app/agenda?du=${week.prev}`} class="step-btn" aria-label="Semaine précédente"><Icon name="chevron-left" /></a>
+        <a href="/app/agenda" class="grid min-h-10 place-items-center rounded-filter px-3 text-small font-bold shadow-[inset_0_0_0_1px_var(--color-line)]">Cette semaine</a>
+        <a href={`/app/agenda?du=${week.next}`} class="step-btn" aria-label="Semaine suivante"><Icon name="chevron-right" /></a>
+      </nav>
     </div>
 
-    {days.length === 0 ? (
-      <div class="py-12 text-center">
-        <p class="font-bold">Aucun rendez-vous</p>
-        <p class="mt-1 text-small text-muted">Les rendez-vous pris au téléphone s’afficheront ici.</p>
-      </div>
-    ) : days.map((d) => (
-      <section>
-        <h2 class="px-[14px] pb-2 text-small font-bold text-muted">{d.label}</h2>
-        <ul class="panel overflow-hidden">
-          {d.items.map((i) => (
-            <li class={`row relative ${i.booked ? "bg-tint shadow-[inset_3px_0_0_var(--color-action-line)]" : ""}`}>
-              <span class="w-[92px] shrink-0 text-small font-bold">{timeRange(i)}</span>
-              <div class="min-w-0 flex-1">
-                {i.booked && <span class="chip chip-ok mb-1 inline-flex items-center gap-1"><Icon name="check" size={14} />Pris par le répondeur</span>}
-                <p class={`truncate ${i.booked ? "font-bold" : ""}`}>
-                  {i.booked && i.link_token ? <a href={`/a/${i.link_token}`} class="agenda-link">{i.title}</a> : i.title}
-                </p>
-                {i.place && <p class="truncate text-small text-muted">{i.place}</p>}
-              </div>
-            </li>
+    {latest && (
+      <a href={latest.link_token ? `/a/${latest.link_token}` : undefined} class="panel flex items-center gap-3 px-[14px] py-3">
+        <span class="grid size-10 shrink-0 place-items-center rounded-call bg-action text-ink shadow-[inset_0_0_0_1px_var(--color-action-line)]"><Icon name="calendar" size={20} /></span>
+        <span class="min-w-0">
+          <span class="block text-small text-muted">Dernier rendez-vous pris par le répondeur</span>
+          <span class="block truncate font-bold">{latest.title} · {latestLabel}</span>
+        </span>
+      </a>
+    )}
+
+    <div class="panel overflow-x-auto p-0">
+      <div class="agenda min-w-[680px]" style={`--hour:${HOUR_PX}px; --rows:${hours.length}`}>
+        <div class="agenda-head">
+          <span></span>
+          {week.days.map((d) => (
+            <span class="flex flex-col items-center py-2">
+              <span class={`text-small ${d.isToday ? "font-bold text-action-ink" : "text-muted"}`}>{d.short}</span>
+              <span class={`grid size-8 place-items-center rounded-full text-[17px] font-bold ${d.isToday ? "bg-action text-ink" : ""}`}>{d.d}</span>
+            </span>
           ))}
-        </ul>
-      </section>
-    ))}
+        </div>
+        <div class="agenda-body">
+          <div class="agenda-hours">
+            {hours.map((h) => <span>{h} h</span>)}
+          </div>
+          {week.days.map((_, col) => (
+            <div class="agenda-col">
+              {placed.filter((p) => p.at.col === col).map(({ item, at }) => {
+                const cls = item.latest ? "ev ev-latest" : item.booked ? "ev ev-booked" : "ev ev-job";
+                const style = `top:calc(${at.top} * var(--hour) + 1px); height:calc(${at.height} * var(--hour) - 3px)`;
+                const body = (
+                  <>
+                    {item.latest && <span class="ev-new">Nouveau</span>}
+                    <span class="ev-time">{timeRange(item)}</span>
+                    <span class="ev-title">{item.title}</span>
+                    {item.place && <span class="ev-place">{item.place}</span>}
+                  </>
+                );
+                return item.link_token
+                  ? <a href={`/a/${item.link_token}`} class={cls} style={style}>{body}</a>
+                  : <div class={cls} style={style}>{body}</div>;
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-x-4 gap-y-2 px-1 text-small text-muted">
+      <span class="flex items-center gap-2"><span class="legend ev-latest"></span>Dernier rendez-vous pris</span>
+      <span class="flex items-center gap-2"><span class="legend ev-booked"></span>Pris par le répondeur</span>
+      {fake.length > 0 && <span class="flex items-center gap-2"><span class="legend ev-job"></span>Vos chantiers</span>}
+    </div>
   </main>
 </AppShell>
 
 <style>
-  .agenda-link::after { content: ""; position: absolute; inset: 0; }
+  .agenda { display: grid; grid-template-rows: auto 1fr; }
+  .agenda-head, .agenda-body { display: grid; grid-template-columns: 48px repeat(7, minmax(0, 1fr)); }
+  .agenda-head { border-bottom: 1px solid var(--color-line); position: sticky; top: 0; background: var(--color-surface); z-index: 2; }
+  .agenda-body { height: calc(var(--rows) * var(--hour)); }
+  .agenda-hours { position: relative; }
+  .agenda-hours span { display: block; height: var(--hour); padding-right: 6px; text-align: right; font-size: 12px; color: var(--color-muted); transform: translateY(-7px); }
+  .agenda-hours span:first-child { visibility: hidden; }
+  .agenda-col {
+    position: relative; border-left: 1px solid var(--color-line);
+    background-image: linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
+    background-size: 100% var(--hour);
+  }
+  .ev {
+    position: absolute; left: 3px; right: 3px; overflow: hidden; display: flex; flex-direction: column; gap: 1px;
+    padding: 4px 6px; border-radius: 8px; font-size: 12px; line-height: 1.25;
+  }
+  .ev-time { font-weight: 700; }
+  .ev-title { font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
+  .ev-place { opacity: 0.8; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  /* Fake jobs: light navy, the app's ink */
+  .ev-job { background: #e3eaf3; color: var(--color-ink); box-shadow: inset 3px 0 0 #7b93b3; }
+  /* Booked by the répondeur: green tint */
+  .ev-booked { background: var(--color-tint); color: var(--color-action-ink); box-shadow: inset 3px 0 0 var(--color-action-line), inset 0 0 0 1px var(--color-tint-line); }
+  /* The last one booked: solid green, halo, above the others */
+  .ev-latest {
+    z-index: 1; background: var(--color-action); color: var(--color-ink);
+    box-shadow: inset 0 0 0 1px var(--color-action-line), 0 0 0 3px rgba(78, 228, 148, 0.35), 0 6px 18px rgba(0, 125, 53, 0.28);
+    animation: pop 2.4s ease-in-out infinite;
+  }
+  .ev-new { align-self: flex-start; border-radius: 6px; background: var(--color-ink); color: #fff; padding: 0 6px; font-size: 11px; font-weight: 700; }
+  @keyframes pop { 0%, 100% { box-shadow: inset 0 0 0 1px var(--color-action-line), 0 0 0 3px rgba(78, 228, 148, 0.35), 0 6px 18px rgba(0, 125, 53, 0.28); } 50% { box-shadow: inset 0 0 0 1px var(--color-action-line), 0 0 0 6px rgba(78, 228, 148, 0.18), 0 6px 18px rgba(0, 125, 53, 0.28); } }
+  @media (prefers-reduced-motion: reduce) { .ev-latest { animation: none; } }
+  .legend { display: inline-block; width: 14px; height: 14px; border-radius: 4px; }
+  .legend.ev-latest { animation: none; box-shadow: inset 0 0 0 1px var(--color-action-line); }
 </style>

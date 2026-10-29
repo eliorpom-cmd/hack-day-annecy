@@ -9,6 +9,7 @@ export type AgendaItem = {
   title: string;
   place: string | null;
   booked: boolean; // booked by the répondeur during a call
+  latest?: boolean; // the last one booked: highlighted
   link_token: string | null;
 };
 export type AgendaDay = { key: string; label: string; items: AgendaItem[] };
@@ -65,4 +66,58 @@ export function groupAgenda(items: AgendaItem[], nowS: number): AgendaDay[] {
     day.items.push(item);
   }
   return days;
+}
+
+// ---- Week grid (Google Calendar-like): 7 columns, hours DAY_START to DAY_END ----
+
+export const DAY_START = 7;
+export const DAY_END = 20;
+const SHORT_DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+const SHORT_MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+
+export type WeekDay = { y: number; m: number; d: number; short: string; isToday: boolean; startS: number; endS: number };
+export type Week = { monday: string; prev: string; next: string; label: string; days: WeekDay[] };
+
+const iso = (p: { year: number; month: number; day: number }) => `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}`;
+// Paris date parts of the Monday of the week holding `s`, shifted by `weeks`
+function mondayParts(s: number, weeks = 0) {
+  const p = parisParts(s * 1000);
+  return parisParts(parisTime(p.year, p.month, p.day, 12, 0) - (p.weekday - 7 * weeks) * 86400000);
+}
+
+// The week starting on the Monday of `anchorS` (any instant in it), in Paris time
+export function weekOf(anchorS: number, nowS: number): Week {
+  const mon = mondayParts(anchorS);
+  const today = iso(parisParts(nowS * 1000));
+  const noon = parisTime(mon.year, mon.month, mon.day, 12, 0);
+  const days: WeekDay[] = Array.from({ length: 7 }, (_, i) => {
+    const p = parisParts(noon + i * 86400000);
+    const startS = Math.floor(parisTime(p.year, p.month, p.day, 0, 0) / 1000);
+    const next = parisParts(noon + (i + 1) * 86400000);
+    return { y: p.year, m: p.month, d: p.day, short: SHORT_DAYS[i]!, isToday: iso(p) === today, startS, endS: Math.floor(parisTime(next.year, next.month, next.day, 0, 0) / 1000) };
+  });
+  const first = days[0]!, last = days[6]!;
+  const label = first.m === last.m
+    ? `${first.d} – ${last.d} ${MONTHS[last.m - 1]} ${last.y}`
+    : `${first.d} ${SHORT_MONTHS[first.m - 1]} – ${last.d === 1 ? "1er" : last.d} ${SHORT_MONTHS[last.m - 1]} ${last.y}`;
+  return {
+    monday: iso(mon), prev: iso(mondayParts(anchorS, -1)), next: iso(mondayParts(anchorS, 1)), label, days,
+  };
+}
+
+// « 2026-11-02 » → an instant on that day (noon, Paris), or null
+export function parseDay(v: string | null): number | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v ?? "");
+  return m ? Math.floor(parisTime(Number(m[1]), Number(m[2]), Number(m[3]), 12, 0) / 1000) : null;
+}
+
+// Column (0 = Monday) and vertical place, in hours from DAY_START, of an item in the week; null when outside
+export function placeInWeek(item: Pick<AgendaItem, "start" | "end">, week: Week): { col: number; top: number; height: number } | null {
+  const col = week.days.findIndex((d) => item.start >= d.startS && item.start < d.endS);
+  if (col < 0) return null;
+  const p = parisParts(item.start * 1000);
+  const from = Math.max(DAY_START, p.hour + p.minute / 60);
+  const to = Math.min(DAY_END, from + (item.end - item.start) / 3600);
+  if (to <= from) return null;
+  return { col, top: from - DAY_START, height: to - from };
 }

@@ -1,0 +1,43 @@
+---
+// Hidden page (not in the menu), demo accounts only: which ElevenLabs agent answers the demo calls.
+// « final » = the agent tuned by hand on ElevenLabs (default), « app » = the agent built from the setup. One click.
+import AppShell from "../../layouts/AppShell.astro";
+import { isDemoAccount } from "../../lib/demo-voice";
+import { demoAgentMode, finalAgent, setDemoAgentMode } from "../../lib/demo-agent";
+
+if (!isDemoAccount(Astro.locals.user)) return Astro.redirect("/app");
+const { business } = Astro.locals;
+
+let refresh = false;
+if (Astro.request.method === "POST") {
+  const form = await Astro.request.formData();
+  const mode = form.get("mode");
+  if (mode === "final" || mode === "app") await setDemoAgentMode(mode);
+  refresh = form.get("refresh") === "1";
+}
+const mode = await demoAgentMode();
+const final = await finalAgent(refresh).catch(() => null);
+const btn = "flex min-h-12 flex-1 items-center justify-center rounded-button px-4 font-bold";
+---
+<AppShell title="Agent de démo" active="reglages">
+  <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-[14px] px-4 pt-4 pb-6">
+    <h1 class="text-title font-bold">Agent de démo</h1>
+    <div class="panel flex flex-col gap-1 px-[14px] py-4">
+      <span class="text-small text-muted">Les appels de démo vont à</span>
+      <span class="text-[22px] font-bold">{mode === "final" ? "l’agent FINAL d’ElevenLabs" : "l’agent créé par l’app"}</span>
+      <span class="text-small text-muted">
+        {mode === "final"
+          ? (final ? `${final.name ?? "Agent FINAL"} · ${final.id}` : "Agent FINAL introuvable : les appels vont à l’agent de l’app.")
+          : `Agent de ce compte : ${business?.elevenlabs_agent_id ?? "aucun"}`}
+      </span>
+    </div>
+    <form method="post" class="flex gap-2">
+      <button name="mode" value="final" class={`${btn} ${mode === "final" ? "bg-action text-ink" : "shadow-[inset_0_0_0_1px_var(--color-line)]"}`}>Agent FINAL</button>
+      <button name="mode" value="app" class={`${btn} ${mode === "app" ? "bg-action text-ink" : "shadow-[inset_0_0_0_1px_var(--color-line)]"}`}>Agent de l’app</button>
+    </form>
+    <form method="post">
+      <input type="hidden" name="mode" value={mode} />
+      <button name="refresh" value="1" class="min-h-12 text-small text-muted underline underline-offset-2">Chercher de nouveau l’agent FINAL sur ElevenLabs</button>
+    </form>
+  </main>
+</AppShell>

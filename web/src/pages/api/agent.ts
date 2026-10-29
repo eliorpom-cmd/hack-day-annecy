@@ -5,6 +5,7 @@ import { appUrl, requireBusiness, secret } from "../../lib/env";
 import { fail, handle, HttpError, json } from "../../lib/http";
 import { buildAgentPayload, buildSystemPrompt, firstMessage, type PromptFaq, type PromptHour } from "../../lib/prompt";
 import { isDemoBusiness } from "../../lib/demo-voice";
+import { finalAgent } from "../../lib/demo-agent";
 import { DATA_COLLECTION, postCallWebhookUrl } from "../../lib/telephony/agent-config";
 
 async function promptFor(b: Business) {
@@ -38,6 +39,9 @@ export const POST: APIRoute = handle(async ({ locals }) => {
 
   let agentId = b.elevenlabs_agent_id;
   let created = false;
+  // Never overwrite the agent tuned by hand on ElevenLabs (lib/demo-agent.ts)
+  const final = await finalAgent().catch(() => null);
+  if (agentId && final && agentId === final.id) return json({ agent_id: agentId, created: false, kept: "final" });
   if (agentId) {
     const patch = (body: unknown) => elRequest(`/v1/convai/agents/${encodeURIComponent(agentId!)}`, { method: "PATCH", body, timeoutMs: 30000 });
     try {
