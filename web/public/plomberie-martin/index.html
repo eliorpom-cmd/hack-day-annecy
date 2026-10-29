@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Plomberie Martin | Plombier chauffagiste à Annecy</title>
+<meta name="description" content="Plomberie Martin, plombier chauffagiste à Annecy et alentours&nbsp;: dépannage de fuite, débouchage, chauffe-eau, salle de bain, entretien de chaudière gaz. Devis gratuit.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bleu: #1d4e89;
+    --bleu-fonce: #143a68;
+    --bleu-clair: #eaf1f9;
+    --orange: #e8792b;
+    --texte: #2b2f36;
+    --gris: #5d6573;
+    --bord: #dde3ea;
+    --fond: #ffffff;
+    --fond-alt: #f5f7fa;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Open Sans", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--texte);
+    background: var(--fond);
+  }
+  h1, h2, h3 { font-family: "Barlow", Arial, sans-serif; line-height: 1.2; color: var(--bleu-fonce); }
+  h2 { font-size: 28px; margin: 0 0 8px; }
+  h3 { font-size: 19px; margin: 0 0 6px; }
+  p { margin: 0 0 12px; }
+  a { color: var(--bleu); }
+  .conteneur { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+  section { padding: 48px 0; }
+  .alt { background: var(--fond-alt); }
+  .chapo { color: var(--gris); margin-bottom: 28px; }
+
+  /* Top bar */
+  .barre-haut { background: var(--bleu-fonce); color: #fff; font-size: 13px; }
+  .barre-haut .conteneur { display: flex; justify-content: space-between; gap: 12px; padding-top: 6px; padding-bottom: 6px; }
+  .barre-haut a { color: #fff; text-decoration: none; }
+  .barre-haut .masquer-mobile { display: none; }
+
+  /* Header */
+  header { background: #fff; border-bottom: 1px solid var(--bord); position: sticky; top: 0; z-index: 10; }
+  header .conteneur { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .logo-nom { font-family: "Barlow", Arial, sans-serif; font-weight: 700; font-size: 20px; color: var(--bleu-fonce); line-height: 1.05; }
+  .logo-nom small { display: block; font-weight: 500; font-size: 12px; color: var(--gris); letter-spacing: .02em; }
+  nav { display: none; }
+  nav a { font-family: "Barlow", Arial, sans-serif; font-weight: 600; font-size: 16px; text-decoration: none; color: var(--texte); margin-left: 22px; }
+  nav a:hover { color: var(--bleu); }
+  .btn {
+    display: inline-block; font-family: "Barlow", Arial, sans-serif; font-weight: 600; font-size: 17px;
+    padding: 12px 20px; border-radius: 4px; text-decoration: none; text-align: center;
+  }
+  .btn-orange { background: var(--orange); color: #fff; }
+  .btn-orange:hover { background: #d36a1f; }
+  .btn-contour { border: 2px solid #fff; color: #fff; padding: 10px 18px; }
+  .btn-tel-header { background: var(--orange); color: #fff; font-size: 15px; padding: 8px 12px; }
+
+  /* Hero */
+  .hero { background: var(--bleu); color: #fff; padding: 40px 0 44px; position: relative; overflow: hidden; }
+  .hero h1 { color: #fff; font-size: 32px; margin: 0 0 12px; }
+  .hero p { font-size: 17px; color: #dce7f4; max-width: 560px; }
+  .hero .boutons { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; max-width: 360px; }
+  .hero-points { list-style: none; padding: 0; margin: 24px 0 0; display: grid; gap: 6px; font-size: 15px; }
+  .hero-points li::before { content: "✓"; color: var(--orange); font-weight: 700; margin-right: 8px; }
+  .hero-carte { display: none; background: #fff; color: var(--texte); border-radius: 6px; padding: 20px 22px; font-size: 15px; }
+  .hero-carte h3 { font-size: 17px; margin-bottom: 8px; }
+  .hero-carte p { color: var(--texte); font-size: 15px; margin: 0 0 4px; max-width: none; }
+  .hero-carte hr { border: 0; border-top: 1px solid var(--bord); margin: 14px 0; }
+
+  /* Services */
+  .grille { display: grid; gap: 16px; }
+  .carte { background: #fff; border: 1px solid var(--bord); border-radius: 6px; padding: 20px; }
+  .carte svg { margin-bottom: 10px; }
+  .carte p { color: var(--gris); font-size: 15px; margin: 0; }
+
+  /* Prices */
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--bord); }
+  td { padding: 12px 14px; border-bottom: 1px solid var(--bord); vertical-align: top; }
+  td:last-child { text-align: right; font-weight: 600; white-space: nowrap; color: var(--bleu-fonce); }
+  td small { display: block; color: var(--gris); font-size: 13px; font-weight: 400; }
+  .note { font-size: 14px; color: var(--gris); margin-top: 12px; }
+  .paiement { margin-top: 20px; background: var(--bleu-clair); border-radius: 6px; padding: 14px 16px; font-size: 15px; }
+
+  /* About */
+  .apropos { display: grid; gap: 24px; align-items: center; }
+  .portrait { background: var(--bleu-clair); border-radius: 6px; display: flex; align-items: center; gap: 18px; padding: 20px; }
+  .monogramme { flex: none; width: 84px; height: 84px; border-radius: 50%; background: var(--bleu); color: #fff; font-family: "Barlow", Arial, sans-serif; font-weight: 700; font-size: 30px; display: flex; align-items: center; justify-content: center; }
+  .badges { display: grid; gap: 6px; font-size: 14px; font-weight: 600; color: var(--bleu-fonce); }
+  .badges span::before { content: "✓"; color: var(--orange); margin-right: 6px; }
+
+  /* Zone and hours */
+  .deux-col { display: grid; gap: 28px; }
+  .communes { list-style: none; padding: 0; margin: 0 0 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .communes li { background: #fff; border: 1px solid var(--bord); border-radius: 20px; padding: 4px 12px; font-size: 15px; }
+  .horaires td:last-child { font-weight: 600; }
+  .urgence { margin-top: 14px; border: 1px solid #f3c9a6; background: #fdf1e7; border-radius: 6px; padding: 12px 14px; font-size: 15px; }
+
+  /* Reviews */
+  .avis { background: #fff; border: 1px solid var(--bord); border-radius: 6px; padding: 18px 20px; }
+  .etoiles { color: #f2a900; letter-spacing: 2px; font-size: 18px; }
+  .etoiles span { color: #cfd5dd; }
+  .avis p { font-size: 15px; margin: 8px 0 10px; }
+  .avis .auteur { font-size: 14px; color: var(--gris); }
+
+  /* FAQ */
+  details { background: #fff; border: 1px solid var(--bord); border-radius: 6px; margin-bottom: 10px; }
+  summary { cursor: pointer; padding: 14px 16px; font-weight: 600; list-style: none; position: relative; padding-right: 40px; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; position: absolute; right: 16px; top: 10px; font-size: 22px; color: var(--bleu); }
+  details[open] summary::after { content: "–"; }
+  details p { padding: 0 16px 14px; margin: 0; color: var(--gris); font-size: 15px; }
+
+  /* Contact */
+  .contact { background: var(--bleu-fonce); color: #fff; }
+  .contact h2 { color: #fff; }
+  .contact .chapo { color: #c8d6e8; }
+  .coord { list-style: none; padding: 0; margin: 0 0 20px; display: grid; gap: 12px; font-size: 17px; }
+  .coord a { color: #fff; }
+  .coord strong { display: block; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: #9fb6d3; font-weight: 600; }
+
+  footer { background: #0f2c50; color: #a9bbd1; font-size: 13px; padding: 20px 0 84px; }
+  footer p { margin: 0 0 6px; }
+  .fictif { margin-top: 10px; color: #7f93ad; font-style: italic; }
+
+  /* Sticky call bar on mobile */
+  .appel-mobile {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; gap: 8px;
+    padding: 10px 16px; background: #fff; border-top: 1px solid var(--bord); box-shadow: 0 -2px 8px rgba(0,0,0,.06);
+  }
+  .appel-mobile a { flex: 1; padding: 11px 10px; font-size: 16px; }
+  .appel-mobile .btn-bleu { background: var(--bleu); color: #fff; }
+
+  @media (min-width: 760px) {
+    section { padding: 64px 0; }
+    h2 { font-size: 32px; }
+    .barre-haut .masquer-mobile { display: inline; }
+    header .conteneur { height: 76px; }
+    nav { display: block; }
+    .btn-tel-header { display: none; }
+    .hero { padding: 64px 0 70px; }
+    .hero h1 { font-size: 44px; max-width: 640px; }
+    .hero .boutons { flex-direction: row; max-width: none; }
+    .hero-points { grid-template-columns: repeat(3, auto); justify-content: start; gap: 24px; }
+    .grille-3 { grid-template-columns: repeat(3, 1fr); }
+    .grille-services { grid-template-columns: repeat(3, 1fr); }
+    .apropos { grid-template-columns: 300px 1fr; gap: 40px; }
+    .portrait { flex-direction: column; align-items: flex-start; padding: 28px; }
+    .deux-col { grid-template-columns: 1fr 1fr; gap: 40px; }
+    .contact-grille { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+    .appel-mobile { display: none; }
+    footer { padding-bottom: 24px; }
+  }
+  @media (min-width: 1000px) {
+    .hero .conteneur { display: grid; grid-template-columns: 1fr 300px; gap: 48px; align-items: center; }
+    .hero-carte { display: block; }
+  }
+</style>
+</head>
+<body>
+
+<div class="barre-haut">
+  <div class="conteneur">
+    <span>Annecy et 30&nbsp;km autour</span>
+    <span class="masquer-mobile">Lun-ven 8&nbsp;h-18&nbsp;h · Sam 9&nbsp;h-12&nbsp;h</span>
+    <a href="mailto:contact@plomberie-martin.fr">contact@plomberie-martin.fr</a>
+  </div>
+</div>
+
+<header>
+  <div class="conteneur">
+    <a href="#" class="logo" aria-label="Plomberie Martin, accueil">
+      <svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true">
+        <rect width="38" height="38" rx="6" fill="#1d4e89"/>
+        <path d="M19 8c-4 6-7 9.5-7 13.5a7 7 0 0 0 14 0C26 17.5 23 14 19 8z" fill="#fff"/>
+        <path d="M16 22a3 3 0 0 0 3 3" stroke="#e8792b" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+      <span class="logo-nom">Plomberie Martin<small>Plombier chauffagiste · Annecy</small></span>
+    </a>
+    <nav aria-label="Menu principal">
+      <a href="#services">Services</a>
+      <a href="#tarifs">Tarifs</a>
+      <a href="#zone">Zone et horaires</a>
+      <a href="#avis">Avis</a>
+      <a href="#faq">FAQ</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a href="tel:+33612345678" class="btn btn-tel-header">Appeler</a>
+  </div>
+</header>
+
+<main>
+
+<div class="hero">
+  <div class="conteneur">
+    <div>
+    <h1>Votre plombier chauffagiste à Annecy</h1>
+    <p>Fuite, canalisation bouchée, chauffe-eau en panne ou projet de salle de bain&nbsp;: Marc Martin intervient chez vous à Annecy et dans un rayon de 30&nbsp;km.</p>
+    <div class="boutons">
+      <a href="tel:+33612345678" class="btn btn-orange">06 12 34 56 78</a>
+      <a href="#contact" class="btn btn-contour">Demander un devis gratuit</a>
+    </div>
+    <ul class="hero-points">
+      <li>Devis gratuit</li>
+      <li>Urgences soir et week-end</li>
+      <li>Garantie décennale</li>
+    </ul>
+    </div>
+    <aside class="hero-carte">
+      <h3>Horaires</h3>
+      <p>Lundi au vendredi&nbsp;: 8&nbsp;h-18&nbsp;h</p>
+      <p>Samedi&nbsp;: 9&nbsp;h-12&nbsp;h</p>
+      <hr>
+      <h3>Une fuite, plus d’eau chaude&#8239;?</h3>
+      <p>J’interviens aussi le soir et le week-end (majoration de 50&nbsp;%).</p>
+    </aside>
+  </div>
+</div>
+
+<section id="services">
+  <div class="conteneur">
+    <h2>Mes services</h2>
+    <p class="chapo">Particuliers et petits commerces, en neuf comme en rénovation.</p>
+    <div class="grille grille-services">
+      <div class="carte">
+        <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="18" fill="#eaf1f9"/><path d="M18 8c-3.5 5-6 8-6 11.5a6 6 0 0 0 12 0C24 16 21.5 13 18 8z" fill="#1d4e89"/></svg>
+        <h3>Dépannage fuite</h3>
+        <p>Recherche et réparation de fuite sur robinetterie, canalisations, WC et raccords.</p>
+      </div>
+      <div class="carte">
+        <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="18" fill="#eaf1f9"/><path d="M11 12h14M14 12v6a4 4 0 0 0 8 0v-6M18 22v6" stroke="#1d4e89" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
+        <h3>Débouchage</h3>
+        <p>Évier, lavabo, douche, WC et canalisations. Débouchage manuel ou au furet électrique.</p>
+      </div>
+      <div class="carte">
+        <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="18" fill="#eaf1f9"/><rect x="12" y="8" width="12" height="20" rx="4" fill="none" stroke="#1d4e89" stroke-width="2.4"/><path d="M15 22h6" stroke="#e8792b" stroke-width="2.4" stroke-linecap="round"/></svg>
+        <h3>Chauffe-eau et ballon</h3>
+        <p>Réparation, détartrage et remplacement de chauffe-eau électrique, ballon thermodynamique.</p>
+      </div>
+      <div class="carte">
+        <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="18" fill="#eaf1f9"/><path d="M9 19h18v3a5 5 0 0 1-5 5h-8a5 5 0 0 1-5-5z M12 19v-8a3 3 0 0 1 6 0" stroke="#1d4e89" stroke-width="2.4" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        <h3>Salle de bain clé en main</h3>
+        <p>Douche à l’italienne, remplacement de baignoire, meuble vasque. Un seul interlocuteur du devis à la finition.</p>
+      </div>
+      <div class="carte">
+        <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="18" fill="#eaf1f9"/><path d="M18 9c2 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-4.5 3-7 1 2 2 2.5 3 3 0-3-.5-5 0-7z" fill="#e8792b"/></svg>
+        <h3>Entretien chaudière gaz</h3>
+        <p>Entretien annuel obligatoire avec attestation, réglages et vérification de sécurité.</p>
+      </div>
+      <div class="carte" style="background: var(--bleu-clair); border-color: var(--bleu-clair);">
+        <h3>Un autre besoin&#8239;?</h3>
+        <p>Appelez-moi, je vous dis tout de suite si je peux m’en occuper.</p>
+        <p style="margin-top:10px;"><a href="tel:+33612345678" style="font-weight:600;">06 12 34 56 78</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tarifs" class="alt">
+  <div class="conteneur">
+    <h2>Tarifs</h2>
+    <p class="chapo">Des prix annoncés à l’avance, sans surprise sur la facture.</p>
+    <table>
+      <tr><td>Déplacement dans la zone d’intervention<small>Offert si les travaux sont réalisés</small></td><td>49&nbsp;€</td></tr>
+      <tr><td>Main-d’œuvre<small>Facturée au temps passé</small></td><td>55&nbsp;€/h</td></tr>
+      <tr><td>Majoration urgence<small>Le soir et le week-end</small></td><td>+50&nbsp;%</td></tr>
+      <tr><td>Devis</td><td>Gratuit</td></tr>
+    </table>
+    <p class="note">Les pièces et fournitures sont facturées en plus et détaillées sur le devis.</p>
+    <div class="paiement"><strong>Moyens de paiement&nbsp;:</strong> carte bancaire, virement, chèque.</div>
+  </div>
+</section>
+
+<section id="apropos">
+  <div class="conteneur apropos">
+    <div class="portrait">
+      <div class="monogramme">MM</div>
+      <div class="badges">
+        <span>CAP plombier</span>
+        <span>À Annecy depuis 2025</span>
+        <span>Garantie décennale</span>
+      </div>
+    </div>
+    <div>
+      <h2>Qui suis-je&#8239;?</h2>
+      <p>Je m’appelle Marc Martin, plombier chauffagiste installé à Annecy depuis 2025.</p>
+      <p>Après plusieurs années comme technicien, j’ai choisi de me reconvertir dans un métier concret, au contact des gens. J’ai passé mon CAP plombier, puis j’ai créé Plomberie Martin pour travailler à mon compte, près de chez moi.</p>
+      <p>Je travaille seul&nbsp;: c’est moi qui réponds au téléphone, qui fais le devis et qui viens chez vous. Je prends le temps d’expliquer ce que je fais et je laisse le chantier propre.</p>
+    </div>
+  </div>
+</section>
+
+<section id="zone" class="alt">
+  <div class="conteneur deux-col">
+    <div>
+      <h2>Zone d’intervention</h2>
+      <p class="chapo" style="margin-bottom:16px;">J’interviens dans un rayon de 30&nbsp;km autour d’Annecy, notamment à&nbsp;:</p>
+      <ul class="communes">
+        <li>Annecy</li>
+        <li>Seynod</li>
+        <li>Cran-Gevrier</li>
+        <li>Annecy-le-Vieux</li>
+        <li>Épagny Metz-Tessy</li>
+        <li>Sévrier</li>
+      </ul>
+      <p style="font-size:15px; color:var(--gris);">Pas d’intervention en dehors de cette zone.</p>
+    </div>
+    <div>
+      <h2>Horaires</h2>
+      <table class="horaires">
+        <tr><td>Lundi au vendredi</td><td>8&nbsp;h-18&nbsp;h</td></tr>
+        <tr><td>Samedi</td><td>9&nbsp;h-12&nbsp;h</td></tr>
+        <tr><td>Dimanche</td><td>Fermé</td></tr>
+      </table>
+      <div class="urgence"><strong>Urgences&nbsp;:</strong> en cas de fuite ou si vous n’avez plus d’eau chaude, je me déplace aussi le soir et le week-end, avec une majoration de 50&nbsp;%.</div>
+    </div>
+  </div>
+</section>
+
+<section id="avis">
+  <div class="conteneur">
+    <h2>Avis clients</h2>
+    <p class="chapo">Ce que disent les clients après une intervention.</p>
+    <div class="grille grille-3">
+      <div class="avis">
+        <div class="etoiles" aria-label="5 sur 5">★★★★★</div>
+        <p>Fuite sous l’évier un samedi matin, Marc est passé dans l’heure. Travail propre, prix annoncé au téléphone respecté.</p>
+        <div class="auteur">Sophie L., Seynod</div>
+      </div>
+      <div class="avis">
+        <div class="etoiles" aria-label="5 sur 5">★★★★★</div>
+        <p>Remplacement de notre ballon d’eau chaude de 200 litres. Devis clair, rendez-vous tenu, il a même repris l’ancien.</p>
+        <div class="auteur">Patrick D., Annecy-le-Vieux</div>
+      </div>
+      <div class="avis">
+        <div class="etoiles" aria-label="4 sur 5">★★★★<span>★</span></div>
+        <p>Bon entretien de chaudière, sérieux et explications claires. Un peu de délai pour avoir un créneau, mais rien de grave.</p>
+        <div class="auteur">Nathalie R., Cran-Gevrier</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq" class="alt">
+  <div class="conteneur" style="max-width:780px;">
+    <h2>Questions fréquentes</h2>
+    <p class="chapo">Les réponses aux questions qu’on me pose le plus souvent.</p>
+    <details>
+      <summary>Sous quel délai pouvez-vous intervenir&#8239;?</summary>
+      <p>Pour une urgence (fuite, plus d’eau chaude), j’interviens en général dans la journée. Pour un entretien ou des travaux, comptez quelques jours à une semaine selon la période.</p>
+    </details>
+    <details>
+      <summary>Dans quelles communes intervenez-vous&#8239;?</summary>
+      <p>À Annecy, Seynod, Cran-Gevrier, Annecy-le-Vieux, Épagny Metz-Tessy, Sévrier et dans un rayon de 30&nbsp;km autour d’Annecy. Je n’interviens pas en dehors de cette zone.</p>
+    </details>
+    <details>
+      <summary>Le devis est-il payant&#8239;?</summary>
+      <p>Non, le devis est gratuit. Le déplacement de 49&nbsp;€ est offert si vous acceptez les travaux.</p>
+    </details>
+    <details>
+      <summary>Êtes-vous assuré en garantie décennale&#8239;?</summary>
+      <p>Oui. Je suis couvert par une assurance responsabilité civile professionnelle et une garantie décennale. L’attestation est jointe à chaque devis.</p>
+    </details>
+    <details>
+      <summary>Comment puis-je payer&#8239;?</summary>
+      <p>Par carte bancaire, par virement ou par chèque, à la fin de l’intervention.</p>
+    </details>
+  </div>
+</section>
+
+<section id="contact" class="contact">
+  <div class="conteneur contact-grille">
+    <div>
+      <h2>Contact</h2>
+      <p class="chapo">Appelez-moi pour un dépannage ou écrivez-moi pour un devis. Je réponds rapidement.</p>
+      <a href="tel:+33612345678" class="btn btn-orange" style="margin-bottom:24px;">Appeler le 06 12 34 56 78</a>
+    </div>
+    <ul class="coord">
+      <li><strong>Téléphone</strong><a href="tel:+33612345678">06 12 34 56 78</a></li>
+      <li><strong>E-mail</strong><a href="mailto:contact@plomberie-martin.fr">contact@plomberie-martin.fr</a></li>
+      <li><strong>Adresse</strong>12 rue Royale, 74000 Annecy</li>
+      <li><strong>Horaires</strong>Lundi au vendredi 8&nbsp;h-18&nbsp;h, samedi 9&nbsp;h-12&nbsp;h</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="conteneur">
+    <p>Plomberie Martin · Marc Martin, plombier chauffagiste · 12 rue Royale, 74000 Annecy</p>
+    <p>SIRET 912 345 678 00012 · Entreprise individuelle</p>
+    <p>© 2026 Plomberie Martin · Mentions légales</p>
+    <p class="fictif">Site fictif créé pour une démonstration.</p>
+  </div>
+</footer>
+
+<div class="appel-mobile">
+  <a href="tel:+33612345678" class="btn btn-orange">Appeler</a>
+  <a href="#contact" class="btn btn-bleu">Devis gratuit</a>
+</div>
+
+</body>
+</html>
