@@ -27,8 +27,9 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 
 ## En cours
 
-- 02 · Ajouter au dépôt le code de l'agent ElevenLabs de Mathieu (Elior)
-  - dans un dossier à lui ; noter dans PROJET.md ce que l'agent sait déjà faire
 
 ## Fait
 
+- 02 · Ajouter au dépôt le code de l'agent ElevenLabs de Mathieu (Elior)
+  - dans un dossier à lui ; noter dans PROJET.md ce que l'agent sait déjà faire
+  - Fait : app/ = copie du MVP Lovable (your-virtual-agent @ bf3da68), sans .env ; Prettier appliqué, lint 0 erreur, build OK ; stack décrite dans PROJET.md
