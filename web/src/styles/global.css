@@ -1,1 +1,45 @@
 @import "tailwindcss";
+
+/* Design tokens: values come from DESIGN.md (do not edit here without updating it) */
+@theme {
+  --font-sans: "Atkinson Hyperlegible Next", system-ui, sans-serif;
+  --color-page: #f1f4f8;
+  --color-surface: #ffffff;
+  --color-line: #dbe2ea;
+  --color-ink: #0b2545;
+  --color-muted: #5f6b7a;
+  --color-action: #4ee494;
+  --color-action-line: #2fc777;
+  --color-action-ink: #007d35;
+  --color-tint: #ddf6e5;
+  --color-tint-line: #b4e6c6;
+  --color-urgence: #d70015;
+  --color-urgence-bg: #fde8ea;
+  --color-urgence-line: #f5c2c8;
+  --color-prio: #c25e00;
+  --color-prio-bg: #fdf0e3;
+  --color-prio-line: #f1d2b0;
+  --color-neutral: #5f6b7a;
+  --color-neutral-bg: #e9eef3;
+  --color-neutral-line: #d3dbe4;
+  --color-scrim: rgba(11, 37, 69, 0.45);
+  --text-title: 30px;
+  --text-title--line-height: 1.1;
+  --text-body: 17px;
+  --text-body--line-height: 1.35;
+  --text-small: 14px;
+  --text-small--line-height: 1.35;
+  --radius-chip: 8px;
+  --radius-call: 12px;
+  --radius-block: 14px;
+  --radius-button: 16px;
+  --radius-dialog: 28px;
+}
+
+body {
+  background: var(--color-page);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: 1.35;
+}
