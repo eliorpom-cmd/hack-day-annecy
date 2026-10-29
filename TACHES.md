@@ -10,6 +10,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 
 - 01 · Inviter Mathieu sur GitHub
   - demander son pseudo, rôle Write
+- 02 · Ajouter au dépôt le code de l'agent ElevenLabs de Mathieu
+  - dans un dossier à lui ; noter dans PROJET.md ce que l'agent sait déjà faire
 
 ## En cours
 
