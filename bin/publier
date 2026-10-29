@@ -1,0 +1,17 @@
+#!/bin/bash
+# Publishes local `main` from a clean throwaway worktree, never from web/ where agents may be working.
+# Usage: bin/publier   (run by Elior in Terminal: auto mode refuses production deploys)
+set -euo pipefail
+
+repo="$(cd "$(dirname "$0")/.." && pwd)"
+dir="$(mktemp -d /tmp/publier.XXXXXX)"
+trap 'git -C "$repo" worktree remove --force "$dir" >/dev/null 2>&1 || true' EXIT
+
+git -C "$repo" worktree add --detach "$dir" main >/dev/null
+ln -s "$repo/web/node_modules" "$dir/web/node_modules"
+cd "$dir/web"
+echo "Publication de main ($(git rev-parse --short HEAD))"
+npx wrangler d1 migrations apply hack-day-annecy --remote
+npx astro build
+npx wrangler deploy
+echo "En ligne : https://hack-day-annecy.eliorpom-0bc.workers.dev"
