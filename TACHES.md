@@ -10,8 +10,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 
 - 01 · Inviter Mathieu sur GitHub
   - demander son pseudo, rôle Write
-- 04 · Fixer la stack, le contrat d'API et qui possède quoi
-  - après le brainstorm ; sections Stack, Contrat d'API et Ownership de PROJET.md
 - 05 · Refaire l'onboarding (mode simple)
   - scan du site ou saisie, voix, numéro, dashboard ; voir PROJET.md « Onboarding » ; référence reception.ai
 - 06 · Refaire le dashboard : leads, appels, mode avancé
@@ -27,6 +25,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 
 - 03 · Brainstorm : choisir le métier visé et ce que montre la démo (Elior)
   - s'appuyer sur etude-marche/README.md ; remplir Problème, Démo et Hors périmètre dans PROJET.md
+- 04 · Fixer la stack, le contrat d'API et qui possède quoi (Elior)
+  - après le brainstorm ; sections Stack, Contrat d'API et Ownership de PROJET.md
 
 ## Fait
 
