@@ -8,6 +8,11 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 
 ## À faire
 
+- 01 · Inviter Mathieu sur GitHub
+  - demander son pseudo, rôle Write
+
 ## En cours
 
+
 ## Fait
+
