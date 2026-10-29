@@ -16,3 +16,5 @@ Chaque étape : une page d'options, Elior choisit. À la fin, tout passe dans `D
 **Règle (Elior)** : suivre les guidelines Material Design 3, et signaler tout écart.
 
 Tout est consolidé dans `DESIGN.md` à la racine (fait foi).
+
+**Ordinateur** (Elior, 29/10) : pas prioritaire, les artisans rappellent depuis leur téléphone. On se concentre sur le mobile ; options gardées dans 6-ordinateur.html pour plus tard.

@@ -110,7 +110,8 @@ export function buildAgentPayload(opts: {
   business: PromptBusiness; prompt: string; voiceId: string | null;
   dataCollection: Record<string, DataCollectionField>; platformExtras?: Record<string, unknown>;
 }) {
-  const tts: Record<string, unknown> = { model_id: "eleven_flash_v2_5" };
+  // Eleven v4 Turbo: chosen by Mathieu in the MVP (expressive French, low latency)
+  const tts: Record<string, unknown> = { model_id: "eleven_v4_turbo" };
   if (opts.voiceId) tts.voice_id = opts.voiceId;
   return {
     name: `Assistant – ${opts.business.name.trim() || "Artisan"}`.slice(0, 100),
