@@ -4,7 +4,7 @@ import { db, type Business } from "../../../lib/db";
 import { newId, newToken } from "../../../lib/tokens";
 import { telEnv, type TelephonyEnv } from "../../../lib/telephony/env";
 import { verifyElevenLabsSignature } from "../../../lib/telephony/signature";
-import { buildCallMessage, parsePostCall } from "../../../lib/telephony/postcall";
+import { buildCallMessage, callerSpoke, parsePostCall } from "../../../lib/telephony/postcall";
 import { logEvent, sendCallNotification } from "../../../lib/telephony/providers";
 import { enqueueWhatsApp } from "../../../lib/telephony/whatsapp-relay";
 
@@ -52,6 +52,12 @@ export const POST: APIRoute = async ({ request }) => {
       `INSERT INTO calls (id, business_id, from_number, twilio_call_sid, conversation_id, handled_by, urgency, duration_s, summary, transcript)
        VALUES (?, ?, ?, ?, ?, 'agent', ?, ?, ?, ?)`,
     ).bind(callId, business.id, call.callerNumber, call.callSid, call.conversationId, call.lead.urgency, call.durationS, call.summary, transcript).run();
+  }
+
+  // Nobody spoke (hung up during the greeting): the call is kept, but no client and no message
+  if (!callerSpoke(call.transcript)) {
+    logEvent("info", "elevenlabs.post_call_silent", { business: business.id, call: callId });
+    return json({ ok: true, call_id: callId, lead_id: null, notification: "skipped" });
   }
 
   // One lead per call: ElevenLabs may retry the webhook

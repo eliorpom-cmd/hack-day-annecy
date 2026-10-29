@@ -13,7 +13,8 @@ const name = lead.name ?? "Client";
 const subject = capitalize(lead.subject ?? lead.need ?? "Appel");
 const status = statusLabel(lead.status);
 const done = lead.status !== "nouveau";
-const chip = done ? null
+const chip = lead.appointment_at ? { label: "Rendez-vous pris", cls: "chip-ok" }
+  : done ? null
   : lead.urgency === "urgence" ? { label: "Urgence", cls: "chip-urgence" }
   : lead.urgency === "urgent" ? { label: "Prioritaire", cls: "chip-prio" } : null;
 const href = Astro.props.href ?? (lead.link_token ? `/a/${lead.link_token}` : null);

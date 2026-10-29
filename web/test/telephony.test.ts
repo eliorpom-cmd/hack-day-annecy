@@ -188,3 +188,10 @@ test("forwarded call detected from Twilio's ForwardedFrom or a Diversion header"
   assert.ok(!isForwardedCall(form({ From: "+33611111111" })));
   assert.ok(!isForwardedCall(form({ ForwardedFrom: " " })));
 });
+
+test("silent call: only the répondeur spoke, no client and no message", async () => {
+  const { callerSpoke } = await import("../src/lib/telephony/postcall.ts");
+  assert.equal(callerSpoke([{ role: "agent", message: "Bonjour, ici l'assistant de Plomberie Martin." }]), false);
+  assert.equal(callerSpoke([{ role: "agent", message: "Bonjour" }, { role: "user", message: "..." }]), false);
+  assert.equal(callerSpoke([{ role: "agent", message: "Bonjour" }, { role: "user", message: "J'ai une fuite" }]), true);
+});

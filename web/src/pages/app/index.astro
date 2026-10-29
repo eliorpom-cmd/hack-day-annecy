@@ -29,7 +29,7 @@ const selectedToken = selectedLead?.link_token ?? null;
 const selectedCall = selectedToken ? await callPageByToken(selectedToken) : null;
 const tousQuery = view === "tous" ? "&vue=tous" : "";
 const paneHref = (token: string | null) => (token ? `/app?appel=${token}${tousQuery}` : undefined);
-const urgentCount = leads.filter((l) => l.status === "nouveau" && l.urgency === "urgence").length;
+const urgentCount = pending.filter((l) => l.urgency === "urgence").length;
 ---
 <AppShell title="Appels" active="appels" urgent={urgentCount}>
   <div class="lg:hidden">

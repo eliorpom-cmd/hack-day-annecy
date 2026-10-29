@@ -1,0 +1,65 @@
+---
+// « Agenda »: coming appointments. The ones the répondeur booked during a call stand out (green, « Pris par le
+// répondeur », link to the call); demo accounts also show a fake week of jobs (lib/agenda.ts).
+import AppShell from "../../layouts/AppShell.astro";
+import Icon from "../../components/Icon.astro";
+import { db } from "../../lib/db";
+import { isDemoAccount } from "../../lib/demo-voice";
+import { demoJobs, groupAgenda, timeRange, type AgendaItem } from "../../lib/agenda";
+
+const { business } = Astro.locals;
+if (!business) return Astro.redirect("/login");
+if (business.onboarding_step !== "done") return Astro.redirect("/onboarding");
+
+const now = Math.floor(Date.now() / 1000);
+const { results } = await db().prepare(
+  `SELECT a.starts_at, a.ends_at, a.title, l.address, l.link_token
+   FROM appointments a LEFT JOIN leads l ON l.id = a.lead_id
+   WHERE a.business_id = ? AND a.ends_at > ? ORDER BY a.starts_at LIMIT 100`,
+).bind(business.id, now - 86400).all<{ starts_at: number; ends_at: number; title: string; address: string | null; link_token: string | null }>();
+const booked: AgendaItem[] = (results ?? []).map((r) => ({
+  start: r.starts_at, end: r.ends_at, title: r.title, place: r.address, booked: true, link_token: r.link_token,
+}));
+// Demo: fake jobs, minus any that would overlap a real booking
+const fake = isDemoAccount(Astro.locals.user)
+  ? demoJobs().filter((f) => !booked.some((b) => b.start < f.end && f.start < b.end))
+  : [];
+const days = groupAgenda([...booked, ...fake], now);
+---
+<AppShell title="Agenda" active="agenda">
+  <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-[14px] px-4 pt-4 pb-6 lg:max-w-[720px] lg:px-8 lg:pt-10">
+    <div>
+      <h1 class="text-title font-bold">Agenda</h1>
+      <p class="mt-2 text-muted">Les rendez-vous pris par le répondeur s’ajoutent ici tout seuls.</p>
+    </div>
+
+    {days.length === 0 ? (
+      <div class="py-12 text-center">
+        <p class="font-bold">Aucun rendez-vous</p>
+        <p class="mt-1 text-small text-muted">Les rendez-vous pris au téléphone s’afficheront ici.</p>
+      </div>
+    ) : days.map((d) => (
+      <section>
+        <h2 class="px-[14px] pb-2 text-small font-bold text-muted">{d.label}</h2>
+        <ul class="panel overflow-hidden">
+          {d.items.map((i) => (
+            <li class={`row relative ${i.booked ? "bg-tint shadow-[inset_3px_0_0_var(--color-action-line)]" : ""}`}>
+              <span class="w-[92px] shrink-0 text-small font-bold">{timeRange(i)}</span>
+              <div class="min-w-0 flex-1">
+                {i.booked && <span class="chip chip-ok mb-1 inline-flex items-center gap-1"><Icon name="check" size={14} />Pris par le répondeur</span>}
+                <p class={`truncate ${i.booked ? "font-bold" : ""}`}>
+                  {i.booked && i.link_token ? <a href={`/a/${i.link_token}`} class="agenda-link">{i.title}</a> : i.title}
+                </p>
+                {i.place && <p class="truncate text-small text-muted">{i.place}</p>}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </main>
+</AppShell>
+
+<style>
+  .agenda-link::after { content: ""; position: absolute; inset: 0; }
+</style>

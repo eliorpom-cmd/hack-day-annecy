@@ -91,6 +91,12 @@ const PRIORITY_LABEL = {
   normal: "🟢 Normal",
 } as const;
 
+// True when the caller said something: a call where only the répondeur spoke (hung up right after the greeting)
+// creates no client and sends no message
+export function callerSpoke(transcript: { role: string; message: string }[]): boolean {
+  return transcript.some((t) => t.role === "user" && /[\p{L}\p{N}]{2,}/u.test(t.message ?? ""));
+}
+
 // +33612345678 -> 06 12 34 56 78 ; other formats are returned as is
 export function formatFrPhone(phone: string | null | undefined): string {
   const p = (phone ?? "").replace(/\s+/g, "");

@@ -6,6 +6,8 @@ export type Urgency = "urgence" | "urgent" | "normal";
 export type ListLead = {
   id: string; name: string | null; phone: string | null; subject: string | null; need: string | null;
   urgency: Urgency; status: string; link_token: string | null; created_at: number;
+  // Start (unix s) of the appointment booked by the répondeur during this call, if any
+  appointment_at?: number | null;
 };
 
 export type DayGroup<T> = { key: string; label: string; items: T[] };
@@ -51,9 +53,10 @@ export function whenLabel(unixSeconds: number, now = Date.now() / 1000): string 
 }
 
 // « À rappeler »: new leads only, Urgence then Prioritaire then Normal, newest first in each
-export function toCallBack<T extends Pick<ListLead, "status" | "urgency" | "created_at">>(leads: T[]): T[] {
+// A booked appointment needs no call back: it stays in « Tous » with its « Rendez-vous pris » chip
+export function toCallBack<T extends Pick<ListLead, "status" | "urgency" | "created_at" | "appointment_at">>(leads: T[]): T[] {
   return leads
-    .filter((l) => l.status === "nouveau")
+    .filter((l) => l.status === "nouveau" && !l.appointment_at)
     .sort((a, b) => (RANK[a.urgency] ?? 2) - (RANK[b.urgency] ?? 2) || b.created_at - a.created_at);
 }
 
