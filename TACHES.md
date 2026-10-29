@@ -14,8 +14,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
 - 09 · Mail récap de la semaine
   - appels, urgences, leads ; envoi programmé
-- 11 · Back de l'onboarding et du dashboard (API)
-  - scan du site, voix, agent ElevenLabs, numéros, fiche, horaires, FAQ, appels, leads, stats ; voir le contrat dans PROJET.md
 
 ## En cours
 
@@ -23,6 +21,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - portable de l'artisan ~15 s, puis l'agent si pas de réponse ou refus ; hors horaires : l'agent direct
 - 08 · SMS instantané à l'artisan en cas d'urgence (Claude)
   - déclenché par l'agent ; + transfert de l'appel si possible
+- 11 · Back de l'onboarding et du dashboard (API) (Claude)
+  - scan du site, voix, agent ElevenLabs, numéros, fiche, horaires, FAQ, appels, leads, stats ; voir le contrat dans PROJET.md
 
 ## Fait
 
