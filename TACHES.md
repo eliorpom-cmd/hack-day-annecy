@@ -12,6 +12,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
 - 17 · Mettre l'app en ligne sur Cloudflare
   - base D1 distante + secrets + wrangler deploy ; adresse publique pour les webhooks Twilio et ElevenLabs ; accord d'Elior requis
+- 18 · Brancher les vraies clés et faire un appel de bout en bout
+  - clés de Mathieu dans web/.dev.vars puis wrangler secret ; créer l'agent, acheter ou relier un numéro, webhook post-call, bac à sable WhatsApp ; appel réel
 
 ## En cours
 
