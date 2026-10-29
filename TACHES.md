@@ -8,8 +8,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 
 ## À faire
 
-- 05 · Refaire l'onboarding (mode simple)
-  - scan du site ou saisie, voix, numéro, dashboard ; voir PROJET.md « Onboarding » ; référence reception.ai
 - 06 · Refaire le dashboard : leads, appels, mode avancé
   - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
 
@@ -21,6 +19,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - scénario demande de devis : un appelle, un joue l'artisan
 - 14 · Slides du pitch (~5 min) (Maxime)
   - deck web exportable PDF/PPTX
+- 05 · Refaire l'onboarding (mode simple) (Claude)
+  - scan du site ou saisie, voix, numéro, dashboard ; voir PROJET.md « Onboarding » ; référence reception.ai
 
 ## Fait
 
