@@ -29,8 +29,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - deck web exportable PDF/PPTX
 - 23 · Landing page du produit (Claude)
   - web/src/pages/index.astro : pitch, comment ça marche, configuration, Visibilité, essai gratuit et démo ; COPY.md + DESIGN.md
-- 21 · Réglages (mode avancé) (Claude)
-  - horaires, documentation et prix, voix, message d'accueil, durée de sonnerie ; reprend les composants de la configuration
 
 ## Fait
 
@@ -72,3 +70,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 - 17 · Mettre l'app en ligne sur Cloudflare (Claude)
   - base D1 distante + secrets + wrangler deploy ; adresse publique pour les webhooks Twilio et ElevenLabs ; accord d'Elior requis
   - Fait : https://hack-day-annecy.eliorpom-0bc.workers.dev ; D1 distante migrée, secret TWILIO_WEBHOOK_TOKEN posé ; publier : cd web && npm run deploy
+- 21 · Réglages (mode avancé) (Claude)
+  - horaires, documentation et prix, voix, message d'accueil, durée de sonnerie ; reprend les composants de la configuration
+  - Fait : web/src/pages/app/reglages.astro + components/settings/ : horaires, sonnerie, portable, accueil, documentation (questions et prix), voix, numéro ; met à jour l'agent après chaque changement
