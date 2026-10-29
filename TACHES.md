@@ -16,8 +16,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - aperçu audio de chaque voix (ElevenLabs preview_url, ou phrase d'accueil générée en TTS) ; nécessite la clé
 - 28 · Publicités Meta : étudier l'intégration
   - API Marketing de Meta : accès, validation de l'app, coût ; v2, pour le pitch
-- 31 · Publicités : Google Ads seul, aperçu Google Maps, Lancer la campagne
-  - Retirer Facebook/Instagram de la page Publicités ; expliquer en 3 étapes ; aperçu façon Google Maps de la recherche « plombier Annecy » ; budget puis bouton « Lancer la campagne » (démo).
 
 ## En cours
 
@@ -29,6 +27,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - deck web exportable PDF/PPTX
 - 30 · Fiche Google : j'ai une fiche / je n'en ai pas (démo) (Mathieu)
   - Choix en haut de la page Fiche Google ; « j'ai une fiche » charge 3 s puis montre la fiche Le plombier annecy et ses derniers avis, avec une réponse pré-remplie à envoyer en un clic.
+- 31 · Publicités : Google Ads seul, aperçu Google Maps, Lancer la campagne (Mathieu)
+  - Retirer Facebook/Instagram de la page Publicités ; expliquer en 3 étapes ; aperçu façon Google Maps de la recherche « plombier Annecy » ; budget puis bouton « Lancer la campagne » (démo).
 
 ## Fait
 
