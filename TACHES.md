@@ -15,8 +15,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 
 ## En cours
 
-- 11 · Back de l'onboarding et du dashboard (API) (Claude)
-  - scan du site, voix, agent ElevenLabs, numéros, fiche, horaires, FAQ, appels, leads, stats ; voir le contrat dans PROJET.md
 
 ## Fait
 
@@ -43,3 +41,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 - 08 · SMS instantané à l'artisan en cas d'urgence (Claude)
   - déclenché par l'agent ; + transfert de l'appel si possible
   - Fait : web/src/pages/api/elevenlabs/post-call.ts : enregistre appel + lead, SMS Twilio si urgence ; à brancher avec les vraies clés
+- 11 · Back de l'onboarding et du dashboard (API) (Claude)
+  - scan du site, voix, agent ElevenLabs, numéros, fiche, horaires, FAQ, appels, leads, stats ; voir le contrat dans PROJET.md
+  - Fait : web/src/pages/api/* + web/src/lib/* : toutes les routes du contrat, scan du site via Workers AI, 39 tests ; données démo (0004) ; à tester avec les vraies clés
