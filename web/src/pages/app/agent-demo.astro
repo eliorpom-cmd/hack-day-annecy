@@ -41,7 +41,7 @@ const checks: AgentCheck[] | null = final
   : null;
 // Booking part of the app's prompt, to paste into the FINAL agent's prompt on ElevenLabs
 const full = business ? buildSystemPrompt(business, [], [], { calendar: true }) : "";
-const bookingText = full.includes("RENDEZ-VOUS") ? full.slice(full.indexOf("RENDEZ-VOUS"), full.indexOf("L'ENTREPRISE")).trim() : "";
+const bookingText = full.includes("\nRENDEZ-VOUS") ? full.slice(full.indexOf("\nRENDEZ-VOUS") + 1, full.indexOf("\nL'ENTREPRISE")).trim() : "";
 const btn = "flex min-h-12 flex-1 items-center justify-center rounded-button px-4 font-bold";
 ---
 <AppShell title="Agent de démo" active="reglages">
