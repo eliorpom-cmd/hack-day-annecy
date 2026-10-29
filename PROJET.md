@@ -33,7 +33,11 @@ Specs à jour (source de vérité, écrite par l'équipe) : https://docs.google.
 
 **Fait sur `main`** : landing, connexion, configuration v2 (nom d'entreprise et horaires facultatifs, interview de l'artisan, « Garder mon numéro » par renvoi d'appel), appels, page d'un appel, réglages, hub ordinateur (Site web, Fiche Google, Réseaux sociaux, Publicités : générateurs IA), faux site d'artisan pour la démo `/plomberie-martin/`.
 
-**En cours (sous-agents, pas encore commités)** : relais WhatsApp par le numéro GRNBL (Baileys sur le Mac, file `whatsapp_outbox`, migration 0014, dossier `relay-whatsapp/`) ; configuration de démo pré-remplie sur Plomberie Martin.
+**Relais WhatsApp** (sur `main`, pas encore en ligne) : file `whatsapp_outbox` (migration 0014), routes `/api/whatsapp-relay/outbox` et `/ack` (jeton `WHATSAPP_RELAY_TOKEN`), relais Mac `relay-whatsapp/` (Baileys, session GRNBL, voir son README).
+
+**Inachevé** : configuration de démo pré-remplie sur Plomberie Martin, branche `wip/demo-prefill` (tests OK, jamais parcourue dans un navigateur). Paquet de passage à Lovable (`LOVABLE.md`) pas écrit : arrêté au changement de compte Claude.
+
+**Clés** : seul `TWILIO_WEBHOOK_TOKEN` est posé sur Cloudflare (vérifié le 29/10 à 18 h 40) ; tant que les autres manquent, le clonage de voix en ligne répond « Votre voix ne peut pas encore être enregistrée ».
 
 **Démo décidée** : l'appel est réel ; la configuration est montrée pré-remplie (faux site Plomberie Martin, on valide seulement) ; le message WhatsApp part du second numéro d'Elior (GRNBL), plan B : envoyé à la main.
 
