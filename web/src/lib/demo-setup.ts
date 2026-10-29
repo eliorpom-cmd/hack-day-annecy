@@ -136,3 +136,19 @@ export function checkFinalAgent(agent: unknown): AgentCheck[] {
     { ok: tools.includes("end_call"), label: "Raccrocher seul (End call)", detail: tools.includes("end_call") ? "activé" : "pas activé" },
   ];
 }
+
+// PATCH body that only adds what the app needs to the FINAL agent: missing analysis fields and the end_call tool.
+// Voice, model, first message and prompt text are sent back unchanged (the full prompt object, so nothing is lost).
+export function completeFinalAgentPatch(agent: unknown, fields: Record<string, unknown>, endCall: Record<string, unknown>): Record<string, unknown> | null {
+  const o = (v: unknown): Record<string, unknown> => (v && typeof v === "object" ? (v as Record<string, unknown>) : {});
+  const prompt = o(o(o(o(agent).conversation_config).agent).prompt);
+  const current = o(o(o(agent).platform_settings).data_collection);
+  const missing = Object.fromEntries(Object.entries(fields).filter(([k]) => !(k in current)));
+  const tools = o(prompt.built_in_tools);
+  const hasEndCall = !!tools.end_call || (Array.isArray(prompt.tools) && prompt.tools.some((t) => o(t).name === "end_call"));
+  if (!Object.keys(missing).length && hasEndCall) return null;
+  const patch: Record<string, unknown> = {};
+  if (Object.keys(missing).length) patch.platform_settings = { data_collection: { ...current, ...missing } };
+  if (!hasEndCall) patch.conversation_config = { agent: { prompt: { ...prompt, built_in_tools: { ...tools, ...endCall } } } };
+  return patch;
+}

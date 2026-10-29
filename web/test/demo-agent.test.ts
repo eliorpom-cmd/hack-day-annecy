@@ -23,3 +23,16 @@ test("FINAL agent checks: audio, fields, variables, end_call", async () => {
   assert.ok(bad.every((c) => !c.ok));
   assert.match(bad[1]!.detail, /appointment/);
 });
+
+test("completing the FINAL agent: only missing fields and end_call, prompt text kept", async () => {
+  const { completeFinalAgentPatch } = await import("../src/lib/demo-setup.ts");
+  const agent = { conversation_config: { agent: { prompt: { prompt: "Mon prompt réglé", llm: "x" } } }, platform_settings: { data_collection: { name: { type: "string" } } } };
+  const patch = completeFinalAgentPatch(agent, { name: { type: "string", description: "N" }, appointment: { type: "string" } }, { end_call: { name: "end_call" } }) as any;
+  assert.deepEqual(Object.keys(patch.platform_settings.data_collection), ["name", "appointment"]);
+  assert.deepEqual(patch.platform_settings.data_collection.name, { type: "string" });
+  assert.equal(patch.conversation_config.agent.prompt.prompt, "Mon prompt réglé");
+  assert.equal(patch.conversation_config.agent.prompt.llm, "x");
+  assert.ok(patch.conversation_config.agent.prompt.built_in_tools.end_call);
+  const done = { conversation_config: { agent: { prompt: { built_in_tools: { end_call: {} } } } }, platform_settings: { data_collection: { name: {}, appointment: {} } } };
+  assert.equal(completeFinalAgentPatch(done, { name: {}, appointment: {} }, { end_call: {} }), null);
+});

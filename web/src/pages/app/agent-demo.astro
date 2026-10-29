@@ -4,25 +4,43 @@
 import AppShell from "../../layouts/AppShell.astro";
 import { isDemoAccount } from "../../lib/demo-voice";
 import { demoAgentMode, finalAgent, setDemoAgentMode } from "../../lib/demo-agent";
-import { checkFinalAgent, type AgentCheck } from "../../lib/demo-setup";
+import { checkFinalAgent, completeFinalAgentPatch, type AgentCheck } from "../../lib/demo-setup";
+import { DATA_COLLECTION } from "../../lib/telephony/agent-config";
+import { END_CALL_TOOL, buildSystemPrompt } from "../../lib/prompt";
 import { elRequest } from "../../lib/elevenlabs";
 
 if (!isDemoAccount(Astro.locals.user)) return Astro.redirect("/app");
 const { business } = Astro.locals;
 
 let refresh = false;
+let complete = false;
 if (Astro.request.method === "POST") {
   const form = await Astro.request.formData();
   const mode = form.get("mode");
   if (mode === "final" || mode === "app") await setDemoAgentMode(mode);
   refresh = form.get("refresh") === "1";
+  complete = form.get("complete") === "1";
 }
 const mode = await demoAgentMode();
 const final = await finalAgent(refresh).catch(() => null);
+// « Compléter » : adds the missing analysis fields and end_call, nothing else (lib/demo-setup.ts)
+let completeError: string | null = null;
+if (complete && final) {
+  try {
+    const agent = await elRequest<unknown>(`/v1/convai/agents/${encodeURIComponent(final.id)}`, { timeoutMs: 8000 });
+    const patch = completeFinalAgentPatch(agent, DATA_COLLECTION, END_CALL_TOOL);
+    if (patch) await elRequest(`/v1/convai/agents/${encodeURIComponent(final.id)}`, { method: "PATCH", body: patch, timeoutMs: 30000 });
+  } catch (e) {
+    completeError = String((e as Error).message ?? e).slice(0, 200);
+  }
+}
 // The 4 things the app needs from the FINAL agent, read on ElevenLabs
 const checks: AgentCheck[] | null = final
   ? await elRequest<unknown>(`/v1/convai/agents/${encodeURIComponent(final.id)}`, { timeoutMs: 8000 }).then(checkFinalAgent).catch(() => null)
   : null;
+// Booking part of the app's prompt, to paste into the FINAL agent's prompt on ElevenLabs
+const full = business ? buildSystemPrompt(business, [], [], { calendar: true }) : "";
+const bookingText = full.includes("RENDEZ-VOUS") ? full.slice(full.indexOf("RENDEZ-VOUS"), full.indexOf("L'ENTREPRISE")).trim() : "";
 const btn = "flex min-h-12 flex-1 items-center justify-center rounded-button px-4 font-bold";
 ---
 <AppShell title="Agent de démo" active="reglages">
@@ -54,9 +72,24 @@ const btn = "flex min-h-12 flex-1 items-center justify-center rounded-button px-
     ) : (
       <p class="panel px-[14px] py-3 text-small text-muted">Impossible de lire l’agent sur ElevenLabs pour l’instant.</p>
     )}
+    {checks && checks.some((c) => !c.ok && c.label !== "Créneaux et numéro dans le prompt") && (
+      <form method="post">
+        <input type="hidden" name="mode" value={mode} />
+        <button name="complete" value="1" class="flex min-h-12 w-full items-center justify-center rounded-button bg-action px-4 font-bold text-ink">Compléter l’agent FINAL</button>
+        <p class="mt-2 px-1 text-small text-muted">Ajoute seulement les champs d’analyse manquants et « End call ». La voix, le modèle et le prompt ne changent pas.</p>
+      </form>
+    )}
+    {completeError && <p class="panel px-[14px] py-3 text-small text-urgence">Échec : {completeError}</p>}
     <form method="post">
       <input type="hidden" name="mode" value={mode} />
       <button name="refresh" value="1" class="min-h-12 text-small text-muted underline underline-offset-2">Chercher de nouveau l’agent FINAL sur ElevenLabs</button>
     </form>
+    {bookingText && (
+      <details class="panel px-[14px] py-3">
+        <summary class="cursor-pointer font-bold">Texte à coller dans le prompt de l’agent FINAL</summary>
+        <p class="mt-2 text-small text-muted">La partie « rendez-vous » du prompt de l’app : les deux créneaux arrivent à chaque appel dans {"{{slot_1}}"} et {"{{slot_2}}"}.</p>
+        <pre class="mt-2 whitespace-pre-wrap break-words text-small">{bookingText}</pre>
+      </details>
+    )}
   </main>
 </AppShell>
