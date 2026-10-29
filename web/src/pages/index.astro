@@ -1,10 +1,102 @@
 ---
-import Base from "../layouts/Base.astro";
+// Public landing page of the product (provisional name « Répondeur »).
+// Values: DESIGN.md (« Page d'accueil » adds the display sizes), texts: COPY.md.
+import "../styles/global.css";
+import Header from "../components/landing/Header.astro";
+import Hero from "../components/landing/Hero.astro";
+import HowItWorks from "../components/landing/HowItWorks.astro";
+import Facts from "../components/landing/Facts.astro";
+import SetupSteps from "../components/landing/SetupSteps.astro";
+import Visibility from "../components/landing/Visibility.astro";
+import Closing from "../components/landing/Closing.astro";
+
+const title = "Répondeur · Le répondeur des artisans";
+const description = "Votre portable sonne 15 secondes. Si vous ne décrochez pas, le répondeur prend l’appel, note la demande et l’urgence, et vous l’envoie sur WhatsApp.";
 ---
-<Base title="Accueil">
-  <main class="mx-auto max-w-xl px-4 py-24">
-    <h1 class="text-4xl font-semibold">Trouvez plus de clients, et ne les perdez plus.</h1>
-    <p class="mt-4 text-neutral-600">Une assistante répond quand vous ne pouvez pas décrocher.</p>
-    <a href="/login" class="mt-8 inline-block rounded-full bg-neutral-900 px-5 py-3 text-white">Commencer</a>
-  </main>
-</Base>
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta name="theme-color" content="#f1f4f8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+    <script is:inline>
+      // Hide reveal targets only when JS runs; show everything if the animation script never starts
+      document.documentElement.classList.add("js");
+      setTimeout(function () { if (!window.__reveal) document.documentElement.classList.remove("js"); }, 2500);
+    </script>
+  </head>
+  <body class="min-h-dvh antialiased">
+    <Header />
+    <main>
+      <Hero />
+      <HowItWorks />
+      <Facts />
+      <SetupSteps />
+      <Visibility />
+      <Closing />
+    </main>
+
+    <script>
+      import { gsap } from "gsap";
+      // Entrance animations: 800 ms expo-out, 20 px rise, 80 ms stagger per row (DESIGN.md « Page d'accueil »)
+      (window as unknown as { __reveal: boolean }).__reveal = true;
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const targets = gsap.utils.toArray<HTMLElement>("[data-reveal]");
+      const ring = document.querySelector<HTMLElement>(".ring-fill");
+
+      if (reduce) {
+        gsap.set(targets, { opacity: 1 });
+      } else {
+        gsap.set(targets, { opacity: 0, y: (_i, el: HTMLElement) => (el.dataset.reveal === "phone" ? 60 : 20) });
+        if (ring) gsap.set(ring, { scaleX: 1 });
+        const io = new IntersectionObserver((entries) => {
+          const shown = entries.filter((e) => e.isIntersecting).map((e) => e.target as HTMLElement);
+          if (!shown.length) return;
+          gsap.to(shown, { opacity: 1, y: 0, duration: 0.8, ease: "expo.out", stagger: 0.08 });
+          shown.forEach((el) => io.unobserve(el));
+          // The 15 s ring bar empties once, slowly, when its card comes into view
+          if (ring && shown.some((el) => el.contains(ring))) gsap.fromTo(ring, { scaleX: 1 }, { scaleX: 0.25, duration: 3, ease: "none", delay: 0.4 });
+        }, { rootMargin: "0px 0px -8% 0px" });
+        targets.forEach((el) => io.observe(el));
+      }
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  /* Landing-only scale (DESIGN.md « Page d'accueil ») */
+  .l-wrap { width: 100%; max-width: 1200px; margin-inline: auto; padding-inline: 20px; }
+  @media (min-width: 1024px) { .l-wrap { padding-inline: 40px; } }
+  .l-section { padding-block: 64px; }
+  @media (min-width: 1024px) { .l-section { padding-block: 112px; } }
+  .l-display { font-size: 44px; line-height: 1.02; font-weight: 700; letter-spacing: -0.03em; text-wrap: balance; }
+  @media (min-width: 1024px) { .l-display { font-size: 80px; } }
+  .l-h2 { font-size: 34px; line-height: 1.06; font-weight: 700; letter-spacing: -0.02em; text-wrap: balance; }
+  @media (min-width: 1024px) { .l-h2 { font-size: 52px; } }
+  .l-h3 { font-size: 22px; line-height: 1.2; font-weight: 700; }
+  .l-lead { font-size: 19px; line-height: 1.45; color: var(--color-muted); text-wrap: pretty; }
+  @media (min-width: 1024px) { .l-lead { font-size: 21px; } }
+  .bg-ink .l-lead { color: var(--color-line); }
+  .l-fact { font-size: 64px; line-height: 1; font-weight: 700; letter-spacing: -0.03em; }
+  @media (min-width: 1024px) { .l-fact { font-size: 96px; } }
+  .l-card { display: flex; flex-direction: column; padding: 20px; border-radius: var(--radius-dialog); background: var(--color-page); box-shadow: inset 0 0 0 1px var(--color-line); }
+  @media (min-width: 1024px) { .l-card { padding: 28px; } }
+  .l-visual { border-radius: 20px; padding: 18px; min-height: 176px; display: flex; flex-direction: column; justify-content: center; }
+  .l-step { margin-top: 24px; font-size: var(--text-small); font-weight: 700; color: var(--color-muted); }
+  .l-step + .l-h3 { margin-top: 4px; }
+  .l-pill { display: inline-flex; align-items: center; height: 40px; padding-inline: 16px; border-radius: 12px; font-size: var(--text-small); font-weight: 700; color: var(--color-ink); box-shadow: inset 0 0 0 2px var(--color-ink); transition: background-color 180ms ease; }
+  .l-pill:hover { background: var(--color-surface); }
+  .btn { transition: filter 180ms ease, background-color 180ms ease; }
+  button.btn-primary:hover { filter: brightness(0.96); }
+  button.btn-secondary:hover { background: var(--color-page); }
+  html { scroll-behavior: smooth; }
+  html.js [data-reveal] { opacity: 0; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } html.js [data-reveal] { opacity: 1; } }
+</style>

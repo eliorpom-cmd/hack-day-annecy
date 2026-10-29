@@ -1,0 +1,69 @@
+---
+// « Configuration en 5 minutes » : the 4 real setup steps (components/setup/steps.ts), each with its screen in miniature
+import Icon from "../Icon.astro";
+import { STEPS } from "../setup/steps";
+
+const lines = [
+  "Donnez l’adresse de votre site. Le répondeur y lit votre métier, vos horaires et vos prix. Pas de site&nbsp;? Vous remplissez à la main.",
+  "Choisissez une voix d’homme ou de femme. Ou lisez 3 phrases&nbsp;: le répondeur parle avec votre voix.",
+  "Choisissez le numéro que vos clients appellent, et combien de temps votre portable sonne avant le répondeur.",
+  "Appelez votre numéro depuis un autre téléphone et écoutez le répondeur avant vos clients.",
+];
+---
+<section class="l-section">
+  <div class="l-wrap">
+    <div class="max-w-[760px]">
+      <h2 class="l-h2" data-reveal>Configuration en 5 minutes</h2>
+      <p class="l-lead mt-5" data-reveal>Quatre étapes, depuis votre téléphone. Vous pouvez tout changer ensuite dans les réglages.</p>
+    </div>
+
+    <ol class="mt-14 grid gap-4 md:grid-cols-2 lg:mt-20 lg:gap-5">
+      {STEPS.map((name, i) => (
+        <li class="l-card bg-surface" data-reveal>
+          <div class="flex gap-1" aria-hidden="true">
+            {STEPS.map((_, j) => <span class:list={["h-[6px] flex-1 rounded-[3px]", j <= i ? "bg-ink" : "bg-line"]} />)}
+          </div>
+          <p class="mt-2 text-small"><span class="font-bold">{i + 1}</span> sur 4 · {name}</p>
+          <h3 class="l-h3 mt-6">{name}</h3>
+          <p class="mt-2 text-muted" set:html={lines[i]} />
+
+          <div class="mt-6 rounded-[20px] bg-page p-4" aria-hidden="true">
+            {i === 0 && (
+              <div class="flex flex-col gap-3">
+                <div class="field"><span class="field-label" style="top:8px;transform:none;font-size:12px;font-weight:700;color:var(--color-ink)">Adresse de votre site</span><span class="field-input">plomberie-martin.fr</span></div>
+                <p class="flex items-center gap-2 font-bold"><span class="spin"></span>Lecture de votre site…</p>
+              </div>
+            )}
+            {i === 1 && (
+              <ul class="panel">
+                <li class="row"><span class="icon-tile"><Icon name="mic" size={18} /></span><span class="flex-1"><span class="block font-bold">Utiliser ma voix</span><span class="text-small text-muted">Vous lisez 3 phrases.</span></span></li>
+                <li class="row"><span class="icon-tile"><Icon name="play" size={16} /></span><span class="flex-1">Voix d’homme</span><Icon name="check" class="text-action-ink" /></li>
+                <li class="row"><span class="icon-tile"><Icon name="play" size={16} /></span><span class="flex-1">Voix de femme</span></li>
+              </ul>
+            )}
+            {i === 2 && (
+              <ul class="panel">
+                <li class="row"><span class="icon-tile"><Icon name="timer" size={18} /></span><span class="flex-1"><span class="block text-small text-muted">Durée de sonnerie</span>15 secondes</span></li>
+                <li class="row"><span class="icon-tile"><Icon name="phone" size={18} /></span><span class="flex-1 font-bold">04 50 12 34 56</span><Icon name="check" class="text-action-ink" /></li>
+                <li class="row"><span class="icon-tile"><Icon name="phone" size={18} /></span><span class="flex-1">04 50 65 43 21</span></li>
+              </ul>
+            )}
+            {i === 3 && (
+              <div class="flex flex-col gap-3">
+                <p class="font-bold">Votre répondeur est prêt.</p>
+                <div class="panel row"><span class="icon-tile"><Icon name="phone" size={18} /></span><span class="flex-1"><span class="block text-small text-muted">Appelez ce numéro pour l’essayer</span><span class="font-bold">04 50 12 34 56</span></span></div>
+              </div>
+            )}
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .spin { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--color-line); border-top-color: var(--color-ink); animation: spin 900ms linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+  .field-input { display: block; padding-top: 24px; }
+</style>

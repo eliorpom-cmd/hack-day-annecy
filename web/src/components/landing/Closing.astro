@@ -1,0 +1,20 @@
+---
+// Final call to action + footer
+import CtaForms from "./CtaForms.astro";
+import Logo from "./Logo.astro";
+---
+<section class="l-section text-center">
+  <div class="l-wrap">
+    <h2 class="l-h2 mx-auto max-w-[16ch]" data-reveal>Prêt avant votre prochain chantier</h2>
+    <p class="l-lead mx-auto mt-5 max-w-[40ch]" data-reveal>Configurez le répondeur en 5 minutes, puis appelez-le pour l’entendre.</p>
+    <div class="mt-9" data-reveal><CtaForms center /></div>
+  </div>
+</section>
+
+<footer class="border-t border-line">
+  <div class="l-wrap flex flex-col gap-5 py-10 sm:flex-row sm:items-center sm:justify-between">
+    <Logo />
+    <p class="text-small text-muted">Nom provisoire · Hack Day Annecy 2026</p>
+    <a href="/login" class="text-small font-bold text-ink underline underline-offset-2">Se connecter</a>
+  </div>
+</footer>

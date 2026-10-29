@@ -1,0 +1,13 @@
+---
+// The two entry points: a blank trial account (opens the setup) and the demo artisan's account
+interface Props { center?: boolean }
+const { center = false } = Astro.props;
+---
+<div class:list={["flex flex-col gap-3 sm:flex-row", center && "sm:justify-center"]}>
+  <form method="post" action="/api/auth/try">
+    <button class="btn btn-primary w-full px-7 sm:w-auto">Essayer gratuitement</button>
+  </form>
+  <form method="post" action="/api/auth/demo">
+    <button class="btn btn-secondary w-full px-7 sm:w-auto">Voir la démo</button>
+  </form>
+</div>

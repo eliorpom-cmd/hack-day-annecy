@@ -1,0 +1,47 @@
+---
+// The WhatsApp chat as the artisan sees it: one message per call, exact format from COPY.md
+// (« Message après un appel »). Only DESIGN.md colours, no WhatsApp branding.
+import Icon from "../Icon.astro";
+import Glyph from "./Glyph.astro";
+---
+<div class="flex items-center gap-3 border-b border-line bg-surface px-3 pt-1 pb-3">
+  <Icon name="chevron-left" class="text-ink" />
+  <span class="grid size-10 place-items-center rounded-full bg-action shadow-[inset_0_0_0_1px_var(--color-action-line)]"><Icon name="phone" size={18} /></span>
+  <span class="flex flex-1 flex-col leading-tight">
+    <span class="font-bold">Répondeur</span>
+    <span class="text-small text-muted">Plomberie Martin</span>
+  </span>
+</div>
+
+<div class="flex flex-1 flex-col gap-[10px] bg-neutral-bg px-3 py-4">
+  <span class="self-center rounded-chip bg-surface px-3 py-[2px] text-small font-bold text-muted shadow-[inset_0_0_0_1px_var(--color-line)]">Aujourd’hui</span>
+
+  <div class="bubble" data-bubble>
+    <p class="font-bold">🟢 Devis salle de bain, M. Durand</p>
+    <p>Demande&nbsp;: remplacer la baignoire par une douche.</p>
+    <p>Rappeler&nbsp;: <span class="tel">06 98 76 54 32</span></p>
+    <p>Détails&nbsp;: <span class="tel">https://…/a/p3m9</span></p>
+    <span class="time">10:05</span>
+  </div>
+
+  <div class="bubble" data-bubble>
+    <p class="font-bold">🔴 Urgence&nbsp;: fuite d’eau, Mme Lefèvre</p>
+    <p>Pourquoi&nbsp;: l’eau coule dans le salon.</p>
+    <p>Demande&nbsp;: réparer la fuite sous l’évier aujourd’hui.</p>
+    <p>12 rue Royale, Annecy</p>
+    <p>Rappeler&nbsp;: <span class="tel">06 12 34 56 78</span></p>
+    <p>Détails&nbsp;: <span class="tel">https://…/a/x7k2</span></p>
+    <span class="time">14:32</span>
+  </div>
+</div>
+
+<div class="flex items-center gap-2 border-t border-line bg-surface px-3 pt-2 pb-8">
+  <span class="flex h-10 flex-1 items-center rounded-full bg-neutral-bg px-4 text-muted">Message</span>
+  <span class="grid size-10 place-items-center rounded-full bg-tint text-action-ink shadow-[inset_0_0_0_1px_var(--color-tint-line)]"><Glyph name="send" size={18} /></span>
+</div>
+
+<style>
+  .bubble { position: relative; align-self: flex-start; max-width: 326px; padding: 8px 12px 22px; border-radius: 4px 14px 14px 14px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-line); line-height: 1.35; }
+  .tel { color: var(--color-action-ink); text-decoration: underline; text-underline-offset: 2px; }
+  .time { position: absolute; right: 10px; bottom: 4px; font-size: var(--text-small); color: var(--color-muted); }
+</style>

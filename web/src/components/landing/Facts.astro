@@ -1,0 +1,21 @@
+---
+// Fact block on --ink (the page's one change of tone). Product rules only, no invented stats.
+const facts = [
+  { n: "15 s", text: "de sonnerie sur votre portable avant que le répondeur décroche." },
+  { n: "0", text: "prix inventé. Le répondeur donne vos prix, ou promet votre rappel." },
+  { n: "1", text: "message WhatsApp après chaque appel, avec le numéro à rappeler." },
+];
+---
+<section class="l-section bg-ink text-surface">
+  <div class="l-wrap">
+    <h2 class="l-h2 max-w-[18ch]" data-reveal>Le répondeur suit vos règles</h2>
+    <dl class="mt-14 grid gap-10 sm:grid-cols-3 sm:gap-8 lg:mt-20">
+      {facts.map((f) => (
+        <div class="border-t border-muted pt-6" data-reveal>
+          <dt class="l-fact">{f.n}</dt>
+          <dd class="mt-3 max-w-[28ch] text-line">{f.text}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</section>

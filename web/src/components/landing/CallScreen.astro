@@ -1,0 +1,40 @@
+---
+// The call page (/a/[token]) rebuilt with the app's own classes (chip, panel, row, icon-tile, shortcut, btn),
+// filled with the demo call from COPY.md
+import Icon from "../Icon.astro";
+---
+<div class="flex flex-1 flex-col gap-[14px] bg-page px-4 pt-2">
+  <span class="flex items-center gap-1 font-bold text-ink" style="min-height:40px"><Icon name="chevron-left" />Appels</span>
+  <span class="chip chip-urgence">Urgence</span>
+  <div>
+    <p class="text-title font-bold">Mme Lefèvre</p>
+    <p class="mt-1 text-small text-muted">Appel il y a 12 min</p>
+  </div>
+  <div class="flex gap-2">
+    <span class="shortcut"><Icon name="navigation" class="text-action-ink" />Itinéraire</span>
+    <span class="shortcut"><Icon name="message" class="text-action-ink" />Message</span>
+  </div>
+  <section class="panel px-[14px] py-3">
+    <p class="text-small font-bold text-muted">Demande</p>
+    <p class="mt-1">Réparer la fuite sous l’évier aujourd’hui.</p>
+  </section>
+  <section class="panel px-[14px] py-3">
+    <p class="text-small font-bold text-muted">Pourquoi c’est urgent</p>
+    <p class="mt-1 italic">L’eau coule dans le salon.</p>
+  </section>
+  <section class="panel">
+    <div class="row">
+      <span class="icon-tile"><Icon name="pin" size={18} /></span>
+      <div><p class="text-small text-muted">Adresse</p><p>12 rue Royale, Annecy</p></div>
+    </div>
+    <div class="row">
+      <span class="icon-tile"><Icon name="phone" size={18} /></span>
+      <div><p class="text-small text-muted">Téléphone</p><p>06 12 34 56 78</p></div>
+    </div>
+  </section>
+  <div class="panel row justify-between"><span>Contenu de la conversation</span><Icon name="chevron-right" class="text-muted" /></div>
+</div>
+<div class="flex flex-col gap-2 bg-page px-4 pt-3 pb-8">
+  <span class="btn btn-primary"><Icon name="phone" />Rappeler</span>
+  <span class="btn btn-secondary">Marquer comme rappelé</span>
+</div>

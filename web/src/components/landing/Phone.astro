@@ -1,0 +1,32 @@
+---
+// HTML phone frame (no image). The screen is laid out at a real 375 px width,
+// then the whole frame is scaled with CSS zoom so the mock keeps true app proportions.
+interface Props { label: string; time?: string; class?: string }
+const { label, time = "14:33", class: cls } = Astro.props;
+---
+<div class:list={["phone", cls]} role="img" aria-label={label}>
+  <div class="screen" aria-hidden="true">
+    <div class="status">
+      <span>{time}</span>
+      <span class="flex items-center gap-[6px]">
+        <span class="bars"><i></i><i></i><i></i><i></i></span>
+        <span class="battery"><i></i></span>
+      </span>
+    </div>
+    <span class="island"></span>
+    <div class="content"><slot /></div>
+  </div>
+</div>
+
+<style>
+  .phone { zoom: var(--z, 0.8); width: 399px; padding: 12px; border-radius: 58px; background: var(--color-ink); flex: none; }
+  .screen { position: relative; width: 375px; height: 790px; border-radius: 46px; overflow: hidden; background: var(--color-page); display: flex; flex-direction: column; }
+  .status { height: 54px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 6px 34px 0 42px; font-size: var(--text-body); font-weight: 700; color: var(--color-ink); background: var(--color-surface); }
+  .island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 122px; height: 35px; border-radius: 20px; background: var(--color-ink); }
+  .content { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .bars { display: flex; align-items: flex-end; gap: 2px; height: 12px; }
+  .bars i { width: 3px; border-radius: 1px; background: var(--color-ink); }
+  .bars i:nth-child(1) { height: 4px; } .bars i:nth-child(2) { height: 6px; } .bars i:nth-child(3) { height: 9px; } .bars i:nth-child(4) { height: 12px; }
+  .battery { width: 25px; height: 12px; border-radius: 4px; box-shadow: inset 0 0 0 1px var(--color-muted); padding: 2px; display: flex; }
+  .battery i { width: 70%; border-radius: 2px; background: var(--color-ink); }
+</style>

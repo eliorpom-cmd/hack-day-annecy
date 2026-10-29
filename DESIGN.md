@@ -107,6 +107,25 @@ S'ouvre au retour dans l'app après « Rappeler » ; ne se ferme qu'en répondan
 ### Filtre segmenté
 « À rappeler · 3 » / « Tous », fond `--neutral-bg`, segment actif blanc à bordure `--line`, texte 14 px / 700.
 
+### Page d'accueil
+La page publique (`web/src/pages/index.astro`, `web/src/components/landing/`) garde les couleurs, la police, les boutons et les blocs de l'app, et ajoute une échelle d'affichage qui ne sert qu'à elle (classes `.l-*` dans `index.astro`). Registre apple-like ; deux gestes : le téléphone du hero coupé par le bas de la section, et un seul bloc sur fond `--ink` (les faits).
+
+| Rôle | Mobile | Bureau (≥ 1024 px) | Graisse | Interlignage | Approche |
+|---|---|---|---|---|---|
+| Titre du hero | 44 px | 80 px | 700 | 1.02 | −0,03 em |
+| Titre de section | 34 px | 52 px | 700 | 1.06 | −0,02 em |
+| Chiffre du bloc de faits | 64 px | 96 px | 700 | 1 | −0,03 em |
+| Titre de carte | 22 px | 22 px | 700 | 1.2 | 0 |
+| Accroche sous un titre | 19 px | 21 px | 400, `--muted` (`--line` sur `--ink`) | 1.45 | 0 |
+
+- **Logo provisoire** : tuile 34 px, arrondi 10 px, fond `--action`, bord 1 px `--action-line`, icône Lucide `phone` 18 px `--ink`, puis « Répondeur » 17 px / 700.
+- **Mise en page** : conteneur 1200 px max, marges 20 px (mobile) et 40 px (bureau) ; sections espacées de 64 px (mobile) et 112 px (bureau) en haut et en bas ; fonds alternés `--page` / `--surface`, une seule section `--ink`.
+- **Cartes** : arrondi 28 px (`--radius-dialog`), bord 1 px `--line`, intérieur 20 px (mobile) et 28 px (bureau) ; visuel en tête de carte à arrondi 20 px.
+- **Maquettes d'écran** : écrans de l'app reconstruits en HTML avec les classes de l'app, dans un cadre de téléphone `--ink` (arrondi 58 px) mis à l'échelle avec `zoom` (0,78 mobile, 0,86 à 1 bureau). Aucune image.
+- **Bouton « Se connecter »** (en-tête) : 40 px de haut, arrondi 12 px, trait 2 px `--ink`, 14 px / 700. Le seul bouton vert d'un écran reste « Essayer gratuitement ».
+- **Mouvement** : apparitions au défilement en 800 ms `expo.out` (GSAP), montée de 20 px (60 px pour le téléphone du hero), décalage 80 ms ; survols 180 ms. Avec `prefers-reduced-motion` : aucune animation. Sans JS, tout est visible.
+- **Pastilles du hub** : « Disponible » en `--tint` / `--action-ink`, « Bientôt » en couleurs neutres.
+
 ## Médias et icônes
 
 - **Icônes** : Lucide, trait 2 px, 18-20 px, couleur `--ink` (info) ou `--action-ink` (action)

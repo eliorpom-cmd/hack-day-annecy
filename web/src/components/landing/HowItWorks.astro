@@ -1,0 +1,81 @@
+---
+// « Comment ça marche » : the 3 steps of a call, each with a piece of the real interface,
+// then the call page opened from the message link.
+import Icon from "../Icon.astro";
+import Glyph from "./Glyph.astro";
+import Phone from "./Phone.astro";
+import CallScreen from "./CallScreen.astro";
+---
+<section id="comment" class="l-section scroll-mt-4 bg-surface">
+  <div class="l-wrap">
+    <div class="max-w-[760px]">
+      <h2 class="l-h2" data-reveal>Un client appelle pendant que vous travaillez</h2>
+      <p class="l-lead mt-5" data-reveal>Pendant vos horaires, votre portable sonne d’abord. Le soir et le week-end, le répondeur répond tout de suite.</p>
+    </div>
+
+    <ol class="mt-14 grid gap-4 lg:mt-20 lg:grid-cols-3 lg:gap-5">
+      <li class="l-card" data-reveal>
+        <div class="l-visual bg-ink text-surface">
+          <p class="flex items-center gap-2 text-small text-line"><Glyph name="phone-incoming" size={16} />Appel entrant</p>
+          <p class="mt-1 text-[22px] font-bold leading-tight">06 12 34 56 78</p>
+          <div class="mt-6 flex items-center gap-3">
+            <span class="h-[6px] flex-1 overflow-hidden rounded-[3px] bg-muted"><span class="ring-fill block h-full w-full origin-left rounded-[3px] bg-action"></span></span>
+            <span class="text-small font-bold">15 s</span>
+          </div>
+        </div>
+        <p class="l-step">1</p>
+        <h3 class="l-h3">Votre portable sonne d’abord</h3>
+        <p class="mt-2 text-muted">Vous avez 15 secondes pour décrocher, comme d’habitude. Occupé ou les mains prises, vous laissez sonner.</p>
+      </li>
+
+      <li class="l-card" data-reveal>
+        <div class="l-visual flex flex-col gap-2 bg-surface shadow-[inset_0_0_0_1px_var(--color-line)]">
+          <p class="self-start rounded-block bg-neutral-bg px-3 py-2 text-small"><span class="block font-bold text-muted">Répondeur</span>Oui allô, Plomberie Martin.</p>
+          <p class="self-end rounded-block bg-tint px-3 py-2 text-small"><span class="block font-bold text-muted">Mme Lefèvre</span>J’ai une fuite sous l’évier, l’eau coule dans le salon.</p>
+        </div>
+        <p class="l-step">2</p>
+        <h3 class="l-h3">Le répondeur décroche</h3>
+        <p class="mt-2 text-muted">Il note la demande, l’adresse et l’urgence. Il ne donne que vos prix&nbsp;: sans prix connu, il promet votre rappel.</p>
+      </li>
+
+      <li class="l-card" data-reveal>
+        <div class="l-visual bg-neutral-bg">
+          <div class="rounded-[4px_14px_14px_14px] bg-surface px-3 py-2 text-small shadow-[inset_0_0_0_1px_var(--color-line)]">
+            <p class="font-bold">🔴 Urgence&nbsp;: fuite d’eau, Mme Lefèvre</p>
+            <p>Pourquoi&nbsp;: l’eau coule dans le salon.</p>
+            <p>Rappeler&nbsp;: <span class="text-action-ink underline underline-offset-2">06 12 34 56 78</span></p>
+          </div>
+        </div>
+        <p class="l-step">3</p>
+        <h3 class="l-h3">Vous rappelez en un geste</h3>
+        <p class="mt-2 text-muted">Un WhatsApp arrive dès la fin de l’appel. Touchez le numéro, vous rappelez le client.</p>
+      </li>
+    </ol>
+
+    <div class="mt-4 grid items-center gap-10 overflow-hidden rounded-dialog bg-page px-5 pt-12 shadow-[inset_0_0_0_1px_var(--color-line)] lg:mt-5 lg:grid-cols-[1fr_1.1fr] lg:gap-16 lg:px-16 lg:pt-16" data-reveal>
+      <div class="lg:pb-16">
+        <h3 class="text-[28px] font-bold leading-[1.1] tracking-[-0.01em] lg:text-[36px]">La fiche de l’appel, sous le pouce</h3>
+        <p class="mt-4 text-muted lg:text-[19px]">Le lien du message ouvre la fiche&nbsp;: la demande, la raison de l’urgence, l’adresse. Le bouton «&nbsp;Rappeler&nbsp;» est en bas de l’écran.</p>
+        <div class="panel mt-8 max-w-[400px] p-5">
+          <p class="text-[22px] font-bold leading-tight">Avez-vous eu Mme Lefèvre&nbsp;?</p>
+          <p class="mt-2 text-small text-muted">Fuite d’eau · appel lancé à 14 h 40</p>
+          <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+            <span class="btn btn-primary h-12 flex-1 text-small">Oui, c’est fait</span>
+            <span class="btn btn-secondary h-12 flex-1 text-small">Non, pas de réponse</span>
+          </div>
+        </div>
+        <p class="mt-3 max-w-[400px] text-small text-muted">Après le rappel, une seule question. Votre liste de clients à rappeler se tient à jour.</p>
+      </div>
+      <div class="call-phone mx-auto h-[520px] overflow-hidden lg:h-[600px]">
+        <Phone label="La fiche de l’appel de Mme Lefèvre : urgence, demande, adresse, téléphone et bouton Rappeler." time="14:44">
+          <CallScreen />
+        </Phone>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .call-phone { --z: 0.78; }
+  @media (min-width: 1024px) { .call-phone { --z: 0.86; } }
+</style>

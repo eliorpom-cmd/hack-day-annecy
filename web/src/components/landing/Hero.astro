@@ -1,0 +1,30 @@
+---
+// Hero: the promise, one behaviour sentence, the two entry points, and the WhatsApp message
+// the artisan receives. The phone is cut by the bottom edge of the section.
+import CtaForms from "./CtaForms.astro";
+import Phone from "./Phone.astro";
+import MessageScreen from "./MessageScreen.astro";
+---
+<section class="overflow-hidden">
+  <div class="l-wrap grid items-end gap-12 pt-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16 lg:pt-16">
+    <div class="pb-2 lg:pb-[150px]">
+      <h1 class="l-display" data-reveal>Vous êtes sur un chantier. Le répondeur décroche.</h1>
+      <p class="l-lead mt-6 max-w-[34ch]" data-reveal>
+        Votre portable sonne 15 secondes. Si vous ne décrochez pas, le répondeur prend l’appel et vous envoie la demande sur WhatsApp.
+      </p>
+      <div class="mt-9" data-reveal><CtaForms /></div>
+      <p class="mt-4 text-small text-muted" data-reveal>Configuration en 5 minutes, sans carte bancaire.</p>
+    </div>
+    <div class="hero-phone mx-auto h-[460px] overflow-hidden sm:h-[540px] lg:h-[610px]" data-reveal="phone">
+      <Phone label="Le message WhatsApp reçu après l’appel de Mme Lefèvre : urgence, fuite d’eau, 12 rue Royale à Annecy, numéro à rappeler.">
+        <MessageScreen />
+      </Phone>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero-phone { --z: 0.78; }
+  @media (min-width: 640px) { .hero-phone { --z: 0.86; } }
+  @media (min-width: 1024px) { .hero-phone { --z: 1; } }
+</style>
