@@ -96,6 +96,8 @@ Le MVP Lovable (`app/`) a servi de référence pendant le portage ; il a été r
 
 ## Contrat d'API
 
+**Verrou d'accès** (30/10, après la démo) : mot de passe d'équipe (secret `ACCESS_PASSWORD`, page `/acces`, cookie `gate` 30 jours, `web/src/lib/gate.ts`) exigé avant `/app`, `/onboarding`, `/login`, `/auth/*` et toutes les `/api/*` sauf les webhooks. Restent publics : accueil, `/a/*`, `/site/*`, `/plomberie-martin/`.
+
 Code dans `web/`. Tables : `web/migrations/0001_init.sql`. Toutes les routes `/api/*` exigent une session, sauf `/api/auth/*`, `/api/twilio/*`, `/api/elevenlabs/*` (webhooks, protégés par jeton ou signature).
 
 | Méthode | Route | Entrée | Sortie |
