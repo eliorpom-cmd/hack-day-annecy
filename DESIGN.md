@@ -89,7 +89,7 @@ Action d'appoint (« Marquer comme rappelé », « Non, pas de réponse »). Fon
 Pastille à gauche du nom (700), sous-ligne « panne · heure » en 14 px `--muted`, bouton d'appel à droite (`--tint`, icône `--action-ink`). Lignes groupées par jour dans un bloc ; titre de groupe (« Aujourd'hui ») en 14 px / 700 `--muted`.
 
 ### Page d'un appel
-Retour « ‹ Appels » (`--ink`), pastille, titre 30 px, « nom · il y a 12 min », raccourcis Itinéraire et Message, bloc « Pourquoi c'est urgent » (texte en italique), bloc Adresse + Téléphone (icône, étiquette 14 px, valeur 17 px), bloc « Contenu de la conversation › », puis en bas « Rappeler » et « Marquer comme rappelé ».
+Retour « ‹ Appels » (`--ink`), pastille, nom du client en titre 30 px, « Appel il y a 12 min » en 14 px `--muted`, bloc « Demande », raccourcis Itinéraire et Message, bloc « Pourquoi c'est urgent » (texte en italique), bloc Adresse + Téléphone (icône, étiquette 14 px, valeur 17 px), bloc « Contenu de la conversation › », puis en bas « Rappeler » et « Marquer comme rappelé ».
 
 ### Champ de saisie (Material rempli)
 Fond `--neutral-bg`, hauteur 56 px. Vide : seulement son nom en 17 px `--muted`. En saisie ou rempli : nom flottant 12 px / 700 au-dessus de la valeur. Aide dessous en 14 px `--muted` (« Exemple : plomberie-martin.fr »). Jamais de valeur d'exemple dans le champ. Valeur trouvée sur le site : aide « Trouvé sur votre site. Corrigez si besoin. »

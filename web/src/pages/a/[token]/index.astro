@@ -25,15 +25,15 @@ type Turn = { role: string; message: string };
 let turns: Turn[] = [];
 try { turns = call.transcript ? (JSON.parse(call.transcript) as Turn[]).filter((t) => t && t.message) : []; } catch { turns = []; }
 ---
-<Base title={`${title}, ${name}`}>
+<Base title={`${name}, ${title}`}>
   <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col">
     <div class="flex flex-1 flex-col gap-[14px] px-4 pt-4">
       <a href="/app" class="flex items-center gap-1 font-bold text-ink" style="min-height:48px"><Icon name="chevron-left" />Appels</a>
 
       {chip && <span class={`chip ${chip.cls}`}>{chip.label}</span>}
       <div>
-        <h1 class="text-title font-bold">{title}</h1>
-        <p class="mt-1"><span class="font-bold">{name}</span> <span class="text-small text-muted">· {timeAgo(call.created_at)}</span></p>
+        <h1 class="text-title font-bold">{name}</h1>
+        <p class="mt-1 text-small text-muted">Appel {timeAgo(call.created_at)}</p>
         {done && <p class="mt-1 text-small font-bold text-action-ink">Rappelé</p>}
       </div>
 
@@ -44,10 +44,10 @@ try { turns = call.transcript ? (JSON.parse(call.transcript) as Turn[]).filter((
         </div>
       )}
 
-      {call.need && call.subject && (
+      {(call.need || call.summary) && (
         <section class="panel px-[14px] py-3">
           <h2 class="text-small font-bold text-muted">Demande</h2>
-          <p class="mt-1">{call.need}</p>
+          <p class="mt-1">{call.need ?? call.summary}</p>
         </section>
       )}
 

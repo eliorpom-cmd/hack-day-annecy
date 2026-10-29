@@ -98,7 +98,7 @@ Détails : https://…/a/x7k2
 
 Le moins de texte possible : l'artisan ne lit pas, il regarde. Priorité, panne, client, une ligne de raison, l'adresse, le bouton. Le reste est replié.
 
-- Titre = la ligne 1 du message, sans le point.
+- Titre = le nom du client (« Mme Lefèvre »), puis « Appel il y a 12 min » en petit. L'objet n'est pas répété : il est dans le bloc « Demande ».
 - Bouton principal en bas : « Rappeler ». Bouton secondaire : « Marquer comme rappelé ».
 - Sections : « Demande », « Adresse », « Contenu de la conversation » (repliée).
 
