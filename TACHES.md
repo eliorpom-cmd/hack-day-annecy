@@ -21,8 +21,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 
 ## En cours
 
-- 01 · Inviter Mathieu sur GitHub (Elior)
-  - demander son pseudo, rôle Write
 
 ## Fait
 
@@ -37,3 +35,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 - 04 · Fixer la stack, le contrat d'API et qui possède quoi (Elior)
   - après le brainstorm ; sections Stack, Contrat d'API et Ownership de PROJET.md
   - Fait : Astro + Worker + D1, rôles dans PROJET.md
+- 01 · Inviter Mathieu sur GitHub (Elior)
+  - demander son pseudo, rôle Write
+  - Fait : Mathieu invité
