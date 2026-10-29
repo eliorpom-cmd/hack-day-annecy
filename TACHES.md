@@ -33,7 +33,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - deck web exportable PDF/PPTX
 - 23 · Landing page du produit (Claude)
   - web/src/pages/index.astro : pitch, comment ça marche, configuration, Visibilité, essai gratuit et démo ; COPY.md + DESIGN.md
-- 29 · Hub Visibilité + site web généré (Claude)
 
 ## Fait
 
@@ -87,3 +86,5 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 - 06 · Refaire le dashboard : leads, appels, mode avancé (Claude)
   - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
   - Fait : liste + appel côte à côte sur ordinateur, barre latérale (Appels, Visibilité, Réglages), chiffres de la semaine ; mobile inchangé
+- 29 · Hub Visibilité + site web généré (Claude)
+  - Fait : /app/visibilite : « Créer mon site » → /site/<slug> public (titre écrit par l'IA, tarifs de la documentation seulement) ; Google, réseaux, pubs en « Bientôt »
