@@ -1,165 +1,175 @@
 ---
-// « Publicités »: ad drafts written from the business (Google search, Facebook/Instagram), budget, launch « Bientôt ».
-// Pitch: ads bring calls, the répondeur takes them. Layout: DESIGN.md, texts: COPY.md.
+// « Publicités »: Google only. How it works in 3 steps, a picture of a Google Maps search with the
+// artisan on top, the budget, then « Lancer la campagne » (demo: no Google Ads account is connected,
+// the launch is shown, not sent). The ad text stays available, folded. Layout: DESIGN.md, texts: COPY.md.
 import AppShell from "../../layouts/AppShell.astro";
 import HubIcon from "../../components/hub/HubIcon.astro";
-import SoonRow from "../../components/hub/SoonRow.astro";
 import GooglePreview from "../../components/ads/GooglePreview.astro";
-import MetaPreview from "../../components/ads/MetaPreview.astro";
+import MapsPreview from "../../components/ads/MapsPreview.astro";
 import BudgetSlider from "../../components/ads/BudgetSlider.astro";
-import { googleCopyText, metaCopyText } from "../../lib/ads";
+import { googleCopyText } from "../../lib/ads";
 import { adTargets, latestDrafts, type AdsBusiness } from "../../lib/ads-run";
+import { businessDisplayName } from "../../lib/greeting";
 
-const business = Astro.locals.business as unknown as AdsBusiness | null;
+const business = Astro.locals.business as unknown as (AdsBusiness & { first_name?: string | null; last_name?: string | null }) | null;
 if (!business) return Astro.redirect("/onboarding");
-const [{ google, meta }, { phone, siteUrl }] = await Promise.all([latestDrafts(business.id), adTargets(business)]);
-const none = !google && !meta;
-const trade = business.trade.trim().toLowerCase();
+const [{ google }, { phone, siteUrl }] = await Promise.all([latestDrafts(business.id), adTargets(business)]);
+const name = businessDisplayName(business);
+const trade = business.trade.trim().toLowerCase() || "artisan";
 const city = business.city.trim();
-const searchLine = trade && city ? `L’annonce s’affiche quand on cherche un ${trade} à ${city}.` : "L’annonce s’affiche quand on cherche votre métier près de chez vous.";
-const nb = " ";
+const search = city ? `${trade} ${city.toLowerCase()}` : trade;
+const steps = [
+  { title: `Un client cherche « ${search} »`, line: "Sur Google ou sur Google Maps, depuis son téléphone." },
+  { title: "Vous apparaissez en premier", line: "Avec le bouton Appeler, au-dessus des autres." },
+  { title: "Il appelle, le répondeur décroche", line: "Même quand vous êtes sur un chantier." },
+];
 ---
 <AppShell title="Publicités" active="pubs">
   <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-6 px-4 pt-4 pb-8 lg:max-w-[1040px] lg:px-8 lg:pt-10">
     <a href="/app/visibilite" class="-mb-4 flex items-center gap-1 font-bold text-ink lg:hidden" style="min-height:48px"><HubIcon name="chevron-left" />Visibilité</a>
     <div>
-      <h1 class="text-title font-bold">Publicités</h1>
-      <p class="mt-2 text-muted">Les annonces font appeler. Le répondeur prend chaque appel.</p>
+      <h1 class="text-title font-bold">Publicités Google</h1>
+      <p class="mt-2 text-muted">Passez devant les autres quand un client cherche un {trade}.</p>
     </div>
 
-    {none && (
-      <div class="flex flex-col gap-2 lg:max-w-[420px]">
-        <button type="button" class="btn btn-primary w-full" data-ads-generate="google meta"><HubIcon name="megaphone" /><span data-label>Écrire mes annonces</span></button>
-        <p class="text-small text-muted">Écrites à partir de votre métier, de votre ville et de votre documentation.</p>
-        <p class="hidden text-small font-bold text-ink" data-ads-error role="alert"></p>
+    <section class="flex flex-col gap-[10px]">
+      <h2 class="font-bold">Comment ça marche</h2>
+      <ol class="panel lg:grid lg:grid-cols-3">
+        {steps.map((s, i) => (
+          <li class="row items-start">
+            <span class="icon-tile font-bold">{i + 1}</span>
+            <div class="flex min-w-0 flex-1 flex-col"><span class="font-bold">{s.title}</span><span class="mt-0.5 text-small text-muted">{s.line}</span></div>
+          </li>
+        ))}
+      </ol>
+      <p class="mx-1 text-small text-muted">Vous payez seulement quand un client clique ou appelle. Jamais plus que votre budget.</p>
+    </section>
+
+    <section class="flex flex-col gap-[10px]">
+      <div>
+        <h2 class="font-bold">Ce que voit le client</h2>
+        <p class="mt-0.5 text-small text-muted">Sa recherche « {search} » sur Google Maps.</p>
       </div>
-    )}
+      <MapsPreview name={name} trade={trade} city={city} phone={phone.display} siteUrl={siteUrl} />
+    </section>
 
-    <div class="grid gap-6 lg:grid-cols-2">
-      {["google", "meta"].map((channel) => {
-        const isGoogle = channel === "google";
-        const draft = isGoogle ? google : meta;
-        return (
-          <section class="flex flex-col gap-[10px]" data-ads-section={channel}>
-            <div>
-              <h2 class="font-bold">{isGoogle ? `Google${nb}: quand on vous cherche` : `Facebook et Instagram${nb}: dans votre ville`}</h2>
-              <p class="mt-0.5 text-small text-muted">{isGoogle ? searchLine : "L’annonce s’affiche aux habitants de votre secteur."}</p>
+    <div class="grid gap-6 lg:grid-cols-2 lg:items-start">
+      <div class="flex flex-col gap-[14px]" id="ads-launch">
+        <BudgetSlider />
+        <div class="panel">
+          <div class="row">
+            <span class="icon-tile"><HubIcon name="phone" size={18} class="text-ink" /></span>
+            <div class="min-w-0 flex-1">
+              <p class="text-small text-muted">Les appels arrivent sur</p>
+              {phone.display
+                ? <p><b>{phone.display}</b><span class="text-muted"> · {phone.answering ? "votre répondeur" : "votre portable"}</span></p>
+                : <p>Aucun numéro. <a href="/app/reglages" class="font-bold underline">Choisir un numéro</a></p>}
             </div>
-            <div class="panel">
-              <div class="p-[14px] pb-3">
-                {draft ? (
-                  isGoogle ? <GooglePreview draft={google!} name={business.name} phone={phone.display} siteUrl={siteUrl} />
-                           : <MetaPreview draft={meta!} name={business.name} phone={phone.display} />
-                ) : (
-                  <div class="grid min-h-[160px] place-items-center rounded-call bg-page px-4 text-center text-small text-muted shadow-[inset_0_0_0_1px_var(--color-line)]">
-                    L’annonce s’affichera ici.
-                  </div>
-                )}
-              </div>
+          </div>
+        </div>
 
-              {isGoogle && google && (
-                <div class="row flex-col items-stretch gap-2">
-                  <p class="text-small text-muted">Recherches visées · <b class="text-ink">{google.keywords.length}</b></p>
-                  <ul class="flex flex-wrap gap-1.5">
-                    {google.keywords.map((k) => <li class="kw">{k}</li>)}
-                  </ul>
-                </div>
-              )}
-              {!isGoogle && meta && (
-                <div class="row">
-                  <span class="icon-tile"><HubIcon name="map" size={18} class="text-ink" /></span>
-                  <div class="min-w-0 flex-1"><p class="text-small text-muted">Zone</p><p>{meta.zone}</p></div>
-                </div>
-              )}
+        <button type="button" class="btn btn-primary w-full" data-launch><HubIcon name="megaphone" /><span data-label>Lancer la campagne</span></button>
 
-              <div class="row">
-                <span class="icon-tile"><HubIcon name="phone" size={18} class="text-ink" /></span>
-                <div class="min-w-0 flex-1">
-                  <p class="text-small text-muted">Les appels arrivent sur</p>
-                  {phone.display
-                    ? <p><b>{phone.display}</b><span class="text-muted"> · {phone.answering ? "votre répondeur" : "votre portable"}</span></p>
-                    : <p>Aucun numéro. <a href="/app/reglages" class="font-bold underline">Choisir un numéro</a></p>}
-                </div>
-              </div>
-              {isGoogle && (
-                <div class="row">
-                  <span class="icon-tile"><HubIcon name="globe" size={18} class="text-ink" /></span>
-                  <div class="min-w-0 flex-1">
-                    <p class="text-small text-muted">Lien de l’annonce</p>
-                    {siteUrl
-                      ? <p class="break-all">{siteUrl.replace(/^https?:\/\//, "")}</p>
-                      : <p>Pas encore de site. <a href="/app/visibilite" class="font-bold underline">Créer mon site</a></p>}
-                  </div>
-                </div>
-              )}
-
-              <div class="flex flex-col gap-2 px-[14px] pt-1 pb-3">
-                {draft ? (
-                  <div class="flex gap-2">
-                    <button type="button" class="shortcut" data-copy={isGoogle ? googleCopyText(google!, phone.display, siteUrl) : metaCopyText(meta!, phone.display)}>
-                      <HubIcon name="copy" class="text-action-ink" /><span data-copy-label>Copier</span>
-                    </button>
-                    <button type="button" class="shortcut" data-ads-generate={channel}>
-                      <HubIcon name="rotate" class="text-action-ink" /><span data-label>Réécrire</span>
-                    </button>
-                  </div>
-                ) : !none && (
-                  <button type="button" class="btn btn-secondary w-full" data-ads-generate={channel}><span data-label>Écrire l’annonce</span></button>
-                )}
-                <p class="hidden text-small font-bold" data-ads-error role="alert"></p>
-              </div>
+        <div class="panel" data-launched hidden>
+          <div class="row items-start">
+            <span class="icon-tile"><HubIcon name="check" size={18} class="text-ink" /></span>
+            <div class="flex min-w-0 flex-1 flex-col" role="status">
+              <span class="font-bold">Campagne lancée</span>
+              <span class="mt-0.5 text-small text-muted">Votre annonce s’affiche sur Google dès aujourd’hui. <b class="text-ink" data-launched-budget></b> par jour au plus.</span>
             </div>
-          </section>
-        );
-      })}
-    </div>
+          </div>
+          <div class="px-[14px] pb-[14px]">
+            <button type="button" class="btn btn-secondary w-full" data-stop>Arrêter la campagne</button>
+          </div>
+        </div>
+      </div>
 
-    <div class="grid gap-6 lg:grid-cols-2">
-      <BudgetSlider />
-      <section class="flex flex-col gap-[10px]">
-        <h2 class="font-bold">Lancer la campagne</h2>
-        <ul class="panel">
-          <SoonRow icon="megaphone" label="Google Ads" line="Connexion à votre compte publicitaire Google." />
-          <SoonRow icon="share" label="Facebook et Instagram" line="Connexion à votre compte publicitaire Meta." />
-        </ul>
-        <p class="text-small text-muted">En attendant, copiez les annonces dans votre compte publicitaire.</p>
-      </section>
+      <details class="panel ad-text">
+        <summary class="row cursor-pointer font-bold">
+          <span class="icon-tile"><HubIcon name="globe" size={18} class="text-ink" /></span>
+          <span class="flex-1">Le texte de l’annonce</span>
+          <HubIcon name="chevron-left" size={18} class="chev text-muted" />
+        </summary>
+        <div class="flex flex-col gap-3 px-[14px] pb-[14px]">
+          {google ? (
+            <>
+              <GooglePreview draft={google} name={name} phone={phone.display} siteUrl={siteUrl} />
+              <p class="text-small text-muted">Recherches visées · <b class="text-ink">{google.keywords.length}</b></p>
+              <ul class="flex flex-wrap gap-1.5">{google.keywords.map((k) => <li class="kw">{k}</li>)}</ul>
+              <div class="flex gap-2">
+                <button type="button" class="shortcut" data-copy={googleCopyText(google, phone.display, siteUrl)}><HubIcon name="copy" class="text-action-ink" /><span data-copy-label>Copier</span></button>
+                <button type="button" class="shortcut" data-ads-generate><HubIcon name="rotate" class="text-action-ink" /><span data-label>Réécrire</span></button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p class="text-small text-muted">Écrit à partir de votre métier, de votre ville et de votre documentation.</p>
+              <button type="button" class="btn btn-secondary w-full" data-ads-generate><span data-label>Écrire l’annonce</span></button>
+            </>
+          )}
+          <p class="hidden text-small font-bold" data-ads-error role="alert"></p>
+        </div>
+      </details>
     </div>
   </main>
 </AppShell>
 
 <style>
   .kw { font-size: var(--text-small); padding: 4px 10px; border-radius: var(--radius-chip); background: var(--color-neutral-bg); box-shadow: inset 0 0 0 1px var(--color-neutral-line); }
+  .ad-text summary { list-style: none; }
+  .ad-text summary::-webkit-details-marker { display: none; }
+  .ad-text :global(.chev) { transform: rotate(-90deg); transition: transform 150ms; }
+  .ad-text[open] :global(.chev) { transform: rotate(90deg); }
 </style>
 
 <script>
-  // Writes one or both drafts, then reloads to show them. On failure: French hint, button usable again.
+  // « Lancer la campagne » (demo): short wait, then « Campagne lancée » with the chosen budget.
+  // Remembered in this browser only; « Arrêter la campagne » goes back.
+  const box = document.getElementById("ads-launch")!;
+  const launch = box.querySelector<HTMLButtonElement>("[data-launch]")!;
+  const done = box.querySelector<HTMLElement>("[data-launched]")!;
+  const range = box.querySelector<HTMLInputElement>("input[type=range]");
+  const setLaunched = (on: boolean) => {
+    launch.hidden = on;
+    done.hidden = !on;
+    if (range) range.disabled = on;
+    box.querySelector("[data-launched-budget]")!.textContent = `${range?.value ?? ""} €`;
+    try { on ? localStorage.setItem("ads-launched", "1") : localStorage.removeItem("ads-launched"); } catch { /* storage blocked: not needed */ }
+  };
+  launch.addEventListener("click", () => {
+    launch.disabled = true;
+    launch.querySelector("[data-label]")!.textContent = "Lancement…";
+    setTimeout(() => {
+      launch.disabled = false;
+      launch.querySelector("[data-label]")!.textContent = "Lancer la campagne";
+      setLaunched(true);
+    }, 1500);
+  });
+  box.querySelector("[data-stop]")!.addEventListener("click", () => setLaunched(false));
+  try { if (localStorage.getItem("ads-launched")) setLaunched(true); } catch { /* ignore */ }
+
+  // Writes the Google ad text, then reloads to show it. On failure: French hint, button usable again.
   const FAIL = "L’annonce n’a pas pu être écrite. Réessayez dans un instant.";
   document.querySelectorAll<HTMLButtonElement>("[data-ads-generate]").forEach((btn) => {
     btn.addEventListener("click", async () => {
-      const channels = (btn.dataset.adsGenerate ?? "").split(" ").filter(Boolean);
       const label = btn.querySelector("[data-label]");
       const before = label?.textContent ?? "";
-      const err = (btn.closest("section") ?? btn.parentElement)?.querySelector<HTMLElement>("[data-ads-error]");
-      document.querySelectorAll<HTMLButtonElement>("[data-ads-generate]").forEach((b) => (b.disabled = true));
-      if (label) label.textContent = channels.length > 1 ? "Écriture des annonces…" : "Écriture de l’annonce…";
+      const err = btn.closest("details")?.querySelector<HTMLElement>("[data-ads-error]");
+      btn.disabled = true;
+      if (label) label.textContent = "Écriture de l’annonce…";
       err?.classList.add("hidden");
-      const results = await Promise.all(channels.map(async (channel) => {
-        try {
-          const res = await fetch("/api/publicites/generate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ channel }) });
-          if (res.ok) return null;
-          return ((await res.json().catch(() => ({}))) as { hint?: string }).hint || FAIL;
-        } catch { return FAIL; }
-      }));
-      const failed = results.filter((r): r is string => !!r);
-      // Reload as soon as at least one draft was written: the page shows it, the other can be retried
-      if (failed.length < channels.length) return location.reload();
-      document.querySelectorAll<HTMLButtonElement>("[data-ads-generate]").forEach((b) => (b.disabled = false));
+      let hint = FAIL;
+      try {
+        const res = await fetch("/api/publicites/generate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ channel: "google" }) });
+        if (res.ok) return location.reload();
+        hint = ((await res.json().catch(() => ({}))) as { hint?: string }).hint || FAIL;
+      } catch { /* network: generic hint */ }
+      btn.disabled = false;
       if (label) label.textContent = before;
-      if (err) { err.textContent = failed[0]; err.classList.remove("hidden"); }
+      if (err) { err.textContent = hint; err.classList.remove("hidden"); }
     });
   });
-  // Copies a draft as plain text, ready to paste in the ad account
+  // Copies the ad as plain text, ready to paste in the ad account
   document.querySelectorAll<HTMLButtonElement>("[data-copy]").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const label = btn.querySelector("[data-copy-label]")!;
