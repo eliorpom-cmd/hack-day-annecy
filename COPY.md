@@ -5,7 +5,7 @@
 - **Surface** : 1) le message WhatsApp/SMS envoyé après chaque appel (surface principale) ; 2) la page web d'un appel, ouverte depuis le lien du message (mobile) ; 3) le tableau de bord (peu utilisé) ; 4) ce que dit le répondeur au téléphone.
 - **Langue** : français
 - **Origin** : created on 2026-10-29 (persona et choix d'Elior, défauts de la skill adn-copy)
-- **Updated** : 2026-10-29 (17 h, retours d'Elior)
+- **Updated** : 2026-10-29 (retours d’Elior)
 - **String files** : `web/src/lib/telephony/postcall.ts` (message), `web/src/lib/prompt.ts` (répondeur), `web/src/pages/**/*.astro` (pages)
 
 Lecteur : artisan de 30-40 ans en reconversion, au début de son activité, sur chantier, téléphone en main. Il lit le message en 3 secondes entre deux tâches.

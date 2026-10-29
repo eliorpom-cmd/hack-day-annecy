@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Étape 4 · Formes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{--page:#e9e9ec;--bg:#f2f2f5;--card:#fff;--text:#111;--muted:#6e6e73;--line:#e5e5ea;--red:#d70015;--redbg:#fde8ea;--orange:#c25e00;--orangebg:#fdf0e3}
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--page);color:var(--text);font:15px/1.35 'Atkinson Hyperlegible Next',sans-serif;padding:32px 16px}
+  header{max-width:1240px;margin:0 auto 24px} header h1{font-size:22px;font-weight:700} header p{color:var(--muted);margin-top:6px;max-width:80ch}
+  .row{display:flex;gap:48px;justify-content:center;flex-wrap:wrap;margin-bottom:44px}
+  .opt{display:flex;flex-direction:column;gap:10px} .label{font-weight:700;font-size:16px} .label span{display:block;color:var(--muted);font-weight:400;font-size:13px}
+  .pair{display:flex;gap:18px}
+  .phone{width:320px;height:660px;background:var(--bg);border-radius:34px;border:1px solid #d8d8dc;overflow:hidden;display:flex;flex-direction:column;position:relative}
+  .scroll{flex:1;padding:14px 16px 0;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+  .nav{color:var(--muted);font-weight:600;display:flex;align-items:center;gap:2px}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-weight:700;border-radius:999px;padding:4px 10px;width:max-content}
+  .chip.red{color:var(--red);background:var(--redbg)} .chip.orange{color:var(--orange);background:var(--orangebg)}
+  .actions{display:flex;gap:8px}
+  .act{flex:1;background:var(--card);border-radius:14px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:600;color:var(--text)}
+  .card{background:var(--card);border-radius:14px;overflow:hidden}
+  .card .t{color:var(--muted);font-weight:600;padding:12px 14px 0}
+  .card .why{padding:4px 14px 12px;font-style:italic}
+  .line{display:flex;align-items:center;gap:12px;padding:12px 14px;border-top:1px solid var(--line)} .line:first-child{border-top:0}
+  .line .ic{width:30px;height:30px;border-radius:8px;background:var(--bg);display:grid;place-items:center;flex:none}
+  .line .k{color:var(--muted)} .line .grow{flex:1;min-width:0} .chev{color:#b5b5ba}
+  .bar{padding:12px 16px 24px;background:var(--bg)}
+  .btn{width:100%;height:56px;border-radius:16px;border:0;font-weight:700;font-size:var(--md);background:#111;color:#fff;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}
+  .seg{display:flex;background:#e3e3e8;border-radius:10px;padding:3px} .seg div{flex:1;text-align:center;padding:7px;border-radius:8px;font-weight:600;color:var(--muted)} .seg .on{background:var(--card);color:var(--text)}
+  .gh{color:var(--muted);font-weight:600;padding:0 4px;text-transform:none}
+  .dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:none}
+  .dot.red{background:var(--redbg);color:var(--red)} .dot.orange{background:var(--orangebg);color:var(--orange)} .dot.gray{background:var(--bg);color:var(--muted)}
+  .time{color:var(--muted);flex:none}
+  svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  /* Scale A: 3 sizes */
+  .A{--xl:30px;--md:17px;--sm:14px} /* Scale B: 2 sizes */ .B{--xl:26px;--md:17px;--sm:17px}
+  .A .phone,.B .phone{font-size:var(--md)}
+  .h1{font-size:var(--xl);font-weight:700;line-height:1.1}
+  .sub{font-size:var(--sm);color:var(--muted)} .chip{font-size:var(--sm)} .act{font-size:var(--sm)} .card .t{font-size:var(--sm)} .line .k{font-size:var(--sm)} .time{font-size:var(--sm)} .gh{font-size:var(--sm)} .seg div{font-size:var(--sm)} .nav{font-size:var(--md)}
+  .name{font-weight:700}
+</style></head><body>
+<style>
+ :root{--ink:#0b2545;--surf:#f1f4f8;--tint:#e6eef6;--primary:#0a8fd6;--onprimary:#fff}
+ body{background:#dfe3e8}
+ .btn{background:var(--primary)!important;color:var(--onprimary)!important}
+ .nav{color:var(--ink)!important} .h1,.name{color:var(--ink)} .act svg{color:var(--accentText)} .line .ic svg{color:var(--ink)}
+ .phone{background:var(--surf)!important} .bar{background:var(--surf)!important} .line .ic{background:var(--tint)!important}
+ .seg .on{color:var(--ink)} .act{color:var(--ink)}
+ .wrap{display:flex;gap:32px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+ .panel{width:340px;background:#fff;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:16px;position:sticky;top:20px}
+ .panel h2{font-size:17px} .panel label{display:flex;flex-direction:column;gap:6px;font-size:14px;color:#555}
+ .panel input[type=range]{width:100%} .panel input[type=color]{width:100%;height:48px;border:0;border-radius:10px;padding:0;background:none}
+ .hue{background:linear-gradient(90deg,oklch(.62 .17 0),oklch(.62 .17 60),oklch(.62 .17 120),oklch(.62 .17 180),oklch(.62 .17 240),oklch(.62 .17 300),oklch(.62 .17 360));height:10px;border-radius:5px}
+ .vals{font:13px ui-monospace,Menlo,monospace;background:#f4f5f7;border-radius:10px;padding:10px;line-height:1.7}
+ .vals i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px;border:1px solid rgba(0,0,0,.1)}
+ .warn{font-size:13px;color:#b42318;min-height:18px}
+ .ok{font-size:13px;color:#1a7f37}
+ .b{height:44px;border-radius:12px;border:0;background:var(--ink);color:#fff;font:600 15px 'Atkinson Hyperlegible Next',sans-serif;cursor:pointer}
+ .b2{height:40px;border-radius:12px;border:1px solid #d0d5dd;background:#fff;font:600 14px 'Atkinson Hyperlegible Next',sans-serif;cursor:pointer}
+ .chips{display:flex;flex-wrap:wrap;gap:8px} .chips button{width:34px;height:34px;border-radius:10px;border:2px solid #fff;box-shadow:0 0 0 1px #d0d5dd;cursor:pointer}
+ .panel label.tg{flex-direction:row;gap:8px;align-items:center;font-size:14px;color:#555}
+</style><style>
+ :root{--ink:#0b2545;--surf:#f1f4f8;--tint:#ddf6e5;--primary:#4ee494;--onprimary:#0b2545;--accentText:#007d35}
+ .act svg{color:var(--accentText)} .nav{color:var(--ink)!important}
+ .row{display:flex;gap:28px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+ .group{max-width:1300px;margin:0 auto 34px} .group h2{font-size:19px;margin:0 0 4px 8px} .group p{color:var(--muted);margin:0 0 14px 8px}
+ .opt .pair{zoom:.78} .label{max-width:520px}
+ /* Arrondis */
+ .r-soft{--rc:14px;--rb:16px;--ra:14px;--rchip:999px}
+ .r-round{--rc:22px;--rb:999px;--ra:20px;--rchip:999px}
+ .r-sharp{--rc:6px;--rb:8px;--ra:6px;--rchip:6px}
+ .card{border-radius:var(--rc,14px)!important} .btn{border-radius:var(--rb,16px)!important} .act{border-radius:var(--ra,14px)!important} .chip{border-radius:var(--rchip,999px)!important} .seg,.seg div{border-radius:calc(var(--ra,14px)*.7)!important}
+ /* Relief */
+ .d-shadow .card,.d-shadow .act{box-shadow:0 1px 2px rgba(11,37,69,.06),0 6px 16px rgba(11,37,69,.07)}
+ .d-border .card,.d-border .act{box-shadow:inset 0 0 0 1px #dbe2ea}
+ .d-border .phone,.d-shadow .phone{}
+ /* Densité */
+ .s-airy .scroll{gap:18px!important;padding:18px 18px 0!important} .s-airy .line{padding:16px 16px!important} .s-airy .act{padding:14px 4px!important} .s-airy .card .t{padding:14px 16px 0!important} .s-airy .card .why{padding:6px 16px 14px!important}
+ .s-compact .scroll{gap:9px!important;padding:10px 12px 0!important} .s-compact .line{padding:9px 12px!important} .s-compact .act{padding:7px 4px!important} .s-compact .card .t{padding:9px 12px 0!important} .s-compact .card .why{padding:2px 12px 9px!important}
+</style><header><h1>Étape 4 sur 6 · Les formes</h1>
+<p>Trois petits choix, un par ligne, sur les écrans validés avec ta palette. Réponds par ligne, par exemple « 4a A, 4b B, 4c C ».</p></header><div class="group"><h2>4a · Arrondis</h2><p>Le relief et la densité restent ceux d'aujourd'hui.</p><div class="row"><div class="opt A r-soft"><div class="label">A · Doux (actuel)<span>blocs 14 px, bouton 16 px, pastilles rondes</span></div><div class="pair">
+<div class="phone"><div class="scroll">
+  <div class="nav">‹ Appels</div>
+  <div class="chip red">● Urgence</div>
+  <div><div class="h1">Fuite d'eau</div><div style="margin-top:4px"><span class="name">Mme Lefèvre</span> <span class="sub">· il y a 12 min</span></div></div>
+  <div class="actions"><div class="act"><svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Itinéraire</div><div class="act"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Message</div><div class="act"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Rappelé</div></div>
+  <div class="card"><div class="t">Pourquoi c'est urgent</div><div class="why">L'eau coule dans le salon.</div></div>
+  <div class="card">
+    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="grow"><div class="k">Adresse</div><div>12 rue Royale, Annecy</div></div></div>
+    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="k">Téléphone</div><div>06 12 34 56 78</div></div></div>
+  </div>
+  <div class="card"><div class="line"><div class="grow">Contenu de la conversation</div><span class="chev">›</span></div></div>
+</div><div class="bar"><button class="btn"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button></div></div>
+<div class="phone"><div class="scroll">
+  <div class="h1" style="margin-top:22px">Appels</div>
+  <div class="seg"><div class="on">À rappeler · 3</div><div>Tous</div></div>
+  <div class="gh">Aujourd'hui</div>
+  <div class="card">
+    <div class="line"><div class="dot red"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">Mme Lefèvre</div><div class="sub">Urgence · fuite d'eau</div></div><span class="time">14 h 32</span></div>
+    <div class="line"><div class="dot orange"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Rossi</div><div class="sub">Urgent · chaudière en panne</div></div><span class="time">13 h 05</span></div>
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Durand</div><div class="sub">Devis salle de bain</div></div><span class="time">11 h 20</span></div>
+  </div>
+  <div class="gh">Hier</div>
+  <div class="card">
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div><div class="grow"><div>Mme Petit</div><div class="sub">Rappelé · robinet qui goutte</div></div><span class="time">17 h 48</span></div>
+  </div>
+</div></div>
+</div></div></div>
+</div></div><div class="opt A r-round"><div class="label">B · Très arrondis<span>blocs 22 px, bouton en pilule : plus doux, proche de Material 3</span></div><div class="pair">
+<div class="phone"><div class="scroll">
+  <div class="nav">‹ Appels</div>
+  <div class="chip red">● Urgence</div>
+  <div><div class="h1">Fuite d'eau</div><div style="margin-top:4px"><span class="name">Mme Lefèvre</span> <span class="sub">· il y a 12 min</span></div></div>
+  <div class="actions"><div class="act"><svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Itinéraire</div><div class="act"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Message</div><div class="act"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Rappelé</div></div>
+  <div class="card"><div class="t">Pourquoi c'est urgent</div><div class="why">L'eau coule dans le salon.</div></div>
+  <div class="card">
+    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="grow"><div class="k">Adresse</div><div>12 rue Royale, Annecy</div></div></div>
+    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="k">Téléphone</div><div>06 12 34 56 78</div></div></div>
+  </div>
+  <div class="card"><div class="line"><div class="grow">Contenu de la conversation</div><span class="chev">›</span></div></div>
+</div><div class="bar"><button class="btn"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button></div></div>
+<div class="phone"><div class="scroll">
+  <div class="h1" style="margin-top:22px">Appels</div>
+  <div class="seg"><div class="on">À rappeler · 3</div><div>Tous</div></div>
+  <div class="gh">Aujourd'hui</div>
+  <div class="card">
+    <div class="line"><div class="dot red"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">Mme Lefèvre</div><div class="sub">Urgence · fuite d'eau</div></div><span class="time">14 h 32</span></div>
+    <div class="line"><div class="dot orange"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Rossi</div><div class="sub">Urgent · chaudière en panne</div></div><span class="time">13 h 05</span></div>
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Durand</div><div class="sub">Devis salle de bain</div></div><span class="time">11 h 20</span></div>
+  </div>
+  <div class="gh">Hier</div>
+  <div class="card">
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div><div class="grow"><div>Mme Petit</div><div class="sub">Rappelé · robinet qui goutte</div></div><span class="time">17 h 48</span></div>
+  </div>
+</div></div>
+</div></div></div>
+</div></div><div class="opt A r-sharp"><div class="label">C · Nets<span>blocs 6 px, bouton 8 px : plus « outil », plus sérieux</span></div><div class="pair">
+<div class="phone"><div class="scroll">
+  <div class="nav">‹ Appels</div>
+  <div class="chip red">● Urgence</div>
+  <div><div class="h1">Fuite d'eau</div><div style="margin-top:4px"><span class="name">Mme Lefèvre</span> <span class="sub">· il y a 12 min</span></div></div>
+  <div class="actions"><div class="act"><svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Itinéraire</div><div class="act"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Message</div><div class="act"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Rappelé</div></div>
+  <div class="card"><div class="t">Pourquoi c'est urgent</div><div class="why">L'eau coule dans le salon.</div></div>
+  <div class="card">
+    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="grow"><div class="k">Adresse</div><div>12 rue Royale, Annecy</div></div></div>
+    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="k">Téléphone</div><div>06 12 34 56 78</div></div></div>
+  </div>
+  <div class="card"><div class="line"><div class="grow">Contenu de la conversation</div><span class="chev">›</span></div></div>
+</div><div class="bar"><button class="btn"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button></div></div>
+<div class="phone"><div class="scroll">
+  <div class="h1" style="margin-top:22px">Appels</div>
+  <div class="seg"><div class="on">À rappeler · 3</div><div>Tous</div></div>
+  <div class="gh">Aujourd'hui</div>
+  <div class="card">
+    <div class="line"><div class="dot red"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">Mme Lefèvre</div><div class="sub">Urgence · fuite d'eau</div></div><span class="time">14 h 32</span></div>
+    <div class="line"><div class="dot orange"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Rossi</div><div class="sub">Urgent · chaudière en panne</div></div><span class="time">13 h 05</span></div>
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Durand</div><div class="sub">Devis salle de bain</div></div><span class="time">11 h 20</span></div>
+  </div>
+  <div class="gh">Hier</div>
+  <div class="card">
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div><div class="grow"><div>Mme Petit</div><div class="sub">Rappelé · robinet qui goutte</div></div><span class="time">17 h 48</span></div>
+  </div>
+</div></div>
+</div></div></div>
+</div></div></div></div><div class="group"><h2>4b · Relief</h2><p>Arrondis doux.</p><div class="row"><div class="opt A r-soft"><div class="label">A · À plat (actuel)<span>blocs blancs posés sur le fond, sans ombre</span></div><div class="pair">
+<div class="phone"><div class="scroll">
+  <div class="nav">‹ Appels</div>
+  <div class="chip red">● Urgence</div>
+  <div><div class="h1">Fuite d'eau</div><div style="margin-top:4px"><span class="name">Mme Lefèvre</span> <span class="sub">· il y a 12 min</span></div></div>
+  <div class="actions"><div class="act"><svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Itinéraire</div><div class="act"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Message</div><div class="act"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Rappelé</div></div>
+  <div class="card"><div class="t">Pourquoi c'est urgent</div><div class="why">L'eau coule dans le salon.</div></div>
+  <div class="card">
+    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="grow"><div class="k">Adresse</div><div>12 rue Royale, Annecy</div></div></div>
+    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="k">Téléphone</div><div>06 12 34 56 78</div></div></div>
+  </div>
+  <div class="card"><div class="line"><div class="grow">Contenu de la conversation</div><span class="chev">›</span></div></div>
+</div><div class="bar"><button class="btn"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button></div></div>
+<div class="phone"><div class="scroll">
+  <div class="h1" style="margin-top:22px">Appels</div>
+  <div class="seg"><div class="on">À rappeler · 3</div><div>Tous</div></div>
+  <div class="gh">Aujourd'hui</div>
+  <div class="card">
+    <div class="line"><div class="dot red"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">Mme Lefèvre</div><div class="sub">Urgence · fuite d'eau</div></div><span class="time">14 h 32</span></div>
+    <div class="line"><div class="dot orange"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Rossi</div><div class="sub">Urgent · chaudière en panne</div></div><span class="time">13 h 05</span></div>
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Durand</div><div class="sub">Devis salle de bain</div></div><span class="time">11 h 20</span></div>
+  </div>
+  <div class="gh">Hier</div>
+  <div class="card">
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div><div class="grow"><div>Mme Petit</div><div class="sub">Rappelé · robinet qui goutte</div></div><span class="time">17 h 48</span></div>
+  </div>
+</div></div>
+</div></div></div>
+</div></div><div class="opt A r-soft d-shadow"><div class="label">B · Ombre légère<span>les blocs se détachent un peu du fond</span></div><div class="pair">
+<div class="phone"><div class="scroll">
+  <div class="nav">‹ Appels</div>
+  <div class="chip red">● Urgence</div>
+  <div><div class="h1">Fuite d'eau</div><div style="margin-top:4px"><span class="name">Mme Lefèvre</span> <span class="sub">· il y a 12 min</span></div></div>
+  <div class="actions"><div class="act"><svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Itinéraire</div><div class="act"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Message</div><div class="act"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Rappelé</div></div>
+  <div class="card"><div class="t">Pourquoi c'est urgent</div><div class="why">L'eau coule dans le salon.</div></div>
+  <div class="card">
+    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="grow"><div class="k">Adresse</div><div>12 rue Royale, Annecy</div></div></div>
+    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="k">Téléphone</div><div>06 12 34 56 78</div></div></div>
+  </div>
+  <div class="card"><div class="line"><div class="grow">Contenu de la conversation</div><span class="chev">›</span></div></div>
+</div><div class="bar"><button class="btn"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button></div></div>
+<div class="phone"><div class="scroll">
+  <div class="h1" style="margin-top:22px">Appels</div>
+  <div class="seg"><div class="on">À rappeler · 3</div><div>Tous</div></div>
+  <div class="gh">Aujourd'hui</div>
+  <div class="card">
+    <div class="line"><div class="dot red"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">Mme Lefèvre</div><div class="sub">Urgence · fuite d'eau</div></div><span class="time">14 h 32</span></div>
+    <div class="line"><div class="dot orange"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Rossi</div><div class="sub">Urgent · chaudière en panne</div></div><span class="time">13 h 05</span></div>
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Durand</div><div class="sub">Devis salle de bain</div></div><span class="time">11 h 20</span></div>
+  </div>
+  <div class="gh">Hier</div>
+  <div class="card">
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div><div class="grow"><div>Mme Petit</div><div class="sub">Rappelé · robinet qui goutte</div></div><span class="time">17 h 48</span></div>
+  </div>
+</div></div>
+</div></div></div>
+</div></div><div class="opt A r-soft d-border"><div class="label">C · Bordure fine<span>un trait gris très clair autour de chaque bloc</span></div><div class="pair">
+<div class="phone"><div class="scroll">
+  <div class="nav">‹ Appels</div>
+  <div class="chip red">● Urgence</div>
+  <div><div class="h1">Fuite d'eau</div><div style="margin-top:4px"><span class="name">Mme Lefèvre</span> <span class="sub">· il y a 12 min</span></div></div>
+  <div class="actions"><div class="act"><svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Itinéraire</div><div class="act"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Message</div><div class="act"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Rappelé</div></div>
+  <div class="card"><div class="t">Pourquoi c'est urgent</div><div class="why">L'eau coule dans le salon.</div></div>
+  <div class="card">
+    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="grow"><div class="k">Adresse</div><div>12 rue Royale, Annecy</div></div></div>
+    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="k">Téléphone</div><div>06 12 34 56 78</div></div></div>
+  </div>
+  <div class="card"><div class="line"><div class="grow">Contenu de la conversation</div><span class="chev">›</span></div></div>
+</div><div class="bar"><button class="btn"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button></div></div>
+<div class="phone"><div class="scroll">
+  <div class="h1" style="margin-top:22px">Appels</div>
+  <div class="seg"><div class="on">À rappeler · 3</div><div>Tous</div></div>
+  <div class="gh">Aujourd'hui</div>
+  <div class="card">
+    <div class="line"><div class="dot red"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">Mme Lefèvre</div><div class="sub">Urgence · fuite d'eau</div></div><span class="time">14 h 32</span></div>
+    <div class="line"><div class="dot orange"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Rossi</div><div class="sub">Urgent · chaudière en panne</div></div><span class="time">13 h 05</span></div>
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Durand</div><div class="sub">Devis salle de bain</div></div><span class="time">11 h 20</span></div>
+  </div>
+  <div class="gh">Hier</div>
+  <div class="card">
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div><div class="grow"><div>Mme Petit</div><div class="sub">Rappelé · robinet qui goutte</div></div><span class="time">17 h 48</span></div>
+  </div>
+</div></div>
+</div></div></div>
+</div></div></div></div><div class="group"><h2>4c · Densité</h2><p>Arrondis doux, à plat.</p><div class="row"><div class="opt A r-soft s-compact"><div class="label">A · Serré<span>plus d'infos visibles sans faire défiler</span></div><div class="pair">
+<div class="phone"><div class="scroll">
+  <div class="nav">‹ Appels</div>
+  <div class="chip red">● Urgence</div>
+  <div><div class="h1">Fuite d'eau</div><div style="margin-top:4px"><span class="name">Mme Lefèvre</span> <span class="sub">· il y a 12 min</span></div></div>
+  <div class="actions"><div class="act"><svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Itinéraire</div><div class="act"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Message</div><div class="act"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Rappelé</div></div>
+  <div class="card"><div class="t">Pourquoi c'est urgent</div><div class="why">L'eau coule dans le salon.</div></div>
+  <div class="card">
+    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="grow"><div class="k">Adresse</div><div>12 rue Royale, Annecy</div></div></div>
+    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="k">Téléphone</div><div>06 12 34 56 78</div></div></div>
+  </div>
+  <div class="card"><div class="line"><div class="grow">Contenu de la conversation</div><span class="chev">›</span></div></div>
+</div><div class="bar"><button class="btn"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button></div></div>
+<div class="phone"><div class="scroll">
+  <div class="h1" style="margin-top:22px">Appels</div>
+  <div class="seg"><div class="on">À rappeler · 3</div><div>Tous</div></div>
+  <div class="gh">Aujourd'hui</div>
+  <div class="card">
+    <div class="line"><div class="dot red"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">Mme Lefèvre</div><div class="sub">Urgence · fuite d'eau</div></div><span class="time">14 h 32</span></div>
+    <div class="line"><div class="dot orange"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Rossi</div><div class="sub">Urgent · chaudière en panne</div></div><span class="time">13 h 05</span></div>
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Durand</div><div class="sub">Devis salle de bain</div></div><span class="time">11 h 20</span></div>
+  </div>
+  <div class="gh">Hier</div>
+  <div class="card">
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div><div class="grow"><div>Mme Petit</div><div class="sub">Rappelé · robinet qui goutte</div></div><span class="time">17 h 48</span></div>
+  </div>
+</div></div>
+</div></div></div>
+</div></div><div class="opt A r-soft"><div class="label">B · Moyen (actuel)<span></span></div><div class="pair">
+<div class="phone"><div class="scroll">
+  <div class="nav">‹ Appels</div>
+  <div class="chip red">● Urgence</div>
+  <div><div class="h1">Fuite d'eau</div><div style="margin-top:4px"><span class="name">Mme Lefèvre</span> <span class="sub">· il y a 12 min</span></div></div>
+  <div class="actions"><div class="act"><svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Itinéraire</div><div class="act"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Message</div><div class="act"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Rappelé</div></div>
+  <div class="card"><div class="t">Pourquoi c'est urgent</div><div class="why">L'eau coule dans le salon.</div></div>
+  <div class="card">
+    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="grow"><div class="k">Adresse</div><div>12 rue Royale, Annecy</div></div></div>
+    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="k">Téléphone</div><div>06 12 34 56 78</div></div></div>
+  </div>
+  <div class="card"><div class="line"><div class="grow">Contenu de la conversation</div><span class="chev">›</span></div></div>
+</div><div class="bar"><button class="btn"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button></div></div>
+<div class="phone"><div class="scroll">
+  <div class="h1" style="margin-top:22px">Appels</div>
+  <div class="seg"><div class="on">À rappeler · 3</div><div>Tous</div></div>
+  <div class="gh">Aujourd'hui</div>
+  <div class="card">
+    <div class="line"><div class="dot red"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">Mme Lefèvre</div><div class="sub">Urgence · fuite d'eau</div></div><span class="time">14 h 32</span></div>
+    <div class="line"><div class="dot orange"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Rossi</div><div class="sub">Urgent · chaudière en panne</div></div><span class="time">13 h 05</span></div>
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Durand</div><div class="sub">Devis salle de bain</div></div><span class="time">11 h 20</span></div>
+  </div>
+  <div class="gh">Hier</div>
+  <div class="card">
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div><div class="grow"><div>Mme Petit</div><div class="sub">Rappelé · robinet qui goutte</div></div><span class="time">17 h 48</span></div>
+  </div>
+</div></div>
+</div></div></div>
+</div></div><div class="opt A r-soft s-airy"><div class="label">C · Aéré<span>plus d'espace, cibles plus grandes pour les doigts</span></div><div class="pair">
+<div class="phone"><div class="scroll">
+  <div class="nav">‹ Appels</div>
+  <div class="chip red">● Urgence</div>
+  <div><div class="h1">Fuite d'eau</div><div style="margin-top:4px"><span class="name">Mme Lefèvre</span> <span class="sub">· il y a 12 min</span></div></div>
+  <div class="actions"><div class="act"><svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Itinéraire</div><div class="act"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Message</div><div class="act"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Rappelé</div></div>
+  <div class="card"><div class="t">Pourquoi c'est urgent</div><div class="why">L'eau coule dans le salon.</div></div>
+  <div class="card">
+    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="grow"><div class="k">Adresse</div><div>12 rue Royale, Annecy</div></div></div>
+    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="k">Téléphone</div><div>06 12 34 56 78</div></div></div>
+  </div>
+  <div class="card"><div class="line"><div class="grow">Contenu de la conversation</div><span class="chev">›</span></div></div>
+</div><div class="bar"><button class="btn"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button></div></div>
+<div class="phone"><div class="scroll">
+  <div class="h1" style="margin-top:22px">Appels</div>
+  <div class="seg"><div class="on">À rappeler · 3</div><div>Tous</div></div>
+  <div class="gh">Aujourd'hui</div>
+  <div class="card">
+    <div class="line"><div class="dot red"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">Mme Lefèvre</div><div class="sub">Urgence · fuite d'eau</div></div><span class="time">14 h 32</span></div>
+    <div class="line"><div class="dot orange"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Rossi</div><div class="sub">Urgent · chaudière en panne</div></div><span class="time">13 h 05</span></div>
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Durand</div><div class="sub">Devis salle de bain</div></div><span class="time">11 h 20</span></div>
+  </div>
+  <div class="gh">Hier</div>
+  <div class="card">
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div><div class="grow"><div>Mme Petit</div><div class="sub">Rappelé · robinet qui goutte</div></div><span class="time">17 h 48</span></div>
+  </div>
+</div></div>
+</div></div></div>
+</div></div></div></div></body></html>

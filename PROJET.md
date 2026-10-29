@@ -11,7 +11,7 @@ Specs à jour (source de vérité, écrite par l'équipe) : https://docs.google.
 - **Pitch** : « Trouvez plus de clients, et ne les perdez plus parce que vous n'êtes pas disponible pour leur répondre. » Des Google Ads ne servent à rien si personne ne décroche, surtout pour une urgence.
 - **Positionnement** : le tout-en-un de l'artisan. Le répondeur d'abord, puis site web, fiche Google, réseaux sociaux, pubs. Concurrents du répondeur seul : fonio, AUTILIA, Ainora, le modèle « plomberie » d'ElevenLabs.
 - **Point de départ** : le MVP de Mathieu, qui marche déjà. On reprend son code, on l'optimise et on **refait toute l'interface et l'onboarding**. Référence d'interface et d'onboarding : reception.ai.
-- **Surface principale** (décidé le 29/10, 16 h 30) : le **message WhatsApp/SMS** reçu après chaque appel, avec un lien vers la page web de l'appel. Le tableau de bord sert peu. Textes : `COPY.md`.
+- **Surface principale** (décidé le 29/10) : le **message WhatsApp/SMS** reçu après chaque appel, avec un lien vers la page web de l'appel. Le tableau de bord sert peu. Textes : `COPY.md`.
 - **Produit** : un mode simple par défaut, et un mode avancé (connecter son agenda, enrichir la base de connaissances, personnaliser l'accueil, etc.).
 - **Onboarding** : scanner le site de l'artisan s'il en a un, sinon saisie à la main → choisir une voix (clonage de sa voix ou voix de la bibliothèque) → acheter un numéro → dashboard. Agenda Google proposé mais facultatif : sans agenda, pas de prise de rendez-vous, juste un lead.
 - **Routage des appels** : le client appelle le numéro de l'artisan. Pendant les horaires de travail, son portable sonne ~15 s ; s'il ne décroche pas ou refuse, l'agent prend l'appel. Hors horaires, l'agent répond tout de suite.
@@ -23,7 +23,7 @@ Specs à jour (source de vérité, écrite par l'équipe) : https://docs.google.
 - **Hors périmètre aujourd'hui** : site web, réseaux sociaux, pubs, import CRM (on les cite dans le pitch).
 
 
-## Persona et voix (décidé le 29/10, 16 h 15)
+## Persona et voix (décidé le 29/10)
 
 **Persona** : 30-40 ans, en reconversion, au début de son activité d'artisan (sorti d'école). Il arrive sur un marché saturé, où les anciens tiennent déjà la clientèle. Ni technophile ni perdu avec le numérique. Il veut aller droit à l'essentiel.
 
