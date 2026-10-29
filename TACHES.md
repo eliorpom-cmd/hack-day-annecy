@@ -10,6 +10,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 
 - 06 · Refaire le dashboard : leads, appels, mode avancé
   - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
+- 17 · Mettre l'app en ligne sur Cloudflare
+  - base D1 distante + secrets + wrangler deploy ; adresse publique pour les webhooks Twilio et ElevenLabs ; accord d'Elior requis
 
 ## En cours
 
