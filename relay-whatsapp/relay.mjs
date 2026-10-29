@@ -5,9 +5,11 @@
 //   node relay.mjs             polls every 2 s, sends, acks (one log line per message)
 //   node relay.mjs --dry-run   polls and prints the queue, sends nothing, acks nothing, no WhatsApp connection
 //   node relay.mjs check       connects to WhatsApp, prints the linked number, disconnects
+//   node relay.mjs link 33612345678   links another WhatsApp account (pairing code), session in ./session
 //
 // Env: WHATSAPP_RELAY_TOKEN (required except for check), RELAY_URL (default: the demo Worker),
-//      GRNBL_WA_AUTH (default: ~/Documents/Code/Perso/grnbl/data/whatsapp-auth, the session Baileys keeps up to date).
+//      WA_AUTH (session folder; default: GRNBL_WA_AUTH, else ~/Documents/Code/Perso/grnbl/data/whatsapp-auth,
+//      the session Baileys keeps up to date; for `link`, default ./session).
 
 import makeWASocket, { Browsers, DisconnectReason, useMultiFileAuthState } from "@whiskeysockets/baileys";
 import pino from "pino";
@@ -15,14 +17,14 @@ import { existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const AUTH = process.env.GRNBL_WA_AUTH || path.join(os.homedir(), "Documents/Code/Perso/grnbl/data/whatsapp-auth");
+const args = process.argv.slice(2);
+const mode = args.includes("link") ? "link" : args.includes("check") ? "check" : args.includes("--dry-run") ? "dry-run" : "run";
+const AUTH = process.env.WA_AUTH || process.env.GRNBL_WA_AUTH
+  || (mode === "link" ? path.join(import.meta.dirname, "session") : path.join(os.homedir(), "Documents/Code/Perso/grnbl/data/whatsapp-auth"));
 const RELAY_URL = (process.env.RELAY_URL || "https://hack-day-annecy.eliorpom-0bc.workers.dev").replace(/\/+$/, "");
 const TOKEN = process.env.WHATSAPP_RELAY_TOKEN;
 const POLL_MS = 2000;
 const OPEN_TIMEOUT_MS = 60_000;
-
-const args = process.argv.slice(2);
-const mode = args.includes("check") ? "check" : args.includes("--dry-run") ? "dry-run" : "run";
 
 const log = (...parts) => console.log(new Date().toLocaleTimeString("fr-FR"), ...parts);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -82,6 +84,27 @@ async function connect(onClose = () => {}) {
 }
 
 // ---- Modes ----
+
+// Links a new account: prints an 8-character code to type in WhatsApp > Linked devices > Link with phone number
+async function link(phone) {
+  const digits = toDigits(phone ?? "");
+  if (digits.length < 8) throw new Error("Usage : node relay.mjs link 33612345678 (le numéro du compte WhatsApp à relier)");
+  const { state, saveCreds } = await useMultiFileAuthState(AUTH);
+  if (state.creds.registered) { log(`Déjà relié (${AUTH}). Lancez check.`); process.exit(0); }
+  const sock = makeWASocket({ auth: state, logger: pino({ level: "silent" }), browser: Browsers.macOS("Chrome"), markOnlineOnConnect: false });
+  sock.ev.on("creds.update", saveCreds);
+  await sleep(3000); // the socket must be up before asking for a code
+  const code = await sock.requestPairingCode(digits);
+  log(`Sur le téléphone : WhatsApp > Appareils connectés > Connecter un appareil > Connecter avec un numéro de téléphone.`);
+  log(`Code : ${code.slice(0, 4)}-${code.slice(4)}`);
+  await new Promise((resolve) => sock.ev.on("connection.update", ({ connection }) => {
+    // after pairing WhatsApp closes once (restart required): the session is saved, check reconnects cleanly
+    if (connection === "open" || (connection === "close" && sock.authState.creds.registered)) resolve();
+  }));
+  await sleep(2000);
+  log(`Compte relié. Session : ${AUTH}. Vérifiez avec : WA_AUTH=${AUTH} node relay.mjs check`);
+  process.exit(0);
+}
 
 async function check() {
   const sock = await connect();
@@ -181,12 +204,12 @@ async function run() {
   }
 }
 
-if (mode !== "check" && !TOKEN) {
+if ((mode === "run" || mode === "dry-run") && !TOKEN) {
   console.error("WHATSAPP_RELAY_TOKEN manquant (même valeur que le secret du Worker).");
   process.exit(1);
 }
 try {
-  await (mode === "check" ? check() : mode === "dry-run" ? dryRun() : run());
+  await (mode === "link" ? link(args[args.indexOf("link") + 1]) : mode === "check" ? check() : mode === "dry-run" ? dryRun() : run());
 } catch (e) {
   console.error(e.message ?? String(e));
   process.exit(1);

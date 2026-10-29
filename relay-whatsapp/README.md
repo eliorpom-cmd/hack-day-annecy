@@ -28,3 +28,32 @@ Variables : `RELAY_URL` (par défaut le Worker de démo), `GRNBL_WA_AUTH` (dossi
 - Un seul programme à la fois sur la session GRNBL : `lsof +D ~/Documents/Code/Perso/grnbl/data/whatsapp-auth` doit être vide avant de lancer.
 - Les messages de plus de 10 min ne sont plus envoyés.
 - Un message vers un numéro sans WhatsApp est marqué en erreur, sans nouvel essai.
+
+## Relier un autre compte WhatsApp (un coéquipier, sur son ordinateur)
+
+Le relais marche avec n'importe quel compte WhatsApp, pas seulement celui de GRNBL. Sur l'ordinateur qui fera le relais :
+
+```sh
+cd relay-whatsapp && npm install
+node relay.mjs link 33612345678          # son numéro WhatsApp, sans + ; affiche un code de 8 caractères
+```
+
+Sur le téléphone : WhatsApp > Appareils connectés > Connecter un appareil > Connecter avec un numéro de téléphone, puis taper le code. La session est enregistrée dans `relay-whatsapp/session/` (jamais commitée). Ensuite :
+
+```sh
+WA_AUTH=./session node relay.mjs check
+WA_AUTH=./session WHATSAPP_RELAY_TOKEN=<jeton> node relay.mjs
+```
+
+Le numéro qui envoie doit être différent de celui qui reçoit (le portable de l'artisan dans l'app).
+
+## Brancher une autre app (Lovable, Supabase…)
+
+Le relais ne dépend pas de l'app : il lit deux adresses sous `RELAY_URL`. Toute app qui les sert, avec le même jeton, marche avec lui.
+
+| Méthode | Adresse | Réponse |
+|---|---|---|
+| GET | `<RELAY_URL>/api/whatsapp-relay/outbox` | `{"messages":[{"id","to_phone","body"}]}` : messages pas encore envoyés, de moins de 10 min |
+| POST | `<RELAY_URL>/api/whatsapp-relay/ack` | corps `{"id"}` (envoyé) ou `{"id","error"}` (échec) → `{"ok":true}` |
+
+Les deux exigent l'en-tête `Authorization: Bearer <WHATSAPP_RELAY_TOKEN>`, sinon 401. `to_phone` est au format `+33612345678` ou `0612345678`. Côté app, après chaque appel : insérer une ligne dans une table équivalente à `web/migrations/0014_whatsapp_outbox.sql` au lieu d'envoyer le message. Code de référence : `web/src/lib/telephony/whatsapp-relay.ts`.

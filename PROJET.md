@@ -123,6 +123,8 @@ Code dans `web/`. Tables : `web/migrations/0001_init.sql`. Toutes les routes `/a
 | POST | /api/twilio/voice?token= | webhook Twilio (appel entrant) | TwiML : sonne chez l'artisan pendant ses horaires (ou toujours sans horaires fixes), sinon l'agent ; appel renvoyé → l'agent direct |
 | POST | /api/twilio/fallback?token= | webhook Twilio (fin du `<Dial>`) | TwiML : l'agent si pas de réponse / refus |
 | POST | /api/elevenlabs/post-call | webhook ElevenLabs (fin d'appel) | enregistre l'appel + le lead, SMS si urgence |
+| GET | /api/whatsapp-relay/outbox | jeton `WHATSAPP_RELAY_TOKEN` (Bearer), sans session | `{messages:[{id, to_phone, body}]}` à envoyer par le relais Mac (`relay-whatsapp/`) |
+| POST | /api/whatsapp-relay/ack | `{id, error?}`, même jeton | `{ok}` |
 
 Secrets (`web/.dev.vars` en local, `wrangler secret put` en prod, jamais commités) : `ELEVENLABS_API_KEY`, `ELEVENLABS_WEBHOOK_SECRET`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WEBHOOK_TOKEN`, `RESEND_API_KEY`, `MAIL_FROM` ; pour les numéros français : `TWILIO_BUNDLE_SID`, `TWILIO_ADDRESS_SID`. `APP_URL` doit être une URL publique pour que Twilio joigne les webhooks.
 
