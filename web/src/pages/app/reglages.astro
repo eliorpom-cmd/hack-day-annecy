@@ -99,9 +99,43 @@ const phone = b.artisan_phone ? formatFrPhone(b.artisan_phone) : null;
         </div>
       </section>
 
+      <section>
+        <h2 class="px-[14px] pb-2 text-small font-bold text-muted">Message après chaque appel</h2>
+        <div class="panel flex flex-col gap-2 p-[14px]">
+          <p class="text-small text-muted">Envoie un message de test sur votre portable{phone ? `, le ${phone}` : ""}.</p>
+          <button type="button" class="btn btn-secondary w-full" id="wa-test"><Icon name="message" /><span data-label>Envoyer un test</span></button>
+          <p class="text-small font-bold" id="wa-test-result" role="status" hidden></p>
+        </div>
+      </section>
+
       <form method="post" action="/api/auth/logout" class="mt-auto pt-6">
         <button class="panel row w-full justify-center font-bold"><Icon name="log-out" />Se déconnecter</button>
       </form>
     </main>
   )}
 </AppShell>
+
+<script>
+  // « Envoyer un test »: same path as the message after a call; follows the relay until it is sent
+  const btn = document.getElementById("wa-test") as HTMLButtonElement | null;
+  const out = document.getElementById("wa-test-result");
+  btn?.addEventListener("click", async () => {
+    const say = (t: string) => { out!.hidden = false; out!.textContent = t; };
+    btn.disabled = true; say("Envoi…");
+    try {
+      const r = await fetch("/api/whatsapp/test", { method: "POST" });
+      const d = (await r.json()) as { channel?: string; sid?: string; hint?: string };
+      if (!r.ok || d.channel === "failed") { say(d.hint ?? "Le message n’a pas pu partir."); return; }
+      if (d.channel === "sms") { say("Envoyé par SMS."); return; }
+      say("En file d’attente pour WhatsApp…");
+      for (let i = 0; i < 20; i++) {
+        await new Promise((res) => setTimeout(res, 3000));
+        const s = (await (await fetch(`/api/whatsapp/test?id=${d.sid}`)).json()) as { sent_at?: number | null; error?: string | null };
+        if (s.sent_at) { say("Envoyé sur WhatsApp."); return; }
+        if (s.error) { say(`WhatsApp a échoué : ${s.error}`); return; }
+      }
+      say("Pas encore parti : le relais WhatsApp du Mac est-il lancé ?");
+    } catch { say("Pas de connexion. Réessayez."); }
+    finally { btn.disabled = false; }
+  });
+</script>
