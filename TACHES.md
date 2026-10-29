@@ -18,6 +18,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - scénario demande de devis : un appelle, un joue l'artisan
 - 14 · Slides du pitch (~5 min)
   - deck web exportable PDF/PPTX
+- 15 · Récap WhatsApp à l'artisan après chaque appel
+  - décision de Maxime : remplace le SMS d'urgence seul. Touche web/src/lib/telephony + post-call (agent téléphonie). Démo : sandbox WhatsApp Twilio ; prod : modèle validé par Meta. Change le contrat PROJET.md → à valider par l'intégrateur
 
 ## En cours
 
