@@ -16,7 +16,7 @@ export const CLONED_VOICE_NAME = "Ma voix";
 export const CLONE_REFUSED_HINT = "Votre voix n'a pas pu être créée. Enregistrez les phrases à nouveau, ou choisissez une voix de la liste.";
 
 export const CLONE_LIMITS = {
-  minSeconds: 3, // one sentence read in full
+  minSeconds: 5, // ElevenLabs refuses any sample under 4.6 s (400 audio_too_short)
   maxSeconds: 60, // per recording (the recorder stops at 30 s)
   minTotalSeconds: 12, // same floor as the MVP
   maxFileBytes: 6_000_000,

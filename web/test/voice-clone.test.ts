@@ -30,3 +30,9 @@ test("bad recordings are refused with a French hint", () => {
   assert.ok(!checkWav(new TextEncoder().encode("not a wav file at all, just some text bytes here ok")).ok);
   assert.ok(!checkWav(new Uint8Array(7_000_000)).ok);
 });
+
+test("a sample ElevenLabs would refuse as too short (under 4.6 s) is caught before upload", () => {
+  const r = checkWav(encodeWav([tone(4.5)], 16000));
+  assert.ok(!r.ok && /trop court/.test(r.hint));
+  assert.ok(checkWav(encodeWav([tone(5.2)], 16000)).ok);
+});
