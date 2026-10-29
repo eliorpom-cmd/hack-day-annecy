@@ -109,3 +109,15 @@ test("self-employed without a company name: « prénom nom, métier » in the gr
   assert.equal(firstMessage(solo), "Bonjour, ici l’assistant de Marc Durand, plombier. Marc est sur un chantier, que puis-je faire pour vous\u00a0?");
   assert.match(buildSystemPrompt(solo, [], []), /téléphonique de Marc Durand, plombier à Annecy\./);
 });
+
+test("demo: the team's voice is found by its first name, own voices first", async () => {
+  const { pickTeamVoice, shortVoiceName } = await import("../src/lib/voices.ts");
+  const list = [
+    { voice_id: "a", name: "Quentina", category: "premade" },
+    { voice_id: "b", name: "quentin dupont", category: "professional" },
+    { voice_id: "c", name: "George", category: "premade" },
+  ];
+  assert.equal(pickTeamVoice(list, "Quentin")?.voice_id, "b");
+  assert.equal(pickTeamVoice(list, "Paul"), null);
+  assert.equal(shortVoiceName("Quentin Dupont"), "Quentin");
+});

@@ -43,3 +43,18 @@ export const DEMO_VOICES: Voice[] = [
   { id: "JBFqnCBsd6RMkjVDRZzb", name: "George", preview_url: null, french: true, gender: "male" },
   { id: "onwK4e9ZLuTAKqWW03F9", name: "Daniel", preview_url: null, french: true, gender: "male" },
 ];
+
+// Demo: the team's voice cloned beforehand on ElevenLabs (lib/demo-voice.ts)
+export type TeamVoiceCandidate = { voice_id: string; name: string; preview_url?: string | null; category?: string };
+
+// « Quentin Martin » → « Quentin »: the first word, as said on screen
+export const shortVoiceName = (name: string) => name.trim().split(/\s+/)[0] || name;
+
+// The team's voice among the account's voices: name starting with `wanted`, own voices (cloned, professional) first
+export function pickTeamVoice(list: TeamVoiceCandidate[], wanted: string): TeamVoiceCandidate | null {
+  const w = wanted.trim().toLowerCase();
+  if (!w) return null;
+  const matches = list.filter((v) => v.name.trim().toLowerCase().startsWith(w));
+  const own = (v: TeamVoiceCandidate) => v.category === "cloned" || v.category === "professional" || v.category === "generated";
+  return matches.find(own) ?? matches[0] ?? null;
+}
