@@ -120,7 +120,7 @@ function metierElements(oy) {
     el.push(rect(x, oy + y, w, h, extra.box));
     el.push(text(x + 14, oy + y + 12, s, extra.size ?? 16, extra.text));
   };
-  box(24, 270, 210, 150, "Un client appelle\nMme Durand\n« J'aimerais un devis\npour changer mon\nchauffe-eau. »");
+  box(24, 270, 210, 150, "Un client appelle\nM. Durand\n« J'aimerais un devis\npour changer mon\nchauffe-eau. »");
   el.push(base("diamond", 250, oy + 285, 140, 120, { strokeColor: BLUE }));
   el.push(text(320, oy + 330, "Pendant vos\nhoraires ?", 15, { textAlign: "center" }));
   box(480, 90, 240, 100, "Votre portable sonne\n15 secondes (réglable)");
@@ -128,7 +128,7 @@ function metierElements(oy) {
   box(1005, 90, 215, 100, "v2 · Filtrage d'appel\nl'assistante annonce\nqui appelle, vous\nchoisissez", { box: { strokeStyle: "dashed", strokeColor: GREY }, size: 14 });
   box(480, 260, 300, 260, "Votre assistante IA répond\n(la voix que vous avez choisie)\n\n• répond avec vos infos et vos prix\n• sinon une fourchette « sur devis »\n• jamais de prix inventé\n• note nom, numéro, adresse,\n  besoin, urgence", { box: { strokeColor: BLUE, backgroundColor: SOFT }, size: 15 });
   box(480, 550, 300, 58, "v2 · Agenda Google :\nl'assistante prend le RDV", { box: { strokeStyle: "dashed", strokeColor: GREY }, size: 14 });
-  box(840, 232, 220, 134, "WhatsApp, tout de suite\nNouveau client : Mme Durand\nDevis chauffe-eau 200 L\nAnnecy · pas urgent\nRappeler : 06 12 34 56 78", { box: { strokeColor: GREEN, backgroundColor: "#dcf5e4" }, size: 14 });
+  box(840, 232, 220, 134, "WhatsApp, tout de suite\nNouveau client : M. Durand\nDevis chauffe-eau 200 L\nAnnecy · pas urgent\nRappeler : 06 12 34 56 78", { box: { strokeColor: GREEN, backgroundColor: "#dcf5e4" }, size: 14 });
   box(840, 384, 220, 80, "La fiche client\nnouveau → rappelé → devis", { size: 14 });
   box(840, 482, 220, 62, "Mail récap du lundi", { size: 15 });
   box(1085, 250, 135, 100, "Vous rappelez,\nfaites le devis,\ngagnez le\nchantier", { box: { backgroundColor: YELLOW, strokeColor: "#14213d" }, size: 14 });
