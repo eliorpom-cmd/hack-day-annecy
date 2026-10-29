@@ -8,8 +8,9 @@ import Icon from "../../components/Icon.astro";
 import GIcon from "../../components/google/GIcon.astro";
 import ToolCard from "../../components/google/ToolCard.astro";
 import CopyButton from "../../components/google/CopyButton.astro";
+import MapsPreview from "../../components/google/MapsPreview.astro";
 import { DESCRIPTION_MAX } from "../../lib/google.ts";
-import { averageStars, creationSteps, frRating, reviewAge, testReviews, testStats } from "../../lib/google-profile";
+import { averageStars, creationSteps, frRating, openStatus, reviewAge, testReviews, testStats } from "../../lib/google-profile";
 import { hoursSummary, type SettingsHour } from "../../lib/settings";
 import { frPhone } from "../../lib/forwarding-guide";
 import { db } from "../../lib/db";
@@ -37,6 +38,7 @@ const reviews = testReviews(b).map((r) => ({ ...r, published: replied.results.fi
 const rating = averageStars(reviews);
 const waiting = reviews.filter((r) => !r.published).length;
 const stats = testStats(b.id);
+const status = openStatus(hours.results, new Date());
 const steps = creationSteps({ name: b.name, trade: b.trade, city: b.city, first_name: b.first_name, last_name: b.last_name, phone: frPhone(b.artisan_phone) || null, siteUrl });
 const area = "w-full resize-none rounded-block bg-page px-3 py-2 text-body outline-none shadow-[inset_0_0_0_1px_var(--color-line)] focus:shadow-[inset_0_0_0_2px_var(--color-ink)]";
 const nb = " ";
@@ -152,10 +154,18 @@ const prefill = isDemoAccount(Astro.locals.user) ? demoPages(b).google : undefin
             </div>
             <button type="button" class="btn btn-secondary w-full" data-run data-first><GIcon name="pen" /><span data-label>Écrire ma description</span></button>
           </ToolCard>
+
+          <ToolCard id="g-posts" icon="news" title="Idées de publications Google" line="3 actualités de saison pour votre métier, prêtes à publier.">
+            <ol data-result hidden class="grid gap-2" data-list></ol>
+            <button type="button" class="btn btn-secondary w-full" data-run><GIcon name="news" /><span data-label>Proposer 3 idées</span></button>
+          </ToolCard>
         </div>
 
         <div class="flex flex-col gap-[14px]">
-          <section aria-labelledby="g-reviews" class="flex flex-col gap-2">
+          <MapsPreview name={name} category={trade} rating={rating} count={reviews.length} area={b.city.trim() ? `${b.city.trim()} et alentours` : "Votre secteur"}
+            open={status.open} openText={status.text} website={siteUrl ? siteUrl.replace(/^https?:\/\//, "") : null} phone={shownPhone || null} />
+
+          <section aria-labelledby="g-reviews" class="mt-2 flex flex-col gap-2">
             <div class="flex items-end justify-between px-[14px]">
               <h2 id="g-reviews" class="text-small font-bold text-muted">Avis</h2>
               <p class="text-small text-muted" data-waiting-line>{waiting ? <><b class="text-ink" data-waiting>{waiting}</b> sans réponse</> : "Tous ont une réponse"}</p>
@@ -187,10 +197,6 @@ const prefill = isDemoAccount(Astro.locals.user) ? demoPages(b).google : undefin
             </ul>
           </section>
 
-          <ToolCard id="g-posts" icon="news" title="Idées de publications Google" line="3 actualités de saison pour votre métier, prêtes à publier.">
-            <ol data-result hidden class="grid gap-2" data-list></ol>
-            <button type="button" class="btn btn-secondary w-full" data-run><GIcon name="news" /><span data-label>Proposer 3 idées</span></button>
-          </ToolCard>
 
           <p class="px-4 text-small text-muted">Fiche, chiffres et avis d’exemple : la connexion directe à Google arrive bientôt.</p>
           <button type="button" class="min-h-12 self-start px-4 text-small font-bold text-muted underline underline-offset-2" data-profile="">Déconnecter la fiche</button>

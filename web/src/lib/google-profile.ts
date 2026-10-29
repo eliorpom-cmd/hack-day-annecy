@@ -97,3 +97,25 @@ export function creationSteps(b: { name: string; trade: string; city: string; fi
   ];
   return steps;
 }
+
+// « Ouvert · Ferme à 18:00 » / « Fermé · Ouvre à 08:00 » as Google Maps says it, from the hours of the répondeur
+// (weekday 0 = Monday). `now` is read in Paris time.
+export function openStatus(hours: { weekday: number; opens: string; closes: string }[], now: Date): { open: boolean | null; text: string } {
+  if (!hours.length) return { open: null, text: "Sur rendez-vous" };
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Paris", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+    .formatToParts(now).map((p) => [p.type, p.value]));
+  const day = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(parts.weekday!);
+  const time = `${parts.hour}:${parts.minute}`;
+  const today = hours.filter((h) => h.weekday === day).sort((a, b) => a.opens.localeCompare(b.opens));
+  const current = today.find((h) => h.opens <= time && time < h.closes);
+  if (current) return { open: true, text: `Ferme à ${current.closes}` };
+  const later = today.find((h) => h.opens > time);
+  if (later) return { open: false, text: `Ouvre à ${later.opens}` };
+  const DAYS = ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."];
+  for (let i = 1; i <= 7; i++) {
+    const d = (day + i) % 7;
+    const first = hours.filter((h) => h.weekday === d).sort((a, b) => a.opens.localeCompare(b.opens))[0];
+    if (first) return { open: false, text: `Ouvre à ${first.opens} ${DAYS[d]}` };
+  }
+  return { open: false, text: "Fermé" };
+}
