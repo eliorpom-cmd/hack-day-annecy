@@ -20,6 +20,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - scan du site ou saisie, voix, numéro, dashboard ; voir PROJET.md « Onboarding » ; référence reception.ai
 - 06 · Refaire le dashboard : leads, appels, mode avancé
   - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
+- 07 · Routage des appels par horaires
+  - portable de l'artisan ~15 s, puis l'agent si pas de réponse ou refus ; hors horaires : l'agent direct
 
 ## En cours
 
