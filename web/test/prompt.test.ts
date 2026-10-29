@@ -9,19 +9,21 @@ const biz = { name: "Plomberie Dupont", trade: "plombier", city: "Annecy", descr
 test("first message: saved greeting as is, else the gendered default with the first name", () => {
   assert.equal(firstMessage(biz), "Bonjour, ici l’assistant de Plomberie Dupont. L’artisan est sur un chantier, que puis-je faire pour vous\u00a0?");
   assert.equal(firstMessage({ ...biz, first_name: "Marc", voice_gender: "female" }), "Bonjour, ici l’assistante de Plomberie Dupont. Marc est sur un chantier, que puis-je faire pour vous\u00a0?");
-  assert.equal(firstMessage({ ...biz, greeting: "Oui allô, Plomberie Dupont." }), "Oui allô, Plomberie Dupont.");
+  // A generated greeting, older wording included, is rebuilt: the répondeur introduces itself as the assistant
+  assert.equal(firstMessage({ ...biz, greeting: "Oui allô, Plomberie Dupont." }), firstMessage(biz));
   assert.equal(firstMessage({ ...biz, greeting: "Bonjour, ici Dupont" }), "Bonjour, ici Dupont");
 });
 
 test("prompt uses the first name for the callback and keeps the rules", () => {
   const p = buildSystemPrompt({ ...biz, first_name: "Marc", voice_gender: "female" }, [], []);
-  assert.match(p, /Vous êtes l'assistante téléphonique de Plomberie Dupont/);
-  assert.match(p, /L'artisan s'appelle Marc\./);
-  assert.match(p, /« Marc vous rappelle pour le prix\. »/);
-  assert.match(p, /« Marc vous rappelle rapidement\. »/);
+  assert.match(p, /Vous êtes l'assistante de Marc, de Plomberie Dupont/);
+  assert.match(p, /« Marc vous donnera le prix »/);
   assert.match(p, /Pas d.horaires fixes : Marc s.organise/);
-  assert.match(p, /ne dites jamais où en est son dossier/);
-  assert.match(p, /N'inventez jamais un prix/);
+  assert.match(p, /ne dites jamais où il en est/);
+  assert.match(p, /Ne redites jamais bonjour/);
+  assert.match(p, /Ne lui demandez pas son numéro/);
+  assert.match(p, /\{\{caller_phone\}\}/);
+  assert.match(p, /répondez-y d'abord avec la documentation/);
 });
 
 test("hours in French, closed days included", () => {
@@ -43,17 +45,28 @@ test("prompt carries business facts and the price rule", () => {
     { question: "Débouchage ?", answer: "Entre 90 et 150 €", kind: "price" },
     { question: "Devis gratuit ?", answer: "Oui", kind: "info" },
   ]);
-  assert.match(p, /assistant téléphonique de Plomberie Dupont, plombier à Annecy/);
-  assert.match(p, /- Déplacement \? → 49 € TTC\n/);
-  assert.match(p, /Débouchage \? → Entre 90 et 150 € \(fourchette : ajouter « le prix exact se fait sur devis »\)/);
-  assert.match(p, /Q : Devis gratuit \?\nR : Oui/);
-  assert.match(p, /N'inventez jamais un prix/);
-  assert.match(p, /« L'artisan vous rappelle pour le prix\. »/);
-  assert.match(p, /urgence/);
+  assert.match(p, /assistant de Plomberie Dupont, plombier à Annecy/);
+  assert.match(p, /- Déplacement \? : 49 € TTC\n/);
+  assert.match(p, /Débouchage \? : Entre 90 et 150 € \(fourchette : ajoutez « le prix exact se fait sur devis »\)/);
+  assert.match(p, /- Devis gratuit \?\n  Oui/);
+  assert.match(p, /Jamais d'estimation ni de prix inventé/);
+  assert.match(p, /« L'artisan vous donnera le prix »/);
+  assert.match(p, /Urgence \(fuite importante/);
   assert.doesNotMatch(p, /\n{3,}/);
   const none = buildSystemPrompt({ ...biz, city: "" }, [], []);
   assert.match(none, /Aucun tarif renseigné/);
   assert.match(none, /Pas d'horaires fixes/);
+});
+
+test("calendar connected: the two free slots, else never an appointment", () => {
+  const withCal = buildSystemPrompt({ ...biz, first_name: "Marc" }, [], [], { calendar: true });
+  assert.match(withCal, /créneau 1 : \{\{slot_1\}\}/);
+  assert.match(withCal, /Sinon, Marc peut passer \{\{slot_2\}\}/);
+  assert.match(withCal, /Le rendez-vous est dans son agenda/);
+  const without = buildSystemPrompt({ ...biz, first_name: "Marc" }, [], []);
+  assert.doesNotMatch(without, /\{\{slot_1\}\}/);
+  assert.match(without, /ne proposez jamais de date ni d'heure de rendez-vous/);
+  assert.match(without, /Quelles sont vos disponibilités/);
 });
 
 test("agent payload is French with data collection", () => {
@@ -64,6 +77,7 @@ test("agent payload is French with data collection", () => {
   assert.equal(body.conversation_config.tts.agent_output_audio_format, "ulaw_8000");
   assert.equal(body.conversation_config.asr.user_input_audio_format, "ulaw_8000");
   assert.deepEqual(body.platform_settings.data_collection, { name: { type: "string", description: "Nom" } });
+  assert.equal(body.conversation_config.agent.dynamic_variables.dynamic_variable_placeholders.slot_1, "demain à 9 h");
   const noVoice = buildAgentPayload({ business: biz, prompt: "P", voiceId: null, dataCollection: {} });
   assert.equal("voice_id" in noVoice.conversation_config.tts, false);
 });
@@ -107,7 +121,7 @@ test("Twilio parsing and French error hints", () => {
 test("self-employed without a company name: « prénom nom, métier » in the greeting and the prompt", () => {
   const solo = { ...biz, name: "", first_name: "Marc", last_name: "Durand", trade: "plombier", greeting: "" };
   assert.equal(firstMessage(solo), "Bonjour, ici l’assistant de Marc Durand, plombier. Marc est sur un chantier, que puis-je faire pour vous\u00a0?");
-  assert.match(buildSystemPrompt(solo, [], []), /téléphonique de Marc Durand, plombier à Annecy\./);
+  assert.match(buildSystemPrompt(solo, [], []), /assistant de Marc, de Marc Durand, plombier à Annecy\./);
 });
 
 test("demo: the team's voice is found by its first name, own voices first", async () => {

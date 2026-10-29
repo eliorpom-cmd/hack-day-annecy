@@ -33,6 +33,7 @@ const init = {
     artisan_phone: b.artisan_phone, ring_seconds: b.ring_seconds, greeting: b.greeting, voice_id: b.voice_id, voice_name: b.voice_name,
     first_name: b.first_name ?? "", last_name: b.last_name ?? "", voice_gender: b.voice_gender ?? null,
     forwarding_mode: b.forwarding_mode ?? null,
+    calendar_connected_at: b.calendar_connected_at ?? null,
   },
   hours: hours.results,
   faqs: faqs.results,
@@ -98,6 +99,20 @@ init.demo = demo;
           </div>
           <div class="panel" data-hours></div>
           <p class="-mt-2 mx-4 text-small text-muted" data-hours-note>Pendant vos horaires, votre portable sonne d’abord.</p>
+
+          <h2 class="mt-2 text-small font-bold text-muted">Calendrier</h2>
+          <div class="panel" data-calendar>
+            <div class="row">
+              <span class="icon-tile"><Icon name="calendar" size={18} /></span>
+              <span class="flex flex-1 flex-col"><span class="font-bold">Calendrier Google</span><span class="text-small text-muted" data-calendar-status>Pas encore connecté</span></span>
+              <span class="text-action-ink" data-calendar-ok hidden><Icon name="check" /></span>
+            </div>
+            <div class="px-[14px] pb-3">
+              <button type="button" class="btn btn-secondary w-full" data-calendar-connect><Icon name="calendar" /><span data-calendar-label>Connecter mon calendrier</span></button>
+              <button type="button" class="min-h-12 w-full text-small font-bold text-muted underline underline-offset-2" data-calendar-disconnect hidden>Déconnecter</button>
+            </div>
+          </div>
+          <p class="-mt-2 mx-4 text-small text-muted" data-calendar-note>Facultatif. Le répondeur propose alors vos créneaux libres et prend les rendez-vous.</p>
 
           <h2 class="mt-2 text-small font-bold text-muted">Questions et prix</h2>
           <div class="panel" data-faqs></div>
@@ -288,7 +303,7 @@ init.demo = demo;
       step: number;
       business: { name: string; trade: string; city: string; description: string; website: string | null; artisan_phone: string | null;
         ring_seconds: number; greeting: string; voice_id: string | null; voice_name: string | null;
-        first_name: string; last_name: string; voice_gender: "female" | "male" | null; forwarding_mode: "renvoi" | "numero" | null };
+        first_name: string; last_name: string; voice_gender: "female" | "male" | null; forwarding_mode: "renvoi" | "numero" | null; calendar_connected_at: number | null };
       hours: Hour[]; faqs: (Faq & { id: string })[]; number: string | null; demo_number: string | null;
       demo: DemoSetup | null; // « Essayer la configuration »: pre-filled with Plomberie Martin
       demo_voice: { id: string; name: string; preview_url: string | null } | null;
@@ -629,6 +644,36 @@ init.demo = demo;
       if (interviewDone) { go(2); return; }
       startInterview();
     }
+
+    // « Connecter mon calendrier »: Google Calendar. Shown connected after a short wait (no Google API yet):
+    // the répondeur then offers the 2 next free slots and books the one the caller picks (lib/calendar.ts).
+    function renderCalendar() {
+      const on = !!biz.calendar_connected_at;
+      $("[data-calendar-status]").textContent = on ? "Connecté" : "Pas encore connecté";
+      $("[data-calendar-ok]").hidden = !on;
+      $("[data-calendar-connect]").hidden = on;
+      $("[data-calendar-disconnect]").hidden = !on;
+      $("[data-calendar-note]").textContent = on
+        ? "Le répondeur propose vos 2 prochains créneaux libres et note le rendez-vous dans votre calendrier."
+        : "Facultatif. Le répondeur propose alors vos créneaux libres et prend les rendez-vous.";
+    }
+    async function setCalendar(connected: boolean) {
+      const btn = $<HTMLButtonElement>("[data-calendar-connect]");
+      btn.disabled = true;
+      if (connected) {
+        $("[data-calendar-label]").textContent = "Connexion à Google…";
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+      const r = await api<{ business: Init["business"] }>("POST", "/api/business/calendar", { connected });
+      btn.disabled = false;
+      $("[data-calendar-label]").textContent = "Connecter mon calendrier";
+      if (!r.ok) { showError(r.data.hint ?? "Connexion impossible. Réessayez."); return; }
+      biz.calendar_connected_at = r.data.business.calendar_connected_at;
+      renderCalendar();
+    }
+    $("[data-calendar-connect]").addEventListener("click", () => setCalendar(true));
+    $("[data-calendar-disconnect]").addEventListener("click", () => setCalendar(false));
+    renderCalendar();
 
     // An emptied company name no longer comes from the site: back to the default help
     input("name").addEventListener("input", () => { if (!input("name").value.trim()) fieldHelp("name", null); });

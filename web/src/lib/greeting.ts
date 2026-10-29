@@ -2,7 +2,8 @@
 // Pure: shared by the setup page, the API and the agent prompt. Tested in test/greeting.test.ts.
 
 export type VoiceGender = "female" | "male";
-// "cloned" = the artisan's own voice: he answers as himself
+// "cloned" = the artisan's own voice. The répondeur still introduces itself as his assistant (team decision,
+// 29/10: callers must know they are not talking to the artisan), in the masculine form.
 export type GreetingVoice = "cloned" | VoiceGender | null;
 
 const NBSP = " ";
@@ -13,7 +14,6 @@ export function cleanFirstName(raw: string | null | undefined): string {
 
 export function defaultGreeting(o: { name: string; first_name?: string | null; voice: GreetingVoice }): string {
   const name = o.name.trim() || "l’entreprise";
-  if (o.voice === "cloned") return `Oui allô, ${name}.`;
   const who = cleanFirstName(o.first_name) || "L’artisan";
   const assistant = o.voice === "female" ? "l’assistante" : "l’assistant";
   return `Bonjour, ici ${assistant} de ${name}. ${who} est sur un chantier, que puis-je faire pour vous${NBSP}?`;

@@ -11,7 +11,7 @@ async function promptFor(b: Business) {
     db().prepare("SELECT weekday, opens, closes FROM business_hours WHERE business_id = ? ORDER BY weekday, opens").bind(b.id).all<PromptHour>(),
     db().prepare("SELECT question, answer, kind FROM faqs WHERE business_id = ? ORDER BY created_at").bind(b.id).all<PromptFaq>(),
   ]);
-  return buildSystemPrompt(b, hours.results, faqs.results);
+  return buildSystemPrompt(b, hours.results, faqs.results, { calendar: !!b.calendar_connected_at });
 }
 
 // Preview of what the agent will say and know (advanced mode)
