@@ -120,4 +120,4 @@ Intégrateur (relit et merge les PR, répare `main`) :
 
 - Dev : `cd web && npm install && npm run db:local && CLOUDFLARE_ACCOUNT_ID=0bcd1b213f9a7a11ff83178c5ebd69d2 npm run dev` (http://localhost:4321 ; l'ID de compte est nécessaire car ce Mac a deux comptes Cloudflare et le scan du site utilise Workers AI à distance)
 - Lint / build / test (dans `web/`) : `npm run lint` (astro check), `npm run build`, `npm test`
-- URL de démo :
+- URL de démo : https://hack-day-annecy.eliorpom-0bc.workers.dev (publier : `cd web && npm run deploy`, compte Cloudflare Eliorpom)
