@@ -12,8 +12,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - clés de Mathieu dans web/.dev.vars puis wrangler secret ; créer l'agent, acheter ou relier un numéro, webhook post-call, bac à sable WhatsApp ; appel réel
 - 22 · Régler le prompt du répondeur sur le scénario de démo
   - après le script de Maxime (tâche 13) ; tester au téléphone
-- 24 · Configuration : sans nom d'entreprise et sans horaires
-  - nom d'entreprise facultatif (auto-entrepreneur : prénom + nom + métier) ; « Pas d'horaires fixes » possible (le portable sonne toujours d'abord)
 - 25 · Documentation par questions : le répondeur interviewe l'artisan
   - après la lecture du site, l'IA propose les questions qui manquent (prix du déplacement, week-end, zone…) ; l'artisan répond ; remplace « Ajouter une question » vide
 - 26 · Garder son numéro : renvoi d'appel vers le répondeur
@@ -31,6 +29,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - scénario demande de devis : un appelle, un joue l'artisan
 - 14 · Slides du pitch (~5 min) (Maxime)
   - deck web exportable PDF/PPTX
+- 24 · Configuration : sans nom d'entreprise et sans horaires (Claude)
+  - nom d'entreprise facultatif (auto-entrepreneur : prénom + nom + métier) ; « Pas d'horaires fixes » possible (le portable sonne toujours d'abord)
 
 ## Fait
 
