@@ -8,8 +8,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 
 ## À faire
 
-- 01 · Inviter Mathieu sur GitHub
-  - demander son pseudo, rôle Write
 - 05 · Refaire l'onboarding (mode simple)
   - scan du site ou saisie, voix, numéro, dashboard ; voir PROJET.md « Onboarding » ; référence reception.ai
 - 06 · Refaire le dashboard : leads, appels, mode avancé
@@ -23,6 +21,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 
 ## En cours
 
+- 01 · Inviter Mathieu sur GitHub (Elior)
+  - demander son pseudo, rôle Write
 
 ## Fait
 
