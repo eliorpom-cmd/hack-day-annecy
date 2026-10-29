@@ -16,8 +16,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - étape 2 de la configuration ; reprendre src/lib/voice/ du Lovable de Mathieu (enregistrement WAV + POST /v1/voices/add)
 - 20 · Prénom de l'artisan et accord de la voix dans l'accueil
   - champ prénom à l'étape 1 ; « l'assistant » ou « l'assistante » selon la voix ; « Marc est sur un chantier »
-- 21 · Réglages (mode avancé)
-  - horaires, documentation et prix, voix, message d'accueil, durée de sonnerie ; reprend les composants de la configuration
 - 22 · Régler le prompt du répondeur sur le scénario de démo
   - après le script de Maxime (tâche 13) ; tester au téléphone
 
@@ -31,6 +29,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - deck web exportable PDF/PPTX
 - 23 · Landing page du produit (Claude)
   - web/src/pages/index.astro : pitch, comment ça marche, configuration, Visibilité, essai gratuit et démo ; COPY.md + DESIGN.md
+- 21 · Réglages (mode avancé) (Claude)
+  - horaires, documentation et prix, voix, message d'accueil, durée de sonnerie ; reprend les composants de la configuration
 
 ## Fait
 
