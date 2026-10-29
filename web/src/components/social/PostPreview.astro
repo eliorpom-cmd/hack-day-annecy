@@ -1,0 +1,28 @@
+---
+// Realistic preview of the post as it will look on the network: initials tile, business name,
+// text, photo slot on Instagram, the network's action bar. Updated in place by the page script.
+import SocialIcon from "./SocialIcon.astro";
+import { NETWORK_RULES, type Network } from "../../lib/social";
+interface Props { name: string; initials: string; network: Network; text: string | null; age: string }
+const { name, initials, network, text, age } = Astro.props;
+const hide = (n: Network | Network[]) => ([] as Network[]).concat(n).includes(network) ? undefined : true;
+---
+<article class="panel overflow-hidden" id="post-preview" data-net={network} hidden={!text} aria-label="Aperçu de la publication">
+  <header class="flex items-center gap-3 px-[14px] pt-3 pb-2">
+    <span class="grid size-10 shrink-0 place-items-center rounded-full bg-ink text-small font-bold text-surface" aria-hidden="true">{initials}</span>
+    <div class="flex min-w-0 flex-col">
+      <span class="truncate font-bold">{name}</span>
+      <span class="text-small text-muted"><span data-preview-age>{age}</span> · <span data-preview-net>{NETWORK_RULES[network].label}</span></span>
+    </div>
+  </header>
+  <div data-for="instagram" hidden={hide("instagram")} class="mx-[14px] mb-2 grid aspect-[4/3] place-items-center rounded-block bg-neutral-bg text-small text-muted shadow-[inset_0_0_0_1px_var(--color-neutral-line)]">
+    <span class="flex flex-col items-center gap-1"><SocialIcon name="image" class="text-neutral" />Votre photo du chantier</span>
+  </div>
+  <p class="whitespace-pre-line break-words px-[14px] pb-3" data-preview-text>{text}</p>
+  <footer class="flex justify-around border-t border-line px-2 py-2 text-small font-bold text-muted" aria-hidden="true">
+    <span data-for="facebook linkedin" hidden={hide(["facebook", "linkedin"])} class="flex items-center gap-1"><SocialIcon name="thumb" size={16} />J’aime</span>
+    <span data-for="instagram" hidden={hide("instagram")} class="flex items-center gap-1"><SocialIcon name="heart" size={16} />J’aime</span>
+    <span class="flex items-center gap-1"><SocialIcon name="message" size={16} />Commenter</span>
+    <span class="flex items-center gap-1"><SocialIcon name="share" size={16} />Partager</span>
+  </footer>
+</article>

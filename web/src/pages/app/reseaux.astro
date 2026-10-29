@@ -1,0 +1,197 @@
+---
+// « Réseaux sociaux »: a post written from the artisan's real work (recent calls, season, services),
+// previewed as on the network, ready to copy. Automatic publishing is announced (« Bientôt »).
+// Layout: DESIGN.md (blocs, filtre segmenté, champ, bouton principal), texts: COPY.md.
+import AppShell from "../../layouts/AppShell.astro";
+import SoonRow from "../../components/hub/SoonRow.astro";
+import SocialIcon from "../../components/social/SocialIcon.astro";
+import NetworkFilter from "../../components/social/NetworkFilter.astro";
+import PostPreview from "../../components/social/PostPreview.astro";
+import PostHistory from "../../components/social/PostHistory.astro";
+import { composerUrl, initials, isNetwork, NETWORK_RULES, postAge, type Network } from "../../lib/social";
+import { recentPosts, topicsFor } from "../../lib/social-run";
+
+const b = Astro.locals.business;
+if (!b) return Astro.redirect("/login");
+if (b.onboarding_step !== "done") return Astro.redirect("/onboarding");
+
+const [topics, posts] = await Promise.all([topicsFor(b), recentPosts(b.id)]);
+const now = Math.floor(Date.now() / 1000);
+const last = posts[0] ?? null;
+const asked = Astro.url.searchParams.get("reseau");
+const network: Network = isNetwork(asked) ? asked : last?.network ?? "facebook";
+const shown = posts.find((p) => p.network === network) ?? null;
+const name = b.name || "Votre entreprise";
+const chip = "topic-chip flex min-h-12 items-center rounded-filter bg-surface px-3 text-small font-bold shadow-[inset_0_0_0_1px_var(--color-line)]";
+---
+<AppShell title="Réseaux sociaux" active="reseaux">
+  <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-[14px] px-4 pt-4 pb-6 lg:grid lg:min-h-0 lg:max-w-[1040px] lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)] lg:items-start lg:gap-x-10 lg:gap-y-[14px] lg:px-10 lg:pt-10">
+    <a href="/app/visibilite" class="flex items-center gap-1 self-start font-bold text-ink lg:hidden" style="min-height:48px"><SocialIcon name="chevron-left" />Visibilité</a>
+
+    <div class="flex flex-col gap-[14px] lg:sticky lg:top-10">
+      <div>
+        <h1 class="text-title font-bold">Réseaux sociaux</h1>
+        <p class="mt-2 text-muted">Une publication écrite à partir de vos chantiers. Copiez-la, ajoutez votre photo.</p>
+      </div>
+
+      <NetworkFilter network={network} />
+
+      <section aria-labelledby="topic-title">
+        <h2 id="topic-title" class="px-[14px] pb-2 text-small font-bold text-muted">Sujet</h2>
+        <div class="flex flex-wrap gap-2" role="group" aria-label="Sujets proposés">
+          {topics.map((t, i) => (
+            <button type="button" class={chip} data-topic={t.prompt} aria-pressed={i === 0 ? "true" : "false"}>{t.label}</button>
+          ))}
+        </div>
+        <label class="field mt-3">
+          <input id="topic-free" class="field-input" placeholder=" " maxlength="200" autocomplete="off" />
+          <span class="field-label">Autre sujet</span>
+        </label>
+        <p class="px-4 pt-1 text-small text-muted">Exemple : salle de bain terminée. Pas de nom de client.</p>
+      </section>
+
+      <button type="button" id="write-post" class="btn btn-primary w-full"><SocialIcon name="pen" /><span data-label>Écrire la publication</span></button>
+      <div id="post-error" class="panel hidden flex-col gap-1 px-[14px] py-3" role="alert">
+        <p class="font-bold" data-error-text></p>
+        <button type="button" class="flex min-h-12 items-center gap-2 self-start text-small font-bold" data-retry><SocialIcon name="rotate" size={16} />Réessayer</button>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-[14px]">
+      <PostPreview name={name} initials={initials(name)} network={network} text={shown?.body ?? null} age={shown ? postAge(shown.created_at, now) : "À l’instant"} />
+      <div class="flex gap-2" id="post-actions" hidden={!shown}>
+        <button type="button" class="shortcut" data-copy><SocialIcon name="copy" class="text-action-ink" /><span data-copy-label>Copier le texte</span></button>
+        <button type="button" class="shortcut" data-regenerate><SocialIcon name="rotate" class="text-action-ink" />Régénérer</button>
+        <a class="shortcut" data-open href={composerUrl(network, shown?.body ?? "")} target="_blank" rel="noopener"><SocialIcon name="external" class="text-action-ink" /><span data-open-label>Ouvrir {NETWORK_RULES[network].label}</span></a>
+      </div>
+      <p id="post-empty" class="panel px-[14px] py-3 text-small text-muted" hidden={!!shown}>Choisissez un sujet. La publication s’affichera ici, prête à copier.</p>
+
+      <ul class="panel">
+        <SoonRow icon="clock" label="Publier automatiquement" line="Connexion à vos comptes, une publication par semaine." />
+      </ul>
+
+      <PostHistory posts={posts} now={now} />
+    </div>
+    <script type="application/json" id="social-data" set:html={JSON.stringify({ posts }).replace(/</g, "\\u003c")} />
+  </main>
+</AppShell>
+
+<script>
+  import { composerUrl, NETWORK_RULES, isNetwork, postAge, type Network } from "../../lib/social";
+  type Post = { id: string; network: Network; topic: string; body: string; created_at: number };
+
+  const $ = <T extends Element = HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
+  const preview = $("#post-preview"), actions = $("#post-actions"), empty = $("#post-empty");
+  const errorBox = $("#post-error"), write = $<HTMLButtonElement>("#write-post"), free = $<HTMLInputElement>("#topic-free");
+  const chips = [...document.querySelectorAll<HTMLButtonElement>("[data-topic]")];
+  const nets = [...document.querySelectorAll<HTMLButtonElement>("[data-network]")];
+  let network = (nets.find((n) => n.getAttribute("aria-pressed") === "true")?.dataset.network ?? "facebook") as Network;
+  let current: Post | null = null;
+  let busy = false;
+
+  // Network buttons: the preview follows the network chosen
+  function setNetwork(n: Network) {
+    network = n;
+    nets.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.network === n)));
+    preview.dataset.net = n;
+    preview.querySelectorAll<HTMLElement>("[data-for]").forEach((el) => (el.hidden = !el.dataset.for!.split(" ").includes(n)));
+    $("[data-preview-net]").textContent = NETWORK_RULES[n].label;
+    $("[data-open-label]").textContent = `Ouvrir ${NETWORK_RULES[n].label}`;
+    // Shows the latest post of this network, or the empty state
+    if (current?.network !== n) {
+      const latest = history5.find((p) => p.network === n);
+      if (latest) return show(latest);
+      current = null;
+      preview.hidden = true; actions.hidden = true; empty.hidden = false;
+    }
+    $<HTMLAnchorElement>("[data-open]").href = composerUrl(n, current?.body ?? "");
+    const url = new URL(location.href); url.searchParams.set("reseau", n); history.replaceState(null, "", url);
+  }
+  nets.forEach((b) => b.addEventListener("click", () => isNetwork(b.dataset.network) && setNetwork(b.dataset.network)));
+
+  // Topic chips behave like radio buttons; typing a free topic unselects them
+  chips.forEach((c) => c.addEventListener("click", () => {
+    chips.forEach((o) => o.setAttribute("aria-pressed", String(o === c)));
+    free.value = "";
+  }));
+  free.addEventListener("input", () => { if (free.value.trim()) chips.forEach((o) => o.setAttribute("aria-pressed", "false")); });
+  const topic = () => free.value.trim() || chips.find((c) => c.getAttribute("aria-pressed") === "true")?.dataset.topic || "";
+
+  function show(p: Post) {
+    current = p;
+    setNetwork(p.network);
+    $<HTMLAnchorElement>("[data-open]").href = composerUrl(p.network, p.body);
+    $("[data-preview-text]").textContent = p.body;
+    $("[data-preview-age]").textContent = postAge(p.created_at, Math.floor(Date.now() / 1000));
+    preview.hidden = false; actions.hidden = false; empty.hidden = true;
+  }
+
+  function renderHistory(posts: Post[]) {
+    const section = $("#post-history"), list = $("[data-history-list]");
+    const now = Math.floor(Date.now() / 1000);
+    list.replaceChildren(...posts.map((p) => {
+      const li = document.createElement("li"); li.className = "row p-0!";
+      const btn = document.createElement("button");
+      btn.type = "button"; btn.dataset.historyId = p.id;
+      btn.className = "flex w-full flex-col items-start gap-0.5 px-[14px] py-3 text-left";
+      const meta = document.createElement("span"); meta.className = "text-small text-muted";
+      const net = document.createElement("span"); net.className = "font-bold text-ink"; net.textContent = NETWORK_RULES[p.network].label;
+      meta.appendChild(net); meta.appendChild(document.createTextNode(` · ${postAge(p.created_at, now)}`));
+      const text = document.createElement("span"); text.className = "line-clamp-2 text-small"; text.textContent = p.body;
+      btn.appendChild(meta); btn.appendChild(text); li.appendChild(btn);
+      return li;
+    }));
+    section.hidden = !posts.length;
+    history5 = posts;
+  }
+  let history5: Post[] = [];
+  document.addEventListener("click", (e) => {
+    const id = (e.target as Element).closest<HTMLElement>("[data-history-id]")?.dataset.historyId;
+    const p = id && history5.find((x) => x.id === id);
+    if (p) { show(p); preview.scrollIntoView({ behavior: "smooth", block: "start" }); }
+  });
+
+  async function generate() {
+    if (busy) return;
+    const t = topic();
+    const label = write.querySelector("[data-label]")!;
+    errorBox.classList.add("hidden"); errorBox.classList.remove("flex");
+    if (t.length < 3) return fail("Choisissez un sujet ou écrivez-en un.");
+    busy = true; write.disabled = true; label.textContent = "Écriture de la publication…";
+    try {
+      const res = await fetch("/api/reseaux/posts", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ network, topic: t }) });
+      const data = (await res.json().catch(() => ({}))) as { post?: Post; posts?: Post[]; hint?: string };
+      if (!res.ok || !data.post) throw new Error(data.hint || "");
+      show(data.post);
+      if (data.posts) renderHistory(data.posts);
+      if (window.matchMedia("(max-width: 1023px)").matches) preview.scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch (e) {
+      fail((e instanceof Error && e.message) || "La publication n’a pas pu être écrite. Réessayez dans un instant.");
+    } finally {
+      busy = false; write.disabled = false; label.textContent = "Écrire la publication";
+    }
+  }
+  function fail(msg: string) {
+    $("[data-error-text]").textContent = msg;
+    errorBox.classList.remove("hidden"); errorBox.classList.add("flex");
+  }
+  write.addEventListener("click", generate);
+  $("[data-retry]").addEventListener("click", generate);
+  $("[data-regenerate]").addEventListener("click", generate);
+
+  $("[data-copy]").addEventListener("click", async () => {
+    const label = $("[data-copy-label]");
+    try { await navigator.clipboard.writeText(current?.body ?? $("[data-preview-text]").textContent ?? ""); label.textContent = "Copié"; }
+    catch { label.textContent = "Copie impossible"; }
+    setTimeout(() => (label.textContent = "Copier le texte"), 2000);
+  });
+
+  // Initial state from the server-rendered page
+  const initial = JSON.parse($("#social-data").textContent || "{}") as { posts?: Post[] };
+  history5 = initial.posts ?? [];
+  current = history5.find((p) => p.network === network) ?? null;
+</script>
+
+<style is:global>
+  .topic-chip[aria-pressed="true"] { background: var(--color-tint); box-shadow: inset 0 0 0 1px var(--color-tint-line); }
+</style>

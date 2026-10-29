@@ -1,0 +1,21 @@
+---
+// « Vos dernières publications »: the 5 newest posts; a tap shows one again in the preview.
+// The page script re-renders this list after each new post (same markup, see renderHistory).
+import { NETWORK_RULES, postAge } from "../../lib/social";
+import type { SocialPost } from "../../lib/social-run";
+interface Props { posts: SocialPost[]; now: number }
+const { posts, now } = Astro.props;
+---
+<section id="post-history" hidden={!posts.length}>
+  <h2 class="px-[14px] pb-2 text-small font-bold text-muted">Vos dernières publications</h2>
+  <ul class="panel" data-history-list>
+    {posts.map((p) => (
+      <li class="row p-0!">
+        <button type="button" class="flex w-full flex-col items-start gap-0.5 px-[14px] py-3 text-left" data-history-id={p.id}>
+          <span class="text-small text-muted"><span class="font-bold text-ink">{NETWORK_RULES[p.network].label}</span> · {postAge(p.created_at, now)}</span>
+          <span class="line-clamp-2 text-small">{p.body}</span>
+        </button>
+      </li>
+    ))}
+  </ul>
+</section>

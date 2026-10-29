@@ -1,0 +1,20 @@
+---
+// Facebook / Instagram / LinkedIn, same look as the calls filter (DESIGN.md « Filtre segmenté »)
+import SocialIcon from "./SocialIcon.astro";
+import { NETWORKS, NETWORK_RULES, type Network } from "../../lib/social";
+interface Props { network: Network }
+const { network } = Astro.props;
+---
+<div class="flex gap-1 rounded-filter bg-neutral-bg p-1" role="group" aria-label="Réseau">
+  {NETWORKS.map((n) => (
+    <button type="button" data-network={n} aria-pressed={n === network ? "true" : "false"}
+      class="net-seg flex min-h-12 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-filter text-small font-bold text-muted">
+      <SocialIcon name={n} size={16} />{NETWORK_RULES[n].label}
+    </button>
+  ))}
+</div>
+
+<style is:global>
+  .net-seg[aria-pressed="true"] { background: var(--color-surface); color: var(--color-ink); box-shadow: inset 0 0 0 1px var(--color-line); }
+  .net-seg:focus-visible, .topic-chip:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+</style>
