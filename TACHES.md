@@ -29,8 +29,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - scénario demande de devis : un appelle, un joue l'artisan
 - 14 · Slides du pitch (~5 min) (Maxime)
   - deck web exportable PDF/PPTX
-- 17 · Mettre l'app en ligne sur Cloudflare (Claude)
-  - base D1 distante + secrets + wrangler deploy ; adresse publique pour les webhooks Twilio et ElevenLabs ; accord d'Elior requis
 
 ## Fait
 
@@ -69,3 +67,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 - 05 · Refaire l'onboarding (mode simple) (Claude)
   - scan du site ou saisie, voix, numéro, dashboard ; voir PROJET.md « Onboarding » ; référence reception.ai
   - Fait : web/src/pages/onboarding.astro + components/setup/ : 4 étapes, lecture du site testée (plombier-annecy.fr), erreurs claires sans clés
+- 17 · Mettre l'app en ligne sur Cloudflare (Claude)
+  - base D1 distante + secrets + wrangler deploy ; adresse publique pour les webhooks Twilio et ElevenLabs ; accord d'Elior requis
+  - Fait : https://hack-day-annecy.eliorpom-0bc.workers.dev ; D1 distante migrée, secret TWILIO_WEBHOOK_TOKEN posé ; publier : cd web && npm run deploy
