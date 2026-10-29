@@ -24,10 +24,10 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - déclenché par l'agent ; + transfert de l'appel si possible
 - 09 · Mail récap de la semaine
   - appels, urgences, leads ; envoi programmé
-- 10 · Squelette web/ (Astro + Worker + D1, connexion démo + lien magique)
 
 ## En cours
 
+- 10 · Squelette web/ (Astro + Worker + D1, connexion démo + lien magique) (Claude)
 
 ## Fait
 
