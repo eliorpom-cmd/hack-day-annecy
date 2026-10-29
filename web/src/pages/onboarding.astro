@@ -1,9 +1,710 @@
 ---
+// Setup flow (« configuration » in the UI), 4 steps on one page: activity, voice, number, test call.
+// Values: DESIGN.md, texts: COPY.md « Configuration ». Data goes through the JSON API (PROJET.md).
 import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+import Field from "../components/setup/Field.astro";
+import Progress from "../components/setup/Progress.astro";
+import { STEPS } from "../components/setup/steps";
+import { db } from "../lib/db";
+
+const b = Astro.locals.business;
+if (!b) return Astro.redirect("/login");
+
+// Resume where the artisan stopped. The test step has no stored value: « done » + ?etape=4 shows it.
+const stored = { business: 1, voice: 2, number: 3, done: 4 }[b.onboarding_step] ?? 1;
+const asked = Number(Astro.url.searchParams.get("etape"));
+if (b.onboarding_step === "done" && !asked) return Astro.redirect("/app");
+const step = asked >= 1 && asked <= 4 ? Math.min(asked, stored) : stored;
+
+const [hours, faqs, numbers] = await Promise.all([
+  db().prepare("SELECT weekday, opens, closes FROM business_hours WHERE business_id = ? ORDER BY weekday, opens").bind(b.id).all(),
+  db().prepare("SELECT id, question, answer, kind FROM faqs WHERE business_id = ? ORDER BY kind, created_at").bind(b.id).all(),
+  db().prepare("SELECT e164 FROM phone_numbers WHERE business_id = ?").bind(b.id).all<{ e164: string }>(),
+]);
+const init = {
+  step,
+  business: {
+    name: b.name, trade: b.trade, city: b.city, description: b.description, website: b.website,
+    artisan_phone: b.artisan_phone, ring_seconds: b.ring_seconds, greeting: b.greeting, voice_id: b.voice_id, voice_name: b.voice_name,
+  },
+  hours: hours.results,
+  faqs: faqs.results,
+  number: numbers.results[0]?.e164 ?? null,
+};
+const filled = !!b.name;
 ---
-<Base title="Bienvenue">
-  <main class="mx-auto max-w-xl px-4 py-12">
-    <h1 class="text-2xl font-semibold">Configurer votre assistante</h1>
-    <p class="mt-4 text-neutral-500">Onboarding à venir (tâche 05) : votre activité, la voix, le numéro.</p>
+<Base title="Configuration">
+  <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col">
+    <div class="flex flex-1 flex-col gap-[14px] px-4 pt-4 pb-4">
+      <a href="?etape=1" data-back class="flex items-center gap-1 self-start font-bold text-ink" style="min-height:48px" hidden>
+        <Icon name="chevron-left" /><span data-back-label></span>
+      </a>
+      <Progress step={step} />
+
+      <!-- 1 · Votre activité -->
+      <section data-step="1" class="flex flex-col gap-[14px]" hidden>
+        <div>
+          <h1 class="text-title font-bold">Votre activité</h1>
+          <p class="mt-2 text-muted" data-lead-site>Le répondeur lit votre site pour connaître votre métier, vos horaires et vos prix.</p>
+          <p class="mt-2 text-muted" data-lead-form hidden>Le répondeur donne ces informations aux clients qui appellent.</p>
+        </div>
+
+        <form data-phase="site" class="flex flex-col gap-[14px]" novalidate hidden={filled}>
+          <Field id="website" label="Adresse de votre site" help="Exemple : plomberie-martin.fr" inputmode="url" autocomplete="url" value={b.website} />
+          <div data-scanning class="flex flex-col gap-2" hidden>
+            <p class="font-bold" role="status">Lecture de votre site…</p>
+            <div class="scan-bar"><span></span></div>
+            <p class="text-small text-muted">Cela prend jusqu’à 30 secondes.</p>
+          </div>
+        </form>
+
+        <div data-phase="form" class="flex flex-col gap-[14px]" hidden={!filled}>
+          <p data-scan-note-box class="panel flex items-start gap-3 px-[14px] py-3" hidden><span class="icon-tile"><Icon name="check" size={18} /></span><span data-scan-note></span></p>
+          <Field id="name" label="Nom de votre entreprise" value={b.name} maxlength={120} autocomplete="organization" />
+          <Field id="trade" label="Votre métier" value={b.trade} maxlength={80} />
+          <Field id="city" label="Ville" value={b.city} maxlength={80} autocomplete="address-level2" />
+          <Field id="description" label="Ce que vous faites" value={b.description} multiline maxlength={2000} />
+          <Field id="phone1" label="Votre portable" type="tel" inputmode="tel" autocomplete="tel" value={b.artisan_phone} help="Il sonne en premier quand un client appelle." />
+
+          <h2 class="mt-2 text-small font-bold text-muted">Horaires</h2>
+          <div class="panel" data-hours></div>
+          <p class="-mt-2 mx-4 text-small text-muted">Pendant vos horaires, votre portable sonne d’abord.</p>
+
+          <h2 class="mt-2 text-small font-bold text-muted">Questions et prix</h2>
+          <div class="panel" data-faqs></div>
+          <p class="-mt-2 mx-4 text-small text-muted">Le répondeur s’en sert pour répondre aux clients.</p>
+        </div>
+      </section>
+
+      <!-- 2 · Voix du répondeur -->
+      <section data-step="2" class="flex flex-col gap-[14px]" hidden>
+        <div>
+          <h1 class="text-title font-bold">Voix du répondeur</h1>
+          <p class="mt-2 text-muted">Les clients entendent cette voix quand le répondeur décroche.</p>
+        </div>
+        <p data-voices-status class="text-muted" role="status">Chargement des voix…</p>
+        <div class="panel" data-voices role="radiogroup" aria-label="Voix" hidden></div>
+        <Field id="greeting" label="Phrase d’accueil" value={b.greeting} multiline maxlength={300} help="Le répondeur la dit en décrochant." />
+        <p data-agent-error class="panel flex items-start gap-3 px-[14px] py-3" hidden>
+          <span class="icon-tile"><Icon name="alert" size={18} /></span>
+          <span><span class="font-bold">Le répondeur n’est pas encore branché.</span> Vos choix sont enregistrés, vous pouvez continuer.</span>
+        </p>
+      </section>
+
+      <!-- 3 · Votre numéro -->
+      <section data-step="3" class="flex flex-col gap-[14px]" hidden>
+        <div>
+          <h1 class="text-title font-bold">Votre numéro</h1>
+          <p class="mt-2 text-muted">Vos clients appellent ce numéro. Votre portable sonne d’abord, puis le répondeur décroche.</p>
+        </div>
+        <Field id="phone3" label="Votre portable" type="tel" inputmode="tel" autocomplete="tel" value={b.artisan_phone} help="Exemple : 06 12 34 56 78" />
+
+        <div class="panel">
+          <div class="row">
+            <span class="icon-tile"><Icon name="timer" size={18} /></span>
+            <div class="flex-1"><p class="text-small text-muted">Durée de sonnerie</p><p><span data-ring>{b.ring_seconds}</span> secondes</p></div>
+            <button type="button" class="step-btn" data-ring-step="-5" aria-label="5 secondes de moins"><Icon name="minus" /></button>
+            <button type="button" class="step-btn" data-ring-step="5" aria-label="5 secondes de plus"><Icon name="plus" /></button>
+          </div>
+        </div>
+        <p class="-mt-2 mx-4 text-small text-muted">Ensuite, le répondeur décroche.</p>
+
+        <h2 class="mt-2 text-small font-bold text-muted">Choisissez votre numéro</h2>
+        <p data-numbers-status class="text-muted" role="status">Recherche des numéros…</p>
+        <div class="panel" data-numbers role="radiogroup" aria-label="Numéros" hidden></div>
+        <p data-numbers-error class="panel flex items-start gap-3 px-[14px] py-3" hidden>
+          <span class="icon-tile"><Icon name="alert" size={18} /></span>
+          <span data-numbers-error-text></span>
+        </p>
+      </section>
+
+      <!-- 4 · Essai -->
+      <section data-step="4" class="flex flex-col gap-[14px]" hidden>
+        <div>
+          <h1 class="text-title font-bold">Essai</h1>
+          <p class="mt-2 font-bold" data-ready>Votre répondeur est prêt.</p>
+        </div>
+        <div data-has-number class="flex flex-col gap-[14px]">
+          <a data-test-link href="#" class="panel flex flex-col gap-1 px-[14px] py-4">
+            <span class="text-small text-muted">Appelez ce numéro pour l’essayer</span>
+            <span data-test-number class="text-title font-bold"></span>
+          </a>
+          <p class="mx-4 -mt-1 text-small text-muted">Appelez depuis un autre téléphone que votre portable.</p>
+
+          <h2 class="mt-2 text-small font-bold text-muted">Donnez ce numéro à vos clients</h2>
+          <div class="panel">
+            <div class="row"><span class="icon-tile"><Icon name="globe" size={18} /></span><p>Sur votre site et votre fiche Google</p></div>
+            <div class="row"><span class="icon-tile"><Icon name="file-text" size={18} /></span><p>Sur vos devis et vos factures</p></div>
+            <div class="row"><span class="icon-tile"><Icon name="truck" size={18} /></span><p>Sur votre camion et vos cartes de visite</p></div>
+          </div>
+          <p class="mx-4 -mt-2 text-small text-muted">Après chaque appel, vous recevez un message avec le nom du client et sa demande.</p>
+        </div>
+        <div data-no-number class="panel flex items-start gap-3 px-[14px] py-3" hidden>
+          <span class="icon-tile"><Icon name="alert" size={18} /></span>
+          <p><span class="font-bold">Pas encore de numéro.</span> Revenez à l’étape précédente pour en choisir un et essayer le répondeur.</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- Bottom bar: one green button per step (DESIGN.md « Barre du bas ») -->
+    <div class="sticky bottom-0 flex flex-col gap-2 bg-page px-4 pt-3 pb-6">
+      <p data-error class="mx-4 text-small font-bold" role="alert" hidden></p>
+      <button type="button" data-primary class="btn btn-primary w-full">Continuer</button>
+      <button type="button" data-secondary class="btn btn-secondary w-full" hidden></button>
+    </div>
+
+    <!-- Icons cloned by the client script into rows it builds -->
+    <template data-icon="euro"><span class="icon-tile"><Icon name="euro" size={18} /></span></template>
+    <template data-icon="help"><span class="icon-tile"><Icon name="help" size={18} /></span></template>
+    <template data-icon="clock"><span class="icon-tile"><Icon name="clock" size={18} /></span></template>
+    <template data-icon="phone"><span class="icon-tile"><Icon name="phone" size={18} /></span></template>
+    <template data-icon="trash"><Icon name="trash" /></template>
+    <template data-icon="plus"><Icon name="plus" /></template>
+    <template data-icon="play"><Icon name="play" /></template>
+    <template data-icon="pause"><Icon name="pause" /></template>
+    <template data-icon="check"><Icon name="check" /></template>
+
+    <script type="application/json" id="setup-init" set:html={JSON.stringify(init).replace(/</g, "\\u003c")} />
+    <script type="application/json" id="setup-steps" set:html={JSON.stringify(STEPS)} />
   </main>
+
+  <script>
+    import { DAYS } from "../components/setup/steps";
+
+    // ---------- Types and initial state (rendered by the server) ----------
+    type Hour = { weekday: number; opens: string; closes: string };
+    type Faq = { id?: string; question: string; answer: string; kind: "info" | "price" };
+    type Voice = { id: string; name: string; preview_url: string | null; category?: string };
+    type Init = {
+      step: number;
+      business: { name: string; trade: string; city: string; description: string; website: string | null; artisan_phone: string | null;
+        ring_seconds: number; greeting: string; voice_id: string | null; voice_name: string | null };
+      hours: Hour[]; faqs: (Faq & { id: string })[]; number: string | null;
+    };
+    const init = JSON.parse(document.getElementById("setup-init")!.textContent!) as Init;
+    const STEPS = JSON.parse(document.getElementById("setup-steps")!.textContent!) as string[];
+    const biz = init.business;
+
+    const $ = <T extends Element = HTMLElement>(sel: string, root: Document | HTMLElement = document) => root.querySelector(sel) as T;
+    const $$ = <T extends Element = HTMLElement>(sel: string, root: Document | HTMLElement = document) => [...root.querySelectorAll(sel)] as T[];
+    const input = (id: string) => document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement;
+    const icon = (name: string) => ($<HTMLTemplateElement>(`template[data-icon="${name}"]`).content.cloneNode(true) as DocumentFragment);
+    function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, string> = {}, ...kids: (Node | string)[]) {
+      const e = document.createElement(tag);
+      for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+      // appendChild: the Workers types shadow the DOM Element.append signature
+      for (const k of kids) e.appendChild(typeof k === "string" ? document.createTextNode(k) : k);
+      return e;
+    }
+
+    // French phone display: +33612345678 → 06 12 34 56 78
+    function frPhone(p: string | null | undefined) {
+      const m = /^\+33([1-9])(\d{2})(\d{2})(\d{2})(\d{2})$/.exec((p ?? "").replace(/\s+/g, ""));
+      return m ? `0${m[1]} ${m[2]} ${m[3]} ${m[4]} ${m[5]}` : (p ?? "");
+    }
+
+    type ApiResult<T> = { ok: boolean; status: number; data: T & { error?: string; hint?: string } };
+    async function api<T = Record<string, unknown>>(method: string, url: string, body?: unknown): Promise<ApiResult<T>> {
+      try {
+        const res = await fetch(url, { method, headers: body === undefined ? {} : { "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
+        const data = res.status === 204 ? {} : await res.json().catch(() => ({}));
+        return { ok: res.ok, status: res.status, data: data as ApiResult<T>["data"] };
+      } catch {
+        return { ok: false, status: 0, data: { error: "network", hint: "Pas de connexion. Vérifiez votre réseau et réessayez." } as ApiResult<T>["data"] };
+      }
+    }
+
+    // ---------- Bottom bar and errors ----------
+    const primary = $<HTMLButtonElement>("[data-primary]");
+    const secondary = $<HTMLButtonElement>("[data-secondary]");
+    const errorLine = $("[data-error]");
+    let onPrimary: () => unknown = () => {};
+    let onSecondary: () => unknown = () => {};
+    primary.addEventListener("click", () => { if (!primary.disabled) onPrimary(); });
+    secondary.addEventListener("click", () => { if (!secondary.disabled) onSecondary(); });
+
+    function showError(msg: string | null) {
+      errorLine.textContent = msg ?? "";
+      errorLine.hidden = !msg;
+    }
+    function bar(label: string, iconName: string | null, second: string | null) {
+      primary.replaceChildren(...(iconName ? [icon(iconName)] : []), label);
+      secondary.textContent = second ?? "";
+      secondary.hidden = !second;
+    }
+    function busy(on: boolean, label?: string) {
+      primary.disabled = on;
+      secondary.disabled = on;
+      primary.style.opacity = on ? "0.6" : "";
+      if (on && label) primary.textContent = label;
+    }
+    // Field-level message under a Material field (replaces its supporting text)
+    function fieldHelp(id: string, msg: string | null, strong = false) {
+      const help = document.getElementById(`${id}-help`)!;
+      const text = msg ?? help.dataset.default ?? "";
+      help.textContent = text;
+      help.hidden = !text;
+      help.classList.toggle("font-bold", strong);
+      help.classList.toggle("text-ink", strong);
+      help.classList.toggle("text-muted", !strong);
+    }
+
+    // An error under a field goes away as soon as the artisan corrects it
+    document.addEventListener("input", (e) => {
+      const id = (e.target as HTMLElement).id;
+      const help = id ? document.getElementById(`${id}-help`) : null;
+      if (help?.classList.contains("font-bold")) fieldHelp(id, null);
+    });
+
+    // ---------- Navigation between steps ----------
+    let current = 0;
+    const back = $<HTMLAnchorElement>("[data-back]");
+    function go(n: number, push = true) {
+      current = n;
+      for (const s of $$("[data-step]")) s.hidden = s.dataset.step !== String(n);
+      $$("[data-seg]").forEach((seg, i) => { seg.classList.toggle("bg-ink", i < n); seg.classList.toggle("bg-line", i >= n); });
+      $("[data-progress-n]").textContent = String(n);
+      $("[data-progress-name]").textContent = STEPS[n - 1];
+      back.hidden = n === 1;
+      back.href = `?etape=${n - 1}`;
+      $("[data-back-label]").textContent = STEPS[n - 2] ?? "";
+      showError(null);
+      if (push) history.pushState({ step: n }, "", `?etape=${n}`);
+      window.scrollTo(0, 0);
+      enter[n]();
+    }
+    back.addEventListener("click", (e) => { e.preventDefault(); go(current - 1); });
+    window.addEventListener("popstate", (e) => go((e.state as { step?: number } | null)?.step ?? init.step, false));
+
+    // ---------- Step 1 · Votre activité ----------
+    const sitePhase = $("[data-phase=site]");
+    const formPhase = $("[data-phase=form]");
+    const scanning = $("[data-scanning]");
+    let hours: Hour[] = init.hours.length ? init.hours.map((h) => ({ ...h })) : [];
+    let faqs: Faq[] = init.faqs.map((f) => ({ ...f }));
+    const deletedFaqs = new Set<string>();
+    let scannedUrl: string | null = null;
+
+    function showPhase(phase: "site" | "form") {
+      sitePhase.hidden = phase !== "site";
+      formPhase.hidden = phase !== "form";
+      $("[data-lead-site]").hidden = phase !== "site";
+      $("[data-lead-form]").hidden = phase !== "form";
+      if (phase === "site") {
+        bar("Continuer", null, "Je n’ai pas de site");
+        onPrimary = scan;
+        onSecondary = () => {
+          scannedUrl = null;
+          if (!hours.length) hours = [0, 1, 2, 3, 4].map((weekday) => ({ weekday, opens: "08:00", closes: "18:00" }));
+          renderHours(); renderFaqs(); showPhase("form");
+          input("name").focus();
+        };
+      } else {
+        bar("Continuer", null, null);
+        onPrimary = saveActivity;
+      }
+    }
+
+    async function scan() {
+      const url = input("website").value.trim();
+      if (!url) { fieldHelp("website", "Indiquez l’adresse de votre site."); input("website").focus(); return; }
+      fieldHelp("website", null);
+      scanning.hidden = false;
+      busy(true);
+      const r = await api<{ business: Partial<Init["business"]>; hours: Hour[]; faqs: Faq[]; source?: { ai_model?: string | null } }>("POST", "/api/onboarding/scan", { url });
+      scanning.hidden = true;
+      busy(false);
+      if (!r.ok) {
+        bar("Continuer", null, "Je n’ai pas de site");
+        fieldHelp("website", r.status === 400
+          ? "Cette adresse ne marche pas. Vérifiez-la, par exemple plomberie-martin.fr."
+          : "Impossible de lire ce site. Vérifiez l’adresse ou remplissez la fiche à la main.", true);
+        return;
+      }
+      const found = r.data.business ?? {};
+      scannedUrl = found.website ?? url;
+      const map: [string, string | null | undefined][] = [
+        ["name", found.name], ["trade", found.trade], ["city", found.city], ["description", found.description], ["phone1", /^\+33[67]/.test(found.artisan_phone ?? "") ? frPhone(found.artisan_phone) : null],
+      ];
+      for (const [id, v] of map) {
+        if (v && v.trim()) { input(id).value = v.trim(); fieldHelp(id, "Trouvé sur votre site. Corrigez si besoin."); }
+      }
+      if (r.data.hours?.length) hours = r.data.hours.map((h) => ({ ...h }));
+      else if (!hours.length) hours = [0, 1, 2, 3, 4].map((weekday) => ({ weekday, opens: "08:00", closes: "18:00" }));
+      // Scanned FAQs are added after the ones already saved (going back and scanning again must not duplicate them)
+      const known = new Set(faqs.map((f) => f.question.trim().toLowerCase()));
+      for (const f of r.data.faqs ?? []) if (!known.has(f.question.trim().toLowerCase())) faqs.push({ ...f });
+      const note = $("[data-scan-note]");
+      const count = (r.data.faqs ?? []).length;
+      const aiMissed = r.data.source && !r.data.source.ai_model;
+      note.textContent = aiMissed
+        ? "Seuls le nom et le téléphone ont été trouvés. Complétez le reste."
+        : `${count ? `${count} question${count > 1 ? "s" : ""} trouvée${count > 1 ? "s" : ""}` : "Aucune question trouvée"} sur votre site. Vérifiez chaque ligne.`;
+      $("[data-scan-note-box]").hidden = false;
+      renderHours(); renderFaqs(); showPhase("form");
+    }
+
+    // Hours: one row per weekday, each slot editable, « Fermé » when no slot
+    const hoursBox = $("[data-hours]");
+    function timeInput(value: string, label: string, onChange: (v: string) => void) {
+      const t = el("input", { type: "time", class: "time-input", "aria-label": label, step: "900" }) as HTMLInputElement;
+      t.value = value;
+      t.addEventListener("change", () => onChange(t.value));
+      return t;
+    }
+    function renderHours() {
+      hoursBox.replaceChildren(...DAYS.map((day, weekday) => {
+        const slots = hours.filter((h) => h.weekday === weekday);
+        const add = el("button", { type: "button", class: "step-btn", "aria-label": `Ajouter un créneau le ${day.toLowerCase()}` }, icon("plus"));
+        add.addEventListener("click", () => {
+          const last = slots[slots.length - 1];
+          hours.push(last ? { weekday, opens: last.closes < "14:00" ? "14:00" : last.closes, closes: last.closes < "14:00" ? "18:00" : "20:00" } : { weekday, opens: "08:00", closes: "18:00" });
+          renderHours();
+        });
+        const lines = slots.map((h) => {
+          const remove = el("button", { type: "button", class: "step-btn text-muted", "aria-label": `Retirer ce créneau du ${day.toLowerCase()}` }, icon("trash"));
+          remove.addEventListener("click", () => { hours.splice(hours.indexOf(h), 1); renderHours(); });
+          return el("div", { class: "flex items-center gap-2" },
+            timeInput(h.opens, `${day}, ouverture`, (v) => { h.opens = v; }),
+            el("span", { class: "text-muted" }, "à"),
+            timeInput(h.closes, `${day}, fermeture`, (v) => { h.closes = v; }),
+            el("span", { class: "flex-1" }),
+            remove);
+        });
+        return el("div", { class: "row flex-col items-stretch gap-2" },
+          el("div", { class: "flex items-center gap-3" },
+            icon("clock"),
+            el("p", { class: "flex-1" }, el("span", { class: "font-bold" }, day), slots.length ? "" : el("span", { class: "text-muted" }, " · Fermé")),
+            add),
+          ...lines);
+      }));
+    }
+
+    // FAQs: question + answer edited in place; the icon tells a price from an information
+    const faqsBox = $("[data-faqs]");
+    function autoText(value: string, cls: string, label: string, onInput: (v: string) => void) {
+      const t = el("textarea", { class: `faq-text ${cls}`, rows: "1", "aria-label": label }) as HTMLTextAreaElement;
+      t.value = value;
+      t.addEventListener("input", () => onInput(t.value));
+      return t;
+    }
+    function renderFaqs() {
+      const rows = faqs.map((f) => {
+        const remove = el("button", { type: "button", class: "step-btn text-muted", "aria-label": "Retirer cette question" }, icon("trash"));
+        remove.addEventListener("click", () => { if (f.id) deletedFaqs.add(f.id); faqs.splice(faqs.indexOf(f), 1); renderFaqs(); });
+        return el("div", { class: "row items-start" },
+          icon(f.kind === "price" ? "euro" : "help"),
+          el("div", { class: "flex min-w-0 flex-1 flex-col" },
+            autoText(f.question, "font-bold", f.kind === "price" ? "Prestation" : "Question", (v) => { f.question = v; }),
+            autoText(f.answer, "text-muted", f.kind === "price" ? "Prix" : "Réponse", (v) => { f.answer = v; })),
+          remove);
+      });
+      const adder = (kind: "info" | "price", label: string) => {
+        const b = el("button", { type: "button", class: "row w-full text-left font-bold" }, icon(kind === "price" ? "euro" : "help"), label);
+        b.addEventListener("click", () => {
+          faqs.push({ question: "", answer: "", kind });
+          renderFaqs();
+          const areas = $$<HTMLTextAreaElement>("textarea", faqsBox);
+          areas[areas.length - 2]?.focus();
+        });
+        return b;
+      };
+      faqsBox.replaceChildren(...rows, adder("info", "Ajouter une question"), adder("price", "Ajouter un prix"));
+    }
+
+    async function saveActivity() {
+      const name = input("name").value.trim();
+      if (!name) { fieldHelp("name", "Indiquez le nom de votre entreprise.", true); input("name").focus(); return; }
+      for (const h of hours) if (!h.opens || !h.closes || h.opens >= h.closes) {
+        showError(`${DAYS[h.weekday]} : l’heure de fermeture doit être après l’ouverture.`); return;
+      }
+      const incomplete = faqs.find((f) => !f.question.trim() !== !f.answer.trim());
+      if (incomplete) { showError("Chaque question a besoin d’une réponse."); return; }
+      showError(null);
+      busy(true, "Enregistrement…");
+      const phone = input("phone1").value.trim();
+      const r = await api<{ business: Init["business"] }>("PUT", "/api/business", {
+        name, trade: input("trade").value, city: input("city").value, description: input("description").value,
+        artisan_phone: phone, ...(scannedUrl ? { website: scannedUrl } : {}),
+      });
+      if (!r.ok) {
+        busy(false); bar("Continuer", null, null);
+        if (r.data.error === "invalid_field" && /portable/i.test(r.data.hint ?? "")) { fieldHelp("phone1", "Ce numéro ne marche pas. Exemple : 06 12 34 56 78", true); input("phone1").focus(); }
+        else showError(r.data.hint ?? "Enregistrement impossible. Réessayez.");
+        return;
+      }
+      Object.assign(biz, r.data.business);
+      const steps: Promise<ApiResult<unknown>>[] = [api("PUT", "/api/business/hours", hours)];
+      for (const id of deletedFaqs) steps.push(api("DELETE", `/api/faqs/${id}`));
+      for (const f of faqs.filter((x) => x.id && x.question.trim())) steps.push(api("PUT", `/api/faqs/${f.id}`, f));
+      const fresh = faqs.filter((x) => !x.id && x.question.trim() && x.answer.trim());
+      const created = fresh.length ? api<{ faqs: (Faq & { id: string })[] }>("POST", "/api/faqs", { faqs: fresh }) : null;
+      const results = await Promise.all([...steps, ...(created ? [created] : [])]);
+      const bad = results.find((x) => !x.ok && x.status !== 404);
+      if (bad) { busy(false); bar("Continuer", null, null); showError(bad.data.hint ?? "Enregistrement impossible. Réessayez."); return; }
+      // Remember the new ids so a second pass updates instead of duplicating
+      const createdRes = created ? await created : null;
+      createdRes?.data.faqs?.forEach((saved, i) => { fresh[i].id = saved.id; });
+      deletedFaqs.clear();
+      faqs = faqs.filter((f) => f.question.trim());
+      await api("PUT", "/api/business", { onboarding_step: stepAtLeast("voice") });
+      busy(false);
+      // The portable typed here is reused on the number step
+      input("phone3").value = frPhone(biz.artisan_phone);
+      go(2);
+    }
+
+    // Never move the stored step backwards when the artisan goes back and continues again
+    const ORDER = ["business", "voice", "number", "done"] as const;
+    let storedStep: (typeof ORDER)[number] = ORDER[Math.min(init.step, 4) - 1];
+    function stepAtLeast(s: (typeof ORDER)[number]) {
+      if (ORDER.indexOf(s) > ORDER.indexOf(storedStep)) storedStep = s;
+      return storedStep;
+    }
+
+    // ---------- Step 2 · Voix du répondeur ----------
+    const voicesBox = $("[data-voices]");
+    let voices: Voice[] | null = null;
+    let chosenVoice: string | null = biz.voice_id;
+    let agentFailed = false;
+    const audio = new Audio();
+    let playing: HTMLButtonElement | null = null;
+    audio.addEventListener("ended", () => setPlaying(null));
+    function setPlaying(btn: HTMLButtonElement | null) {
+      if (playing) { playing.replaceChildren(icon("play")); playing.setAttribute("aria-label", playing.dataset.label!); }
+      playing = btn;
+      if (btn) { btn.replaceChildren(icon("pause")); btn.setAttribute("aria-label", "Arrêter l’extrait"); }
+    }
+
+    function defaultGreeting() {
+      const name = (biz.name || "").trim() || "l’entreprise";
+      return `Bonjour, ici l’assistant de ${name}. L’artisan est sur un chantier, que puis-je faire pour vous ?`;
+    }
+
+    async function loadVoices() {
+      const status = $("[data-voices-status]");
+      const r = await api<{ voices: Voice[] }>("GET", "/api/voices");
+      if (!r.ok || !r.data.voices?.length) { status.textContent = "Impossible d’afficher les voix. Réessayez dans un instant."; return; }
+      voices = r.data.voices;
+      if (!chosenVoice || !voices.some((v) => v.id === chosenVoice)) chosenVoice = voices[0].id;
+      status.hidden = true;
+      voicesBox.hidden = false;
+      voicesBox.replaceChildren(...voices.map((v) => {
+        const radio = el("input", { type: "radio", name: "voice", value: v.id, class: "radio" }) as HTMLInputElement;
+        radio.checked = v.id === chosenVoice;
+        radio.addEventListener("change", () => { chosenVoice = v.id; });
+        const label = el("label", { class: "flex min-h-[48px] flex-1 cursor-pointer items-center gap-3" }, radio,
+          el("span", { class: "flex flex-col" }, el("span", { class: "font-bold" }, v.name),
+            ...(v.category === "cloned" ? [el("span", { class: "text-small text-muted" }, "Votre voix")] : [])));
+        const row = el("div", { class: "row" }, label);
+        if (v.preview_url) {
+          const play = el("button", { type: "button", class: "play-btn", "aria-label": `Écouter ${v.name}`, "data-label": `Écouter ${v.name}` }, icon("play")) as HTMLButtonElement;
+          play.addEventListener("click", () => {
+            if (playing === play) { audio.pause(); setPlaying(null); return; }
+            audio.src = v.preview_url!;
+            audio.play().then(() => setPlaying(play)).catch(() => setPlaying(null));
+          });
+          row.appendChild(play);
+        }
+        return row;
+      }));
+    }
+
+    async function saveVoice() {
+      if (agentFailed) { go(3); return; }
+      const voice = voices?.find((v) => v.id === chosenVoice);
+      if (!voice) { showError("Choisissez une voix."); return; }
+      const greeting = input("greeting").value.trim() || defaultGreeting();
+      busy(true, "Enregistrement…");
+      audio.pause(); setPlaying(null);
+      const r = await api("PUT", "/api/business", { voice_id: voice.id, voice_name: voice.name, greeting, onboarding_step: stepAtLeast("number") });
+      if (!r.ok) { busy(false); bar("Continuer", null, null); showError(r.data.hint ?? "Enregistrement impossible. Réessayez."); return; }
+      biz.voice_id = voice.id; biz.voice_name = voice.name; biz.greeting = greeting;
+      busy(true, "Préparation du répondeur…");
+      const agent = await api("POST", "/api/agent");
+      busy(false);
+      bar("Continuer", null, null);
+      if (!agent.ok) {
+        // No ElevenLabs key locally, or the service is down: the artisan can still go on
+        agentFailed = true;
+        $("[data-agent-error]").hidden = false;
+        return;
+      }
+      go(3);
+    }
+
+    // ---------- Step 3 · Votre numéro ----------
+    let ring = Math.min(40, Math.max(5, biz.ring_seconds || 15));
+    const ringOut = $("[data-ring]");
+    for (const btn of $$<HTMLButtonElement>("[data-ring-step]")) {
+      btn.addEventListener("click", () => {
+        ring = Math.min(40, Math.max(5, ring + Number(btn.dataset.ringStep)));
+        ringOut.textContent = String(ring);
+      });
+    }
+    const numbersBox = $("[data-numbers]");
+    let chosenNumber: string | null = init.number;
+    let attached: string | null = init.number;
+    let numbersLoaded = false;
+
+    let numbersEmpty = false;
+    function numberError(msg: string | null) {
+      $("[data-numbers-error]").hidden = !msg;
+      $("[data-numbers-error-text]").textContent = msg ?? "";
+      bar(numbersEmpty ? "Réessayer" : "Continuer", null, msg ? "Continuer sans numéro" : null);
+      onPrimary = numbersEmpty ? retryNumbers : () => saveNumber(true);
+    }
+    function retryNumbers() {
+      numbersEmpty = false;
+      numbersLoaded = false;
+      numberError(null);
+      $("[data-numbers-status]").hidden = false;
+      loadNumbers();
+    }
+
+    async function loadNumbers() {
+      if (numbersLoaded) return;
+      numbersLoaded = true;
+      const status = $("[data-numbers-status]");
+      const [mine, search] = await Promise.all([
+        api<{ numbers: { e164: string }[] }>("GET", "/api/numbers"),
+        api<{ details: { e164: string; locality: string | null; type: "local" | "mobile" }[]; owned: { e164: string }[] }>("GET", "/api/numbers/search?country=FR"),
+      ]);
+      type Choice = { e164: string; sub: string };
+      const list: Choice[] = [];
+      const seen = new Set<string>();
+      const add = (e164: string, sub: string) => { if (!seen.has(e164)) { seen.add(e164); list.push({ e164, sub }); } };
+      for (const n of mine.ok ? mine.data.numbers : []) add(n.e164, "Votre numéro actuel");
+      if (search.ok) {
+        for (const n of search.data.owned ?? []) add(n.e164, "Disponible tout de suite");
+        for (const n of search.data.details ?? []) add(n.e164, [n.type === "mobile" ? "Portable" : "Fixe", n.locality].filter(Boolean).join(" · "));
+      }
+      status.hidden = true;
+      if (!list.length) {
+        numbersEmpty = true;
+        numberError(search.ok
+          ? "Aucun numéro disponible pour l’instant. Réessayez plus tard ou continuez sans numéro."
+          : "Impossible d’afficher les numéros pour l’instant. Réessayez plus tard ou continuez sans numéro.");
+        return;
+      }
+      if (!chosenNumber) chosenNumber = list[0].e164;
+      numbersBox.hidden = false;
+      numbersBox.replaceChildren(...list.map((n) => {
+        const radio = el("input", { type: "radio", name: "number", value: n.e164, class: "radio" }) as HTMLInputElement;
+        radio.checked = n.e164 === chosenNumber;
+        radio.addEventListener("change", () => { chosenNumber = n.e164; });
+        return el("label", { class: "row cursor-pointer" }, radio,
+          el("span", { class: "flex flex-col" }, el("span", { class: "font-bold" }, frPhone(n.e164)), el("span", { class: "text-small text-muted" }, n.sub)));
+      }));
+    }
+
+    async function saveRouting(): Promise<boolean> {
+      const phone = input("phone3").value.trim();
+      if (!phone) { fieldHelp("phone3", "Indiquez votre portable : il sonne en premier.", true); input("phone3").focus(); return false; }
+      const r = await api<{ business: Init["business"] }>("PUT", "/api/business", { artisan_phone: phone, ring_seconds: ring });
+      if (!r.ok) {
+        if (/portable/i.test(r.data.hint ?? "")) { fieldHelp("phone3", "Ce numéro ne marche pas. Exemple : 06 12 34 56 78", true); input("phone3").focus(); }
+        else showError(r.data.hint ?? "Enregistrement impossible. Réessayez.");
+        return false;
+      }
+      fieldHelp("phone3", null);
+      Object.assign(biz, r.data.business);
+      return true;
+    }
+
+    async function saveNumber(withNumber: boolean) {
+      showError(null);
+      if (withNumber && !chosenNumber) { showError("Choisissez un numéro."); return; }
+      busy(true, "Enregistrement…");
+      if (!(await saveRouting())) { busy(false); numberError($("[data-numbers-error-text]").textContent || null); return; }
+      if (withNumber && chosenNumber !== attached) {
+        busy(true, "Mise en service du numéro…");
+        const r = await api<{ number: { e164: string } }>("POST", "/api/numbers", { e164: chosenNumber });
+        busy(false);
+        if (!r.ok) {
+          numberError(r.data.error === "number_taken"
+            ? "Ce numéro est déjà pris. Choisissez-en un autre."
+            : "Ce numéro n’a pas pu être mis en service. Réessayez ou continuez sans numéro.");
+          return;
+        }
+        attached = r.data.number.e164;
+        storedStep = "done";
+      }
+      busy(false);
+      go(4);
+    }
+
+    // ---------- Step 4 · Essai ----------
+    function enterTest() {
+      $("[data-has-number]").hidden = !attached;
+      $("[data-no-number]").hidden = !!attached;
+      $("[data-ready]").hidden = !attached;
+      if (attached) {
+        $("[data-test-number]").textContent = frPhone(attached);
+        $<HTMLAnchorElement>("[data-test-link]").href = `tel:${attached}`;
+      }
+      bar("Terminer", "check", null);
+      onPrimary = async () => {
+        busy(true, "Enregistrement…");
+        const r = await api("PUT", "/api/business", { onboarding_step: "done" });
+        if (!r.ok) { busy(false); bar("Terminer", "check", null); showError(r.data.hint ?? "Enregistrement impossible. Réessayez."); return; }
+        location.href = "/app";
+      };
+    }
+
+    // ---------- What each step does when it is shown ----------
+    const enter: Record<number, () => void> = {
+      1: () => { renderHours(); renderFaqs(); showPhase(formPhase.hidden ? "site" : "form"); },
+      2: () => {
+        const g = input("greeting");
+        if (!g.value.trim()) g.value = defaultGreeting();
+        bar("Continuer", null, null);
+        onPrimary = saveVoice;
+        if (!voices) loadVoices();
+      },
+      3: () => {
+        if (!input("phone3").value) input("phone3").value = frPhone(biz.artisan_phone);
+        numberError($("[data-numbers-error-text]").textContent || null);
+        onSecondary = () => saveNumber(false);
+        loadNumbers();
+      },
+      4: enterTest,
+    };
+
+    // Show stored phone numbers in French format, then open the resumed step
+    input("phone1").value = frPhone(input("phone1").value);
+    input("phone3").value = frPhone(input("phone3").value);
+    history.replaceState({ step: init.step }, "", `?etape=${init.step}`);
+    go(init.step, false);
+  </script>
 </Base>
+
+<style is:global>
+  /* Indeterminate bar under « Lecture de votre site… » */
+  .scan-bar { position: relative; height: 6px; overflow: hidden; border-radius: 3px; background: var(--color-line); }
+  .scan-bar span { position: absolute; inset: 0 auto 0 0; width: 40%; border-radius: 3px; background: var(--color-ink); animation: scan-slide 1.4s ease-in-out infinite; }
+  @keyframes scan-slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+  @media (prefers-reduced-motion: reduce) { .scan-bar span { animation: none; width: 100%; opacity: .3; } }
+
+  /* 48 px square icon button (add, remove, ring duration) */
+  .step-btn { flex: none; display: grid; place-items: center; width: 48px; height: 48px; margin: -6px -8px -6px 0; border-radius: var(--radius-call); color: var(--color-ink); }
+  .step-btn:focus-visible, .play-btn:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+
+  /* Listen button: same look as the call button of the list (DESIGN.md « Bouton d'appel en liste ») */
+  .play-btn { flex: none; display: grid; place-items: center; width: 48px; height: 48px; border-radius: var(--radius-call); color: var(--color-action-ink); background: var(--color-tint); box-shadow: inset 0 0 0 1px var(--color-tint-line); }
+
+  /* Time slot input, filled like a Material field */
+  .time-input { width: 108px; height: 44px; padding: 0 10px; border-radius: 4px 4px 0 0; background: var(--color-neutral-bg); box-shadow: inset 0 -1px 0 var(--color-muted); font-size: var(--text-body); color: var(--color-ink); }
+  .time-input:focus { outline: none; box-shadow: inset 0 -2px 0 var(--color-ink); }
+
+  /* Question / answer edited in place inside a block row */
+  .faq-text { width: 100%; resize: none; field-sizing: content; min-height: 24px; padding: 2px 4px; margin: 0 -4px; border-radius: 4px; background: transparent; line-height: 1.35; }
+  .faq-text:focus { outline: none; background: var(--color-neutral-bg); color: var(--color-ink); }
+
+  /* Radio: 22 px ring in ink, filled dot when chosen */
+  .radio { appearance: none; flex: none; width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--color-ink); display: grid; place-items: center; }
+  .radio::after { content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--color-ink); transform: scale(0); transition: transform 120ms; }
+  .radio:checked::after { transform: scale(1); }
+  .radio:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+</style>

@@ -1,0 +1,26 @@
+---
+// Material filled text field (DESIGN.md « Champ de saisie »), built on the shared .field classes of global.css.
+// Never put an example value inside the field: examples go in the supporting text.
+interface Props {
+  id: string; label: string; help?: string; value?: string | null; multiline?: boolean;
+  type?: "text" | "tel" | "url" | "email"; inputmode?: "text" | "tel" | "url" | "email" | "numeric"; autocomplete?: string; maxlength?: number;
+}
+const { id, label, help, value, multiline, type = "text", inputmode, autocomplete, maxlength } = Astro.props;
+---
+<div data-field={id}>
+  <label class:list={["field", multiline && "field-area"]}>
+    <span class="field-label">{label}</span>
+    {multiline
+      ? <textarea id={id} name={id} class="field-input" placeholder=" " rows="3" maxlength={maxlength}>{value ?? ""}</textarea>
+      : <input id={id} name={id} class="field-input" placeholder=" " type={type} inputmode={inputmode} autocomplete={autocomplete} maxlength={maxlength} value={value ?? ""} autocapitalize={inputmode === "url" ? "off" : undefined} spellcheck={inputmode === "url" ? "false" : undefined} />}
+  </label>
+  <p id={`${id}-help`} class="mx-4 mt-1 text-small text-muted" data-default={help ?? ""} hidden={!help}>{help}</p>
+</div>
+
+<style is:global>
+  /* Multi-line variant of the filled field: grows with its text, label stays on top once filled */
+  .field.field-area { height: auto; min-height: 56px; }
+  .field.field-area .field-input { position: relative; display: block; width: 100%; min-height: 56px; padding-top: 26px; resize: none; field-sizing: content; }
+  .field.field-area .field-label { top: 28px; }
+  .field.field-area:focus-within .field-label, .field.field-area:has(.field-input:not(:placeholder-shown)) .field-label { top: 8px; }
+</style>

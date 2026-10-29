@@ -1,0 +1,13 @@
+---
+// Setup progress (DESIGN.md « Progression de la configuration »): 4 segments, then « 2 sur 4 · Voix du répondeur ».
+// The client script updates it through data-seg / data-progress-n / data-progress-name.
+import { STEPS } from "./steps";
+interface Props { step: number }
+const { step } = Astro.props;
+---
+<div class="flex flex-col gap-2" data-progress>
+  <div class="flex gap-1" aria-hidden="true">
+    {STEPS.map((_, i) => <span data-seg class:list={["h-[6px] flex-1 rounded-[3px]", i < step ? "bg-ink" : "bg-line"]} />)}
+  </div>
+  <p class="text-small"><span class="font-bold" data-progress-n>{step}</span> sur 4 · <span data-progress-name>{STEPS[step - 1]}</span></p>
+</div>
