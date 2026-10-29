@@ -8,7 +8,7 @@ import SocialIcon from "../../components/social/SocialIcon.astro";
 import NetworkFilter from "../../components/social/NetworkFilter.astro";
 import PostPreview from "../../components/social/PostPreview.astro";
 import PostHistory from "../../components/social/PostHistory.astro";
-import { composerUrl, initials, isNetwork, NETWORK_RULES, postAge, type Network } from "../../lib/social";
+import { composerUrl, initials, isNetwork, NETWORKS, NETWORK_RULES, pageLabel, parseSocialLinks, postAge, type Network } from "../../lib/social";
 import { recentPosts, topicsFor } from "../../lib/social-run";
 
 const b = Astro.locals.business;
@@ -22,6 +22,9 @@ const asked = Astro.url.searchParams.get("reseau");
 const network: Network = isNetwork(asked) ? asked : last?.network ?? "facebook";
 const shown = posts.find((p) => p.network === network) ?? null;
 const name = b.name || "Votre entreprise";
+// The artisan's existing pages: « Ouvrir Facebook » opens his own page once it is linked
+const links = parseSocialLinks(b.social_links);
+const openUrl = (n: Network, text: string) => (n !== "linkedin" && links[n]) || composerUrl(n, text);
 const chip = "topic-chip flex min-h-12 items-center rounded-filter bg-surface px-3 text-small font-bold shadow-[inset_0_0_0_1px_var(--color-line)]";
 ---
 <AppShell title="Réseaux sociaux" active="reseaux">
@@ -34,6 +37,37 @@ const chip = "topic-chip flex min-h-12 items-center rounded-filter bg-surface px
         <p class="mt-2 text-muted">Une publication écrite à partir de vos chantiers. Copiez-la, ajoutez votre photo.</p>
       </div>
 
+      <section aria-labelledby="pages-title">
+        <h2 id="pages-title" class="px-[14px] pb-2 text-small font-bold text-muted">Vos pages</h2>
+        <ul class="panel">
+          {NETWORKS.map((n) => (
+            <li class="row flex-col items-stretch gap-2" data-page={n}>
+              <div class="flex items-center gap-3">
+                <span class="icon-tile"><SocialIcon name={n} size={18} /></span>
+                <div class="min-w-0 flex-1">
+                  <p class="font-bold">{NETWORK_RULES[n].label}</p>
+                  <p class="truncate text-small text-muted" data-page-label>{links[n] ? pageLabel(links[n]!) : "Pas encore reliée"}</p>
+                </div>
+                <a href={links[n] ?? "#"} target="_blank" rel="noopener" class="min-h-12 content-center px-2 text-small font-bold text-ink underline underline-offset-2" data-page-open hidden={!links[n]}>Ouvrir</a>
+                <button type="button" class="min-h-12 px-2 text-small font-bold text-muted underline underline-offset-2" data-page-unlink hidden={!links[n]}>Délier</button>
+                <button type="button" class="min-h-12 px-2 text-small font-bold text-ink underline underline-offset-2" data-page-link hidden={!!links[n]}>Relier</button>
+              </div>
+              <form class="flex flex-col gap-2" data-page-form hidden novalidate>
+                <label class="field">
+                  <input class="field-input" name="url" placeholder=" " autocomplete="url" inputmode="url" />
+                  <span class="field-label">Adresse de votre page</span>
+                </label>
+                <p class="px-4 text-small text-muted" data-page-help>Exemple : {n === "instagram" ? "@plomberie.martin" : `${NETWORK_RULES[n].url.replace(/^https:\/\/www\./, "").replace(/feed\/$/, "")}${n === "linkedin" ? "company/" : ""}plomberie-martin`}</p>
+                <div class="flex gap-2">
+                  <button class="btn btn-secondary flex-1">Relier la page</button>
+                  <button type="button" class="min-h-12 px-3 text-small font-bold text-muted" data-page-cancel>Annuler</button>
+                </div>
+              </form>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <NetworkFilter network={network} />
 
       <section aria-labelledby="topic-title">
@@ -45,7 +79,7 @@ const chip = "topic-chip flex min-h-12 items-center rounded-filter bg-surface px
         </div>
         <label class="field mt-3">
           <input id="topic-free" class="field-input" placeholder=" " maxlength="200" autocomplete="off" />
-          <span class="field-label">Autre sujet</span>
+          <span class="field-label">Ou écrivez votre sujet</span>
         </label>
         <p class="px-4 pt-1 text-small text-muted">Exemple : salle de bain terminée. Pas de nom de client.</p>
       </section>
@@ -62,7 +96,7 @@ const chip = "topic-chip flex min-h-12 items-center rounded-filter bg-surface px
       <div class="flex gap-2" id="post-actions" hidden={!shown}>
         <button type="button" class="shortcut" data-copy><SocialIcon name="copy" class="text-action-ink" /><span data-copy-label>Copier le texte</span></button>
         <button type="button" class="shortcut" data-regenerate><SocialIcon name="rotate" class="text-action-ink" />Régénérer</button>
-        <a class="shortcut" data-open href={composerUrl(network, shown?.body ?? "")} target="_blank" rel="noopener"><SocialIcon name="external" class="text-action-ink" /><span data-open-label>Ouvrir {NETWORK_RULES[network].label}</span></a>
+        <a class="shortcut" data-open href={openUrl(network, shown?.body ?? "")} target="_blank" rel="noopener"><SocialIcon name="external" class="text-action-ink" /><span data-open-label>Ouvrir {NETWORK_RULES[network].label}</span></a>
       </div>
       <p id="post-empty" class="panel px-[14px] py-3 text-small text-muted" hidden={!!shown}>Choisissez un sujet. La publication s’affichera ici, prête à copier.</p>
 
@@ -72,7 +106,7 @@ const chip = "topic-chip flex min-h-12 items-center rounded-filter bg-surface px
 
       <PostHistory posts={posts} now={now} />
     </div>
-    <script type="application/json" id="social-data" set:html={JSON.stringify({ posts }).replace(/</g, "\\u003c")} />
+    <script type="application/json" id="social-data" set:html={JSON.stringify({ posts, links }).replace(/</g, "\\u003c")} />
   </main>
 </AppShell>
 
@@ -88,6 +122,9 @@ const chip = "topic-chip flex min-h-12 items-center rounded-filter bg-surface px
   let network = (nets.find((n) => n.getAttribute("aria-pressed") === "true")?.dataset.network ?? "facebook") as Network;
   let current: Post | null = null;
   let busy = false;
+  let links: Partial<Record<Network, string>> = {};
+  // His own page once linked (Facebook, Instagram), else the network's site or LinkedIn's share box
+  const openUrl = (n: Network, text: string) => (n !== "linkedin" && links[n]) || composerUrl(n, text);
 
   // Network buttons: the preview follows the network chosen
   function setNetwork(n: Network) {
@@ -104,7 +141,7 @@ const chip = "topic-chip flex min-h-12 items-center rounded-filter bg-surface px
       current = null;
       preview.hidden = true; actions.hidden = true; empty.hidden = false;
     }
-    $<HTMLAnchorElement>("[data-open]").href = composerUrl(n, current?.body ?? "");
+    $<HTMLAnchorElement>("[data-open]").href = openUrl(n, current?.body ?? "");
     const url = new URL(location.href); url.searchParams.set("reseau", n); history.replaceState(null, "", url);
   }
   nets.forEach((b) => b.addEventListener("click", () => isNetwork(b.dataset.network) && setNetwork(b.dataset.network)));
@@ -120,7 +157,7 @@ const chip = "topic-chip flex min-h-12 items-center rounded-filter bg-surface px
   function show(p: Post) {
     current = p;
     setNetwork(p.network);
-    $<HTMLAnchorElement>("[data-open]").href = composerUrl(p.network, p.body);
+    $<HTMLAnchorElement>("[data-open]").href = openUrl(p.network, p.body);
     $("[data-preview-text]").textContent = p.body;
     $("[data-preview-age]").textContent = postAge(p.created_at, Math.floor(Date.now() / 1000));
     preview.hidden = false; actions.hidden = false; empty.hidden = true;
@@ -187,8 +224,48 @@ const chip = "topic-chip flex min-h-12 items-center rounded-filter bg-surface px
   });
 
   // Initial state from the server-rendered page
-  const initial = JSON.parse($("#social-data").textContent || "{}") as { posts?: Post[] };
+  const initial = JSON.parse($("#social-data").textContent || "{}") as { posts?: Post[]; links?: typeof links };
   history5 = initial.posts ?? [];
+  links = initial.links ?? {};
+
+  // « Vos pages »: link a page by its address, unlink it
+  document.querySelectorAll<HTMLElement>("[data-page]").forEach((li) => {
+    const n = li.dataset.page as Network;
+    const form = li.querySelector<HTMLFormElement>("[data-page-form]")!;
+    const help = li.querySelector<HTMLElement>("[data-page-help]")!;
+    const helpText = help.textContent;
+    const open = li.querySelector<HTMLAnchorElement>("[data-page-open]")!;
+    const linkBtn = li.querySelector<HTMLButtonElement>("[data-page-link]")!;
+    const unlinkBtn = li.querySelector<HTMLButtonElement>("[data-page-unlink]")!;
+    const render = () => {
+      const url = links[n];
+      li.querySelector("[data-page-label]")!.textContent = url ? url.replace(/^https?:\/\/(www\.)?/, "") : "Pas encore reliée";
+      open.hidden = !url; unlinkBtn.hidden = !url; linkBtn.hidden = !!url;
+      if (url) open.href = url;
+      if (n === network) $<HTMLAnchorElement>("[data-open]").href = openUrl(n, current?.body ?? "");
+    };
+    async function save(url: string): Promise<string | null> {
+      try {
+        const res = await fetch("/api/reseaux/links", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ network: n, url }) });
+        const data = (await res.json().catch(() => ({}))) as { links?: typeof links; hint?: string };
+        if (!res.ok || !data.links) return data.hint || "La page n’a pas pu être reliée. Réessayez.";
+        links = data.links;
+        return null;
+      } catch { return "Pas de connexion. Vérifiez votre réseau et réessayez."; }
+    }
+    linkBtn.addEventListener("click", () => { form.hidden = false; form.querySelector("input")!.focus(); linkBtn.hidden = true; });
+    li.querySelector("[data-page-cancel]")!.addEventListener("click", () => { form.hidden = true; help.textContent = helpText; help.classList.remove("font-bold", "text-ink"); render(); });
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const value = form.querySelector("input")!.value.trim();
+      if (!value) { help.textContent = "Collez l’adresse de votre page."; help.classList.add("font-bold", "text-ink"); return; }
+      const err = await save(value);
+      if (err) { help.textContent = err; help.classList.add("font-bold", "text-ink"); return; }
+      form.hidden = true; form.reset(); help.textContent = helpText; help.classList.remove("font-bold", "text-ink");
+      render();
+    });
+    unlinkBtn.addEventListener("click", async () => { if (!(await save(""))) render(); });
+  });
   current = history5.find((p) => p.network === network) ?? null;
 </script>
 

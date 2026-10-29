@@ -82,7 +82,31 @@ export function serviceLabel(question: string): string | null {
   return cap(s);
 }
 
-// Chips shown under « Sujet »: up to 3 recent jobs, the season, up to 2 services, before/after
+// Ideas any artisan of a trade can post, whatever his calls: one tip of the trade
+const TRADE_TIPS: [RegExp, string, string][] = [
+  [/plomb/i, "Réflexes en cas de fuite", "Les bons réflexes en cas de fuite d'eau, en attendant le plombier"],
+  [/chauff|chaudi/i, "Entretien de la chaudière", "Pourquoi faire entretenir sa chaudière chaque année"],
+  [/[ée]lectric/i, "Sécurité électrique", "Les signes qu'une installation électrique doit être vérifiée"],
+  [/menuis|[ée]b[ée]nist/i, "Bien choisir ses fenêtres", "Comment bien choisir ses fenêtres ou ses portes"],
+  [/peint/i, "Préparer une pièce à peindre", "Comment préparer une pièce avant des travaux de peinture"],
+  [/ma[çc]on/i, "Fissures\u00a0: quand s’inquiéter", "Fissures dans un mur : lesquelles doivent inquiéter"],
+  [/carrel/i, "Choisir son carrelage", "Comment choisir un carrelage adapté à chaque pièce"],
+  [/couvr|toit|zingu/i, "Vérifier sa toiture", "Les points à vérifier sur sa toiture avant l'hiver"],
+  [/serrur/i, "Porte claquée\u00a0: que faire", "Porte claquée ou clé perdue : les bons réflexes"],
+  [/paysag|jardin|[ée]lag/i, "Le jardin à cette saison", "Ce qu'il faut faire au jardin en ce moment"],
+];
+
+// Ideas that fit the trade, for an artisan with few calls yet: a tip of the trade, then introducing himself
+export function tradeTopics(trade: string): Topic[] {
+  const t = clean(trade) || "artisan";
+  const tip = TRADE_TIPS.find(([re]) => re.test(t));
+  return [
+    tip ? { id: "trade-tip", label: tip[1], prompt: tip[2] } : { id: "trade-tip", label: "Une astuce de métier", prompt: `Une astuce simple de ${t}, utile aux particuliers` },
+    { id: "intro", label: "Me présenter", prompt: `Se présenter : qui je suis, mon parcours, pourquoi j'ai choisi le métier de ${t}, où j'interviens` },
+  ];
+}
+
+// Chips shown under « Sujet »: up to 3 recent jobs, the season, up to 2 services, 2 ideas of the trade, before/after
 export function buildTopics(input: { leads: TopicLead[]; faqs: TopicFaq[]; date: Date; trade: string }): Topic[] {
   const topics: Topic[] = [];
   const seen = new Set<string>();
@@ -107,6 +131,7 @@ export function buildTopics(input: { leads: TopicLead[]; faqs: TopicFaq[]; date:
     topics.push({ id: `service-${services}`, label, prompt: `Présenter un service : ${label.toLowerCase()}` });
     if (++services >= 2) break;
   }
+  for (const t of tradeTopics(trade)) if (!seen.has(fold(t.label.toLowerCase()))) topics.push(t);
   topics.push({ id: "before-after", label: "Avant / après", prompt: "Photo avant / après d'un chantier récent" });
   return topics;
 }
@@ -254,3 +279,42 @@ export function postAge(createdAt: number, now: number): string {
   const d = new Date(createdAt * 1000);
   return `Le ${String(d.getUTCDate()).padStart(2, "0")}/${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
 }
+
+// The artisan's existing pages (businesses.social_links, JSON): only addresses of the network itself are kept
+export type SocialLinks = Partial<Record<Network, string>>;
+const HOSTS: Record<Network, RegExp> = {
+  facebook: /(^|\.)(facebook\.com|fb\.com|fb\.me)$/i,
+  instagram: /(^|\.)instagram\.com$/i,
+  linkedin: /(^|\.)linkedin\.com$/i,
+};
+
+// « facebook.com/plomberie.martin » or a full address → « https://www.facebook.com/plomberie.martin »; null if not that network
+export function normalizePageUrl(network: Network, raw: string): string | null {
+  let s = clean(raw);
+  if (!s) return null;
+  // « @plomberie.martin » on Instagram
+  if (network === "instagram" && /^@[\w.]{1,30}$/.test(s)) s = `instagram.com/${s.slice(1)}`;
+  if (!/^https?:\/\//i.test(s)) s = `https://${s}`;
+  try {
+    const u = new URL(s);
+    if (!HOSTS[network].test(u.hostname) || u.pathname.replace(/\/+$/, "").length < 2) return null;
+    const host = u.hostname.toLowerCase().replace(/^(m|mobile|web)\./, "www.").replace(/^(?!www\.)(?=[^.]+\.[^.]+$)/, "www.");
+    return `https://${host}${u.pathname.replace(/\/+$/, "")}${u.search}`;
+  } catch {
+    return null;
+  }
+}
+
+export function parseSocialLinks(raw: string | null | undefined): SocialLinks {
+  try {
+    const v = JSON.parse(raw ?? "{}") as Record<string, unknown>;
+    const out: SocialLinks = {};
+    for (const n of NETWORKS) if (typeof v[n] === "string") { const url = normalizePageUrl(n, v[n] as string); if (url) out[n] = url; }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+// « https://www.facebook.com/plomberie.martin » → « facebook.com/plomberie.martin »
+export const pageLabel = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "");
