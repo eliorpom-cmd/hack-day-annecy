@@ -21,6 +21,28 @@ Specs à jour (source de vérité, écrite par l'équipe) : https://docs.google.
 - **Ce que la démo montre (3 min)** : 1) l'onboarding, 2) un vrai appel d'un client, 3) ce que reçoit l'artisan (SMS, fiche dans le dashboard).
 - **Hors périmètre aujourd'hui** : site web, réseaux sociaux, pubs, import CRM (on les cite dans le pitch).
 
+
+## Persona et voix (décidé le 29/10, 16 h 15)
+
+**Persona** : 30-40 ans, en reconversion, au début de son activité d'artisan (sorti d'école). Il arrive sur un marché saturé, où les anciens tiennent déjà la clientèle. Ni technophile ni perdu avec le numérique. Il veut aller droit à l'essentiel.
+
+**Voix de l'app** : directe, comme un collègue, en « vous ». Phrases courtes, l'action d'abord. Exemple : « 2 urgences. Rappelez Mme Martin d'abord. »
+
+**Mots** : aucun mot technique, et pas de tournures molles.
+| Au lieu de | On dit |
+|---|---|
+| lead, CRM | client, demande, à rappeler |
+| agent IA, assistante | le répondeur (neutre, pas genré) |
+| base de connaissances | documentation |
+| transcription | contenu de la conversation |
+| onboarding | configuration |
+
+**Message après chaque appel** (WhatsApp de préférence, SMS en secours) : niveau de priorité, pourquoi c'est urgent, résumé de ce que veut le client, nom et numéro pour rappeler.
+
+**Voix au téléphone** :
+- voix clonée de l'artisan : il répond comme lui-même (« Oui allô, Plomberie Martin… ») ;
+- voix de la bibliothèque (homme ou femme) : « Bonjour, ici l'assistant de Plomberie Martin. Marc est sur un chantier, que puis-je faire pour vous ? » (accordé selon la voix choisie).
+
 ## Stack
 
 Décision du 29/10 (15 h) : **on quitte Lovable / Supabase** et on passe sur la stack Cloudflare qu'Elior maîtrise déjà (Printomatic, print-on-my-desk, video.byelior.com).
