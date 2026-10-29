@@ -787,13 +787,12 @@ init.demo = demo;
       ownVoice = r.data.voices.find((v) => v.category === "cloned" && v.id === biz.voice_id) ?? null;
       voices = r.data.voices.filter((v) => v.category !== "cloned");
       if (ownVoice && chosenVoice === ownVoice.id) useOwn = true;
-      // Demo: the team's voice was cloned before the demo; it is his voice, already selected
+      // Demo: the team's cloned voice stays behind « Cloner ma voix », but the library voice Jules is preselected
       const team = init.demo_voice;
       if (team) {
         ownVoice = { id: team.id, name: team.name, preview_url: team.preview_url, category: "cloned", gender: null };
         voices = voices.filter((v) => v.id !== team.id);
-        useOwn = true;
-        chosenVoice = team.id;
+        if (chosenVoice === team.id) { useOwn = false; chosenVoice = null; }
       }
       if (!useOwn && (!chosenVoice || !voices.some((v) => v.id === chosenVoice))) chosenVoice = demo ? pickDemoVoice(voices) : voices[0]?.id ?? null;
       status.hidden = true;

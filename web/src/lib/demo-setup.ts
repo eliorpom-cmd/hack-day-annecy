@@ -100,9 +100,11 @@ export function demoSetup(opts: { origin: string; mobile?: string | null }): Dem
   };
 }
 
-// Library voice preselected on the voice step: Marc is a man, so a male French voice first (« l’assistant »)
-export function pickDemoVoice(voices: { id: string; gender?: string | null; french?: boolean; category?: string }[]): string | null {
+// Library voice preselected on the voice step: « Jules - conversational » (chosen by the team on 29/10), else a
+// male French voice, since Marc is a man (« l’assistant »)
+export const DEMO_VOICE_PREFIX = "Jules";
+export function pickDemoVoice(voices: { id: string; name?: string; gender?: string | null; french?: boolean; category?: string }[]): string | null {
   const library = voices.filter((v) => v.category !== "cloned");
-  const pick = library.find((v) => v.gender === "male" && v.french !== false) ?? library.find((v) => v.gender === "male") ?? library[0];
+  const pick = library.find((v) => (v.name ?? "").startsWith(DEMO_VOICE_PREFIX)) ?? library.find((v) => v.gender === "male" && v.french !== false) ?? library.find((v) => v.gender === "male") ?? library[0];
   return pick?.id ?? null;
 }

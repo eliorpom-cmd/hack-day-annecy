@@ -98,4 +98,5 @@ test("voice: a male library voice first (Marc), never his cloned voice", () => {
   assert.equal(pickDemoVoice(voices.filter((v) => v.id !== "george")), "eng-male");
   assert.equal(pickDemoVoice([{ id: "a", gender: "female" }]), "a");
   assert.equal(pickDemoVoice([]), null);
+  assert.equal(pickDemoVoice([...voices, { id: "jules", name: "Jules - conversational", gender: "male", category: "professional" }]), "jules");
 });
