@@ -51,14 +51,25 @@ export async function sendWhatsApp(creds: TwilioCreds, to: string, body: string)
   return sendTwilioMessage(creds, from, `whatsapp:${to}`, body, "WhatsApp");
 }
 
-// Notifies the artisan: WhatsApp when TWILIO_WHATSAPP_FROM is set, SMS otherwise or as fallback.
+// Notifies the artisan. With `queueWhatsApp` (WHATSAPP_RELAY_TOKEN set), the message goes to the outbox
+// drained by the Baileys relay on the Mac, and Twilio WhatsApp is skipped; SMS only if queueing fails.
+// Otherwise: WhatsApp when TWILIO_WHATSAPP_FROM is set, SMS otherwise or as fallback.
 // Never throws: the outcome is logged and returned so the caller can record it.
 export async function sendCallNotification(
   creds: TwilioCreds,
   to: string,
   body: string,
+  queueWhatsApp?: (to: string, body: string) => Promise<string>,
 ): Promise<{ channel: "whatsapp" | "sms" | "failed"; sid?: string }> {
-  if (creds.whatsappFrom) {
+  if (queueWhatsApp) {
+    try {
+      const id = await queueWhatsApp(to, body);
+      logEvent("info", "whatsapp_relay.queued", { id });
+      return { channel: "whatsapp", sid: id };
+    } catch (e) {
+      logEvent("warn", "whatsapp_relay.queue_failed_fallback_sms", { error: String(e) });
+    }
+  } else if (creds.whatsappFrom) {
     try {
       const sid = await sendWhatsApp(creds, to, body);
       logEvent("info", "twilio.call_notification_sent", { channel: "whatsapp", sid });

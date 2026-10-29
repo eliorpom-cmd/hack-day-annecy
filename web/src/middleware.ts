@@ -2,8 +2,8 @@ import { defineMiddleware } from "astro:middleware";
 import { SESSION_COOKIE, userFromSession } from "./lib/auth";
 import { businessForUser } from "./lib/db";
 
-// Pages that need a logged-in artisan
-const PROTECTED = [/^\/app(\/|$)/, /^\/onboarding(\/|$)/, /^\/api\/(?!auth\/|twilio\/|elevenlabs\/)/];
+// Pages that need a logged-in artisan; webhooks and the WhatsApp relay authenticate with their own token
+const PROTECTED = [/^\/app(\/|$)/, /^\/onboarding(\/|$)/, /^\/api\/(?!auth\/|twilio\/|elevenlabs\/|whatsapp-relay\/)/];
 
 export const onRequest = defineMiddleware(async (ctx, next) => {
   const path = ctx.url.pathname;

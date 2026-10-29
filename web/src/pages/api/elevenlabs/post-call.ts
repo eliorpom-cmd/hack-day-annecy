@@ -6,9 +6,10 @@ import { telEnv, type TelephonyEnv } from "../../../lib/telephony/env";
 import { verifyElevenLabsSignature } from "../../../lib/telephony/signature";
 import { buildCallMessage, parsePostCall } from "../../../lib/telephony/postcall";
 import { logEvent, sendCallNotification } from "../../../lib/telephony/providers";
+import { enqueueWhatsApp } from "../../../lib/telephony/whatsapp-relay";
 
 // TWILIO_WHATSAPP_FROM is read here until it is declared in TelephonyEnv (env.ts)
-type PostCallEnv = TelephonyEnv & { TWILIO_WHATSAPP_FROM?: string };
+type PostCallEnv = TelephonyEnv & { TWILIO_WHATSAPP_FROM?: string; WHATSAPP_RELAY_TOKEN?: string };
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -81,6 +82,10 @@ export const POST: APIRoute = async ({ request }) => {
       },
       business.artisan_phone,
       message,
+      // The Baileys relay on the Mac sends WhatsApp from the GRNBL number while its token is set
+      env.WHATSAPP_RELAY_TOKEN
+        ? (to, body) => enqueueWhatsApp(db(), { businessId: business.id, leadId, to, body })
+        : undefined,
     );
     notification = result.channel;
   }

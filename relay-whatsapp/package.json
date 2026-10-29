@@ -1,0 +1,15 @@
+{
+  "name": "relay-whatsapp",
+  "private": true,
+  "type": "module",
+  "description": "Sends the post-call WhatsApp messages queued by the Worker from the GRNBL WhatsApp number (Baileys).",
+  "scripts": {
+    "start": "node relay.mjs",
+    "check": "node relay.mjs check",
+    "dry-run": "node relay.mjs --dry-run"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "7.0.0-rc14",
+    "pino": "9.6.0"
+  }
+}
