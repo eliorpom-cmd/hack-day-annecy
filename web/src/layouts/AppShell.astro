@@ -5,15 +5,18 @@ import Base from "./Base.astro";
 import Icon from "../components/Icon.astro";
 import { urgentToCallBackCount } from "../lib/leads-list";
 
-type Section = "appels" | "visibilite" | "reglages";
+type Section = "appels" | "visibilite" | "google" | "reseaux" | "pubs" | "reglages";
 interface Props { title: string; active: Section; urgent?: number }
 const { title, active } = Astro.props;
 const { business } = Astro.locals;
 const urgent = Astro.props.urgent ?? (business ? await urgentToCallBackCount(business.id) : 0);
 
-const nav: { id: Section; href: string; label: string; icon: "phone" | "globe" | "settings" }[] = [
+const nav: { id: Section; href: string; label: string; icon: "phone" | "globe" | "settings" | "map" | "message" | "briefcase" }[] = [
   { id: "appels", href: "/app", label: "Appels", icon: "phone" },
-  { id: "visibilite", href: "/app/visibilite", label: "Visibilité", icon: "globe" },
+  { id: "visibilite", href: "/app/visibilite", label: "Site web", icon: "globe" },
+  { id: "google", href: "/app/google", label: "Fiche Google", icon: "map" },
+  { id: "reseaux", href: "/app/reseaux", label: "Réseaux sociaux", icon: "message" },
+  { id: "pubs", href: "/app/publicites", label: "Publicités", icon: "briefcase" },
   { id: "reglages", href: "/app/reglages", label: "Réglages", icon: "settings" },
 ];
 const item = "flex min-h-12 items-center gap-3 rounded-call px-3 font-bold";
