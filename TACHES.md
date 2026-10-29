@@ -21,8 +21,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - déclenché par l'agent ; + transfert de l'appel si possible
 - 11 · Back de l'onboarding et du dashboard (API) (Claude)
   - scan du site, voix, agent ElevenLabs, numéros, fiche, horaires, FAQ, appels, leads, stats ; voir le contrat dans PROJET.md
-- 09 · Mail récap de la semaine (Claude)
-  - appels, urgences, leads ; envoi programmé
 
 ## Fait
 
@@ -40,3 +38,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 - 01 · Inviter Mathieu sur GitHub (Elior)
   - demander son pseudo, rôle Write
   - Fait : Mathieu invité
+- 09 · Mail récap de la semaine (Claude)
+  - appels, urgences, leads ; envoi programmé
+  - Fait : web/src/lib/recap*.ts : mail du lundi via Resend (cron du Worker), 9 tests ; aperçu recapPreview(businessId)
