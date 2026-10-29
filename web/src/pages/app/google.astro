@@ -163,7 +163,7 @@ const prefill = isDemoAccount(Astro.locals.user) ? demoPages(b).google : undefin
 
         <div class="flex flex-col gap-[14px]">
           <MapsPreview name={name} category={trade} rating={rating} count={reviews.length} area={b.city.trim() ? `${b.city.trim()} et alentours` : "Votre secteur"}
-            open={status.open} openText={status.text} website={siteUrl ? siteUrl.replace(/^https?:\/\//, "") : null} phone={shownPhone || null} />
+            photo={prefill ? "/demo/chantier-plombier.jpg" : null} open={status.open} openText={status.text} website={siteUrl ? siteUrl.replace(/^https?:\/\//, "") : null} phone={shownPhone || null} />
 
           <section aria-labelledby="g-reviews" class="mt-2 flex flex-col gap-2">
             <div class="flex items-end justify-between px-[14px]">
