@@ -29,9 +29,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section className="mt-10">
       <h2 className="font-display text-xl font-semibold text-foreground">{title}</h2>
-      <div className="mt-3 space-y-3 text-sm leading-relaxed text-muted-foreground">
-        {children}
-      </div>
+      <div className="mt-3 space-y-3 text-sm leading-relaxed text-muted-foreground">{children}</div>
     </section>
   );
 }
@@ -49,8 +47,8 @@ function PrivacyPage() {
         <Section title="1. Who we are">
           <p>
             AI Phone Desk ("AI Phone Desk", "we", "us") provides AI receptionist software that
-            answers phone calls, books appointments, and manages customer conversations on behalf
-            of the businesses that use it ("Customers"). This policy explains what information we
+            answers phone calls, books appointments, and manages customer conversations on behalf of
+            the businesses that use it ("Customers"). This policy explains what information we
             collect, why, and how it is protected.
           </p>
         </Section>
@@ -87,9 +85,14 @@ function PrivacyPage() {
 
         <Section title="3. How we use information">
           <ul className="list-disc space-y-2 pl-5">
-            <li>Provide, operate, and maintain the service, including answering calls and booking appointments for your business.</li>
+            <li>
+              Provide, operate, and maintain the service, including answering calls and booking
+              appointments for your business.
+            </li>
             <li>Process payments, manage subscriptions, and prevent fraud.</li>
-            <li>Send service-related communications (receipts, security notices, product updates).</li>
+            <li>
+              Send service-related communications (receipts, security notices, product updates).
+            </li>
             <li>Improve reliability, safety, and performance of the service.</li>
             <li>Comply with legal obligations and enforce our Terms of Service.</li>
           </ul>
@@ -110,10 +113,10 @@ function PrivacyPage() {
 
         <Section title="5. Service providers">
           <p>
-            We use a small number of trusted subprocessors to deliver the service: cloud hosting
-            and database infrastructure, voice and language processing, telephony carriers, and
-            payment processing. Each is bound by contractual confidentiality and data-protection
-            obligations and may only process data to provide their service to us.
+            We use a small number of trusted subprocessors to deliver the service: cloud hosting and
+            database infrastructure, voice and language processing, telephony carriers, and payment
+            processing. Each is bound by contractual confidentiality and data-protection obligations
+            and may only process data to provide their service to us.
           </p>
         </Section>
 
@@ -139,8 +142,8 @@ function PrivacyPage() {
           <p>
             You may access, correct, export, or delete your personal information from your account
             settings or by contacting us. Depending on your state or country, you may have
-            additional rights (for example under CCPA/CPRA or GDPR); we honor those requests for
-            all users regardless of location.
+            additional rights (for example under CCPA/CPRA or GDPR); we honor those requests for all
+            users regardless of location.
           </p>
         </Section>
 
@@ -162,7 +165,10 @@ function PrivacyPage() {
         <Section title="11. Contact">
           <p>
             Questions about this policy or your data: email{" "}
-            <a href="mailto:privacy@ai-phone-desk.com" className="text-primary underline underline-offset-2">
+            <a
+              href="mailto:privacy@ai-phone-desk.com"
+              className="text-primary underline underline-offset-2"
+            >
               privacy@ai-phone-desk.com
             </a>
             .

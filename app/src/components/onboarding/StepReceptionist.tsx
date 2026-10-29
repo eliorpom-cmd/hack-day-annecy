@@ -3,7 +3,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AudioLines, Check, Loader2, RefreshCcw, Sparkles } from "lucide-react";
-import { AccentFlag, VoicePreviewButton, playVoicePreview } from "@/components/voice/VoicePreviewButton";
+import {
+  AccentFlag,
+  VoicePreviewButton,
+  playVoicePreview,
+} from "@/components/voice/VoicePreviewButton";
 import { toast } from "sonner";
 import { callAuthed } from "@/lib/auth/client";
 import { getVoicesFn } from "@/lib/public/public.functions";
@@ -21,7 +25,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 
 const TONES = [
@@ -90,7 +101,10 @@ export function StepReceptionist({
     let cancelled = false;
     (async () => {
       try {
-        const [voiceList, existing] = await Promise.all([getVoicesFn(), callAuthed(listReceptionistsFn)]);
+        const [voiceList, existing] = await Promise.all([
+          getVoicesFn(),
+          callAuthed(listReceptionistsFn),
+        ]);
         if (cancelled) return;
         setVoices(voiceList);
         const rec = existing[0];
@@ -104,7 +118,9 @@ export function StepReceptionist({
             custom_instructions: "",
           });
         }
-        const recommended = voiceList.find((v) => v.recommended_industries?.includes(industry ?? "")) ?? voiceList.find((v) => v.is_default);
+        const recommended =
+          voiceList.find((v) => v.recommended_industries?.includes(industry ?? "")) ??
+          voiceList.find((v) => v.is_default);
         if (recommended) form.setValue("voice_id", recommended.id);
       } catch {
         toast.error("We couldn't load voice options.");
@@ -122,7 +138,16 @@ export function StepReceptionist({
     try {
       if (existingId) {
         await callAuthed(updateReceptionistFn, {
-          data: { id: existingId, patch: { name: values.name, voice_id: values.voice_id, greeting: values.greeting, tone: values.tone, custom_instructions: values.custom_instructions || null } },
+          data: {
+            id: existingId,
+            patch: {
+              name: values.name,
+              voice_id: values.voice_id,
+              greeting: values.greeting,
+              tone: values.tone,
+              custom_instructions: values.custom_instructions || null,
+            },
+          },
         });
         setCreatingId(existingId);
       } else {
@@ -161,7 +186,9 @@ export function StepReceptionist({
       <h1 className="font-display text-2xl font-semibold text-foreground">
         {existingId ? "Update your receptionist" : "Set up your receptionist"}
       </h1>
-      <p className="mt-1 text-sm text-muted-foreground">Choose a voice and personality that fits your business.</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Choose a voice and personality that fits your business.
+      </p>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-6">
@@ -170,7 +197,8 @@ export function StepReceptionist({
             <div className="grid gap-3 sm:grid-cols-2">
               {voices.map((v) => {
                 const selected = form.watch("voice_id") === v.id;
-                const matchesBusiness = !!industry && !!v.recommended_industries?.includes(industry);
+                const matchesBusiness =
+                  !!industry && !!v.recommended_industries?.includes(industry);
                 return (
                   <button
                     type="button"
@@ -181,7 +209,9 @@ export function StepReceptionist({
                     }}
                     className={cn(
                       "flex flex-col gap-2 rounded-xl border p-4 text-left transition-colors",
-                      selected ? "border-accent bg-accent/5" : "border-border hover:border-foreground/30",
+                      selected
+                        ? "border-accent bg-accent/5"
+                        : "border-border hover:border-foreground/30",
                     )}
                   >
                     <div className="flex items-center justify-between">
@@ -189,16 +219,27 @@ export function StepReceptionist({
                         <AudioLines className="h-4 w-4 text-accent" />
                         <span className="font-medium text-foreground">{v.name}</span>
                         <AccentFlag accent={v.accent} />
-                        {v.gender && <span className="text-xs text-muted-foreground">· {v.gender}</span>}
+                        {v.gender && (
+                          <span className="text-xs text-muted-foreground">· {v.gender}</span>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <VoicePreviewButton previewUrl={v.preview_url} previewId={v.id} voiceName={v.name} />
+                        <VoicePreviewButton
+                          previewUrl={v.preview_url}
+                          previewId={v.id}
+                          voiceName={v.name}
+                        />
                         {selected && <Check className="h-4 w-4 text-accent" />}
                       </div>
                     </div>
-                    {v.description && <p className="text-xs text-muted-foreground">{v.description}</p>}
+                    {v.description && (
+                      <p className="text-xs text-muted-foreground">{v.description}</p>
+                    )}
                     {matchesBusiness && (
-                      <Badge variant="secondary" className="w-fit gap-1 text-[10px] font-normal text-accent">
+                      <Badge
+                        variant="secondary"
+                        className="w-fit gap-1 text-[10px] font-normal text-accent"
+                      >
                         <Sparkles className="h-3 w-3" /> Matches your business
                       </Badge>
                     )}
@@ -215,8 +256,12 @@ export function StepReceptionist({
                 );
               })}
             </div>
-            <p className="text-xs text-muted-foreground">Tap a voice to hear it before you choose.</p>
-            {form.formState.errors.voice_id && <p className="text-sm text-destructive">{form.formState.errors.voice_id.message}</p>}
+            <p className="text-xs text-muted-foreground">
+              Tap a voice to hear it before you choose.
+            </p>
+            {form.formState.errors.voice_id && (
+              <p className="text-sm text-destructive">{form.formState.errors.voice_id.message}</p>
+            )}
           </section>
 
           <section className="card-elevated space-y-4 p-6">
@@ -253,7 +298,11 @@ export function StepReceptionist({
                 <FormItem>
                   <FormLabel>Tone</FormLabel>
                   <FormControl>
-                    <RadioGroup value={field.value} onValueChange={field.onChange} className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    <RadioGroup
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+                    >
                       {TONES.map((t) => (
                         <Label
                           key={t.value}
@@ -278,7 +327,11 @@ export function StepReceptionist({
                 <FormItem>
                   <FormLabel>Anything else it should know? (optional)</FormLabel>
                   <FormControl>
-                    <Textarea rows={3} placeholder="Special instructions, things to avoid, etc." {...field} />
+                    <Textarea
+                      rows={3}
+                      placeholder="Special instructions, things to avoid, etc."
+                      {...field}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -345,7 +398,9 @@ function CreationProgress({ id, onReady }: { id: string; onReady: () => void }) 
 
   return (
     <div className="card-elevated flex flex-col items-center p-10 text-center">
-      <h2 className="font-display text-xl font-semibold text-foreground">Creating your receptionist</h2>
+      <h2 className="font-display text-xl font-semibold text-foreground">
+        Creating your receptionist
+      </h2>
       <ul className="mt-6 w-full max-w-sm space-y-3 text-left">
         {CHECKLIST.map((item, i) => {
           const done = !isError && i < stepIndex;
@@ -359,16 +414,24 @@ function CreationProgress({ id, onReady }: { id: string; onReady: () => void }) 
               ) : (
                 <span className="h-4 w-4 rounded-full border border-border" />
               )}
-              <span className={cn(done || active ? "text-foreground" : "text-muted-foreground")}>{item.label}</span>
+              <span className={cn(done || active ? "text-foreground" : "text-muted-foreground")}>
+                {item.label}
+              </span>
             </li>
           );
         })}
       </ul>
       {isError && (
         <div className="mt-6">
-          <p className="text-sm text-destructive">{message ?? "We hit a snag creating your receptionist."}</p>
+          <p className="text-sm text-destructive">
+            {message ?? "We hit a snag creating your receptionist."}
+          </p>
           <Button className="mt-4" onClick={retry} disabled={retrying}>
-            {retrying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCcw className="mr-2 h-4 w-4" />}
+            {retrying ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCcw className="mr-2 h-4 w-4" />
+            )}
             Retry
           </Button>
         </div>

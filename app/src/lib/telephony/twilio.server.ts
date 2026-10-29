@@ -6,11 +6,15 @@ const GATEWAY_URL = "https://connector-gateway.lovable.dev/twilio";
 function headers() {
   const lovable = process.env["LOVABLE_API_KEY"];
   const twilio = process.env["TWILIO_API_KEY"];
-  if (!lovable || !twilio) throw new AppError("Phone numbers aren't available right now.", { status: 503 });
+  if (!lovable || !twilio)
+    throw new AppError("Phone numbers aren't available right now.", { status: 503 });
   return { Authorization: `Bearer ${lovable}`, "X-Connection-Api-Key": twilio };
 }
 
-async function twilioRequest<T>(path: string, init: { method?: string; form?: Record<string, string> } = {}): Promise<T> {
+async function twilioRequest<T>(
+  path: string,
+  init: { method?: string; form?: Record<string, string> } = {},
+): Promise<T> {
   const started = Date.now();
   const res = await retry(
     () =>
@@ -72,11 +76,25 @@ export const twilioProvider: TelephonyProvider = {
       }));
   },
   async purchaseNumber({ phoneNumber, voiceUrl, label }) {
-    const data = await twilioRequest<{ sid: string; phone_number: string; friendly_name: string; voice_url: string }>(
-      "/IncomingPhoneNumbers.json",
-      { method: "POST", form: { PhoneNumber: phoneNumber, VoiceUrl: voiceUrl, VoiceMethod: "POST", FriendlyName: label } },
-    );
-    return { sid: data.sid, phoneNumber: data.phone_number, voiceUrl: data.voice_url } satisfies PurchasedNumber;
+    const data = await twilioRequest<{
+      sid: string;
+      phone_number: string;
+      friendly_name: string;
+      voice_url: string;
+    }>("/IncomingPhoneNumbers.json", {
+      method: "POST",
+      form: {
+        PhoneNumber: phoneNumber,
+        VoiceUrl: voiceUrl,
+        VoiceMethod: "POST",
+        FriendlyName: label,
+      },
+    });
+    return {
+      sid: data.sid,
+      phoneNumber: data.phone_number,
+      voiceUrl: data.voice_url,
+    } satisfies PurchasedNumber;
   },
   async configureNumber(sid, voiceUrl) {
     const data = await twilioRequest<{ voice_url: string }>(`/IncomingPhoneNumbers/${sid}.json`, {

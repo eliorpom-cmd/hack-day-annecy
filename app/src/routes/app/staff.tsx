@@ -7,13 +7,31 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { callAuthed } from "@/lib/auth/client";
 import { getBusinessFn, saveBusinessFn } from "@/lib/onboarding/onboarding.functions";
-import { emptyBusinessProfile, defaultHours, type BusinessProfile, type StaffInput } from "@/lib/business/schema";
+import {
+  emptyBusinessProfile,
+  defaultHours,
+  type BusinessProfile,
+  type StaffInput,
+} from "@/lib/business/schema";
 
 export const Route = createFileRoute("/app/staff")({
   component: StaffPage,
@@ -47,7 +65,10 @@ function StaffPage() {
     );
   }
 
-  const profile: BusinessProfile = query.data.profile ?? { ...emptyBusinessProfile(), hours: defaultHours() };
+  const profile: BusinessProfile = query.data.profile ?? {
+    ...emptyBusinessProfile(),
+    hours: defaultHours(),
+  };
   const staff = profile.staff;
 
   function openNew() {
@@ -141,19 +162,31 @@ function StaffPage() {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label>Name</Label>
-              <Input value={draft.name} onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))} />
+              <Input
+                value={draft.name}
+                onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Role</Label>
-              <Input value={draft.role ?? ""} onChange={(e) => setDraft((d) => ({ ...d, role: e.target.value }))} />
+              <Input
+                value={draft.role ?? ""}
+                onChange={(e) => setDraft((d) => ({ ...d, role: e.target.value }))}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Phone</Label>
-              <Input value={draft.phone ?? ""} onChange={(e) => setDraft((d) => ({ ...d, phone: e.target.value }))} />
+              <Input
+                value={draft.phone ?? ""}
+                onChange={(e) => setDraft((d) => ({ ...d, phone: e.target.value }))}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Email</Label>
-              <Input value={draft.email ?? ""} onChange={(e) => setDraft((d) => ({ ...d, email: e.target.value }))} />
+              <Input
+                value={draft.email ?? ""}
+                onChange={(e) => setDraft((d) => ({ ...d, email: e.target.value }))}
+              />
             </div>
           </div>
           <DialogFooter>

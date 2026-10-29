@@ -80,12 +80,17 @@ function VoiceSessionInner({
       onEnded?.({ seconds: secs });
     },
     onMessage: (m) => {
-      const role = (m as { role?: string; source?: string }).role ?? (m as { source?: string }).source;
+      const role =
+        (m as { role?: string; source?: string }).role ?? (m as { source?: string }).source;
       setLines((prev) => [...prev, { role: role === "user" ? "user" : "agent", text: m.message }]);
     },
     onError: (msg) => {
       setConnecting(false);
-      setError(typeof msg === "string" ? "The call dropped. Please try again." : "Something went wrong with the call.");
+      setError(
+        typeof msg === "string"
+          ? "The call dropped. Please try again."
+          : "Something went wrong with the call.",
+      );
     },
   });
 
@@ -104,7 +109,10 @@ function VoiceSessionInner({
   }, [connected, limit, conversation]);
 
   useEffect(() => {
-    transcriptRef.current?.scrollTo({ top: transcriptRef.current.scrollHeight, behavior: "smooth" });
+    transcriptRef.current?.scrollTo({
+      top: transcriptRef.current.scrollHeight,
+      behavior: "smooth",
+    });
   }, [lines]);
 
   const start = useCallback(async () => {
@@ -117,7 +125,9 @@ function VoiceSessionInner({
       // playback right away, before any network wait.
       const micPromise = navigator.mediaDevices.getUserMedia({ audio: true });
       try {
-        const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const Ctx =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
         if (Ctx) {
           const ctx = new Ctx();
           await ctx.resume().catch(() => {});
@@ -134,19 +144,27 @@ function VoiceSessionInner({
       const [stream, res] = await Promise.all([micPromise, getToken()]);
       // Release the permission stream so the call can use the mic on mobile.
       stream.getTracks().forEach((t) => t.stop());
-      if (res.secondsAllowed) setLimit(maxSeconds ? Math.min(maxSeconds, res.secondsAllowed) : res.secondsAllowed);
+      if (res.secondsAllowed)
+        setLimit(maxSeconds ? Math.min(maxSeconds, res.secondsAllowed) : res.secondsAllowed);
       if (res.mock || !res.token) {
         setMockMode(true);
         setConnecting(false);
-        setLines([{ role: "agent", text: "Voice is running in preview mode here — connect ElevenLabs to talk live. Your receptionist is configured and ready." }]);
+        setLines([
+          {
+            role: "agent",
+            text: "Voice is running in preview mode here — connect ElevenLabs to talk live. Your receptionist is configured and ready.",
+          },
+        ]);
         return;
       }
       await conversation.startSession({ conversationToken: res.token, connectionType: "webrtc" });
     } catch (e) {
       setConnecting(false);
       const msg = e instanceof Error ? e.message : "";
-      if (/denied|permission|NotAllowed/i.test(msg)) setError("We need microphone access to start the call.");
-      else setError(msg && msg.length < 140 ? msg : "We couldn't start the call. Please try again.");
+      if (/denied|permission|NotAllowed/i.test(msg))
+        setError("We need microphone access to start the call.");
+      else
+        setError(msg && msg.length < 140 ? msg : "We couldn't start the call. Please try again.");
     }
   }, [getToken, conversation, maxSeconds]);
 
@@ -180,13 +198,15 @@ function VoiceSessionInner({
           ? "Listening…"
           : orbState === "error"
             ? "Call ended"
-            : subtitle ?? "Tap to start a conversation";
+            : (subtitle ?? "Tap to start a conversation");
 
   const active = connected || mockMode;
 
   return (
     <div className={cn("flex flex-col items-center text-center", className)}>
-      {title && !compact && <h3 className="font-display text-xl font-semibold text-foreground">{title}</h3>}
+      {title && !compact && (
+        <h3 className="font-display text-xl font-semibold text-foreground">{title}</h3>
+      )}
       <div className={cn("relative", compact ? "my-3" : "my-6")}>
         <VoiceOrb state={orbState} size={compact ? "md" : orbSize} />
       </div>
@@ -204,7 +224,12 @@ function VoiceSessionInner({
 
       <div className="mt-5 flex items-center gap-2">
         {!active ? (
-          <Button size="lg" onClick={start} disabled={connecting} className="rounded-full px-6 shadow-glow">
+          <Button
+            size="lg"
+            onClick={start}
+            disabled={connecting}
+            className="rounded-full px-6 shadow-glow"
+          >
             <Mic className="mr-2 h-4 w-4" />
             {connecting ? "Connecting…" : startLabel}
           </Button>
@@ -218,7 +243,11 @@ function VoiceSessionInner({
                 onClick={() => conversation.setMuted(!conversation.isMuted)}
                 aria-label={conversation.isMuted ? "Unmute" : "Mute"}
               >
-                {conversation.isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                {conversation.isMuted ? (
+                  <MicOff className="h-4 w-4" />
+                ) : (
+                  <Mic className="h-4 w-4" />
+                )}
               </Button>
             )}
             <Button variant="destructive" size="lg" onClick={stop} className="rounded-full px-6">
@@ -230,7 +259,9 @@ function VoiceSessionInner({
 
       {!active && suggestions.length > 0 && (
         <div className="mt-6 text-left">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Try asking about</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Try asking about
+          </p>
           <ul className="mt-2 space-y-1.5">
             {suggestions.map((s) => (
               <li key={s} className="flex items-center gap-2 text-sm text-foreground/80">
@@ -243,13 +274,21 @@ function VoiceSessionInner({
       )}
 
       {showTranscript && lines.length > 0 && (
-        <div ref={transcriptRef} className="mt-6 max-h-56 w-full space-y-2 overflow-y-auto rounded-xl border bg-surface p-3 text-left text-sm">
+        <div
+          ref={transcriptRef}
+          className="mt-6 max-h-56 w-full space-y-2 overflow-y-auto rounded-xl border bg-surface p-3 text-left text-sm"
+        >
           {lines.map((l, i) => (
-            <div key={i} className={cn("flex", l.role === "user" ? "justify-end" : "justify-start")}>
+            <div
+              key={i}
+              className={cn("flex", l.role === "user" ? "justify-end" : "justify-start")}
+            >
               <span
                 className={cn(
                   "max-w-[85%] rounded-2xl px-3 py-1.5",
-                  l.role === "user" ? "bg-primary text-primary-foreground" : "bg-card text-foreground border",
+                  l.role === "user"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-card text-foreground border",
                 )}
               >
                 {l.text}
@@ -270,8 +309,19 @@ function VoiceSessionInner({
             setText("");
           }}
         >
-          <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Or type a message…" className="rounded-full" />
-          <Button type="submit" size="icon" variant="secondary" className="rounded-full" aria-label="Send">
+          <Input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Or type a message…"
+            className="rounded-full"
+          />
+          <Button
+            type="submit"
+            size="icon"
+            variant="secondary"
+            className="rounded-full"
+            aria-label="Send"
+          >
             <Send className="h-4 w-4" />
           </Button>
         </form>

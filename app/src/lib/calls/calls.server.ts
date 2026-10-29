@@ -1,4 +1,8 @@
-import { listConversations, getConversation, type ConversationDetail } from "@/lib/elevenlabs/conversations.server";
+import {
+  listConversations,
+  getConversation,
+  type ConversationDetail,
+} from "@/lib/elevenlabs/conversations.server";
 
 type Admin = Awaited<typeof import("@/integrations/supabase/client.server")>["supabaseAdmin"];
 
@@ -12,7 +16,10 @@ function callerPhone(d: ConversationDetail): string | null {
 
 function isPhone(d: ConversationDetail) {
   const meta = d.metadata as Record<string, any>;
-  return !!meta?.phone_call || !!(d as any).conversation_initiation_client_data?.dynamic_variables?.system__caller_id;
+  return (
+    !!meta?.phone_call ||
+    !!(d as any).conversation_initiation_client_data?.dynamic_variables?.system__caller_id
+  );
 }
 
 /**
@@ -29,7 +36,10 @@ export async function syncOrgCalls(orgId: string) {
     .not("elevenlabs_agent_id", "is", null);
   if (!recs?.length) return { synced: 0 };
 
-  const { data: existing } = await db.from("calls").select("external_id, status").eq("organization_id", orgId);
+  const { data: existing } = await db
+    .from("calls")
+    .select("external_id, status")
+    .eq("organization_id", orgId);
   const known = new Map((existing ?? []).map((c) => [c.external_id, c.status]));
 
   const toFetch: { id: string; receptionistId: string }[] = [];
@@ -70,14 +80,23 @@ export async function syncOrgCalls(orgId: string) {
           .map((t) => ({ role: t.role, message: t.message, t: t.time_in_call_secs })),
         duration_secs: Math.round(d.metadata?.call_duration_secs ?? 0),
         has_audio: !!d.has_audio,
-        started_at: new Date((d.metadata?.start_time_unix_secs ?? Date.now() / 1000) * 1000).toISOString(),
+        started_at: new Date(
+          (d.metadata?.start_time_unix_secs ?? Date.now() / 1000) * 1000,
+        ).toISOString(),
         synced_at: new Date().toISOString(),
       };
       const { error } = await db.from("calls").upsert(row, { onConflict: "external_id" });
       if (error) throw error;
       synced++;
     } catch (e) {
-      console.error(JSON.stringify({ level: "error", event: "calls.sync_failed", conversation: item.id, error: String(e) }));
+      console.error(
+        JSON.stringify({
+          level: "error",
+          event: "calls.sync_failed",
+          conversation: item.id,
+          error: String(e),
+        }),
+      );
     }
   }
 
@@ -100,10 +119,19 @@ async function rebuildClients(db: Admin, orgId: string) {
     .not("caller_phone", "is", null);
   const names = new Map((appts ?? []).map((a) => [a.caller_phone, a]));
 
-  const byPhone = new Map<string, { first: string; last: string; count: number; summary: string | null; ids: string[] }>();
+  const byPhone = new Map<
+    string,
+    { first: string; last: string; count: number; summary: string | null; ids: string[] }
+  >();
   for (const c of calls ?? []) {
     const p = c.caller_phone!;
-    const cur = byPhone.get(p) ?? { first: c.started_at, last: c.started_at, count: 0, summary: null, ids: [] };
+    const cur = byPhone.get(p) ?? {
+      first: c.started_at,
+      last: c.started_at,
+      count: 0,
+      summary: null,
+      ids: [],
+    };
     cur.last = c.started_at;
     cur.count++;
     cur.summary = c.summary ?? cur.summary;

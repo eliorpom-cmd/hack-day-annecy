@@ -50,7 +50,8 @@ export function VoicePreviewButton({
   const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
-    const listener = (playingId: string | null) => setPlaying(playingId !== null && playingId === id);
+    const listener = (playingId: string | null) =>
+      setPlaying(playingId !== null && playingId === id);
     listeners.add(listener);
     listener(currentId);
     return () => {
@@ -81,16 +82,32 @@ export function VoicePreviewButton({
         className,
       )}
     >
-      {playing ? <Square className="h-3 w-3 fill-current" /> : <Play className="ml-0.5 h-3 w-3 fill-current" />}
+      {playing ? (
+        <Square className="h-3 w-3 fill-current" />
+      ) : (
+        <Play className="ml-0.5 h-3 w-3 fill-current" />
+      )}
     </button>
   );
 }
 
 export function AccentFlag({ accent }: { accent?: string | null }) {
   if (!accent) return null;
-  const flag = accent === "american" ? "🇺🇸" : accent === "british" ? "🇬🇧" : accent === "australian" ? "🇦🇺" : null;
+  const flag =
+    accent === "american"
+      ? "🇺🇸"
+      : accent === "british"
+        ? "🇬🇧"
+        : accent === "australian"
+          ? "🇦🇺"
+          : null;
   if (!flag) return null;
-  const label = accent === "american" ? "US accent" : accent === "british" ? "British accent" : "Australian accent";
+  const label =
+    accent === "american"
+      ? "US accent"
+      : accent === "british"
+        ? "British accent"
+        : "Australian accent";
   return (
     <span role="img" aria-label={label} title={label} className="text-sm leading-none">
       {flag}

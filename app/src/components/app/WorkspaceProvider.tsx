@@ -20,8 +20,17 @@ export function useWorkspaceQuery() {
   });
 }
 
-export function WorkspaceProvider({ workspace, refetch, isFetching, children }: WorkspaceContextValue & { children: ReactNode }) {
-  return <WorkspaceContext.Provider value={{ workspace, refetch, isFetching }}>{children}</WorkspaceContext.Provider>;
+export function WorkspaceProvider({
+  workspace,
+  refetch,
+  isFetching,
+  children,
+}: WorkspaceContextValue & { children: ReactNode }) {
+  return (
+    <WorkspaceContext.Provider value={{ workspace, refetch, isFetching }}>
+      {children}
+    </WorkspaceContext.Provider>
+  );
 }
 
 export function useWorkspace() {

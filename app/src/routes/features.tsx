@@ -30,37 +30,61 @@ const SECTIONS = [
     icon: PhoneCall,
     heading: "Answers every call, day or night",
     body: "Your receptionist picks up in one ring, whether it's a customer on their lunch break or a Saturday-night emergency. No hold music, no voicemail, no missed opportunity.",
-    bullets: ["24/7 coverage, including holidays", "Handles multiple calls at once", "Sounds natural, not robotic"],
+    bullets: [
+      "24/7 coverage, including holidays",
+      "Handles multiple calls at once",
+      "Sounds natural, not robotic",
+    ],
   },
   {
     icon: CalendarCheck,
     heading: "Books appointments straight into your calendar",
     body: "Callers ask for a time, your receptionist checks availability and creates a request on your calendar. You stay in control — every booking is confirmed the way you already run your business.",
-    bullets: ["Collects name, contact, and reason for the visit", "Works with the calendar you already use", "Sends confirmations automatically"],
+    bullets: [
+      "Collects name, contact, and reason for the visit",
+      "Works with the calendar you already use",
+      "Sends confirmations automatically",
+    ],
   },
   {
     icon: RouteIcon,
     heading: "Transfers to the right person",
     body: "Not every call should end with the AI. Urgent issues, VIP clients, or anything outside its scope get routed to a real person on your team, with context passed along so nothing repeats.",
-    bullets: ["Custom transfer rules per call type", "Warm handoff with call context", "Fallback to voicemail if no one answers"],
+    bullets: [
+      "Custom transfer rules per call type",
+      "Warm handoff with call context",
+      "Fallback to voicemail if no one answers",
+    ],
   },
   {
     icon: FileText,
     heading: "Call summaries and transcripts",
     body: "Every call is logged with a clean summary and full transcript, so you always know who called, why, and what was said — without listening to a single recording.",
-    bullets: ["Searchable call history", "Delivered to your inbox or dashboard", "Exportable for your records"],
+    bullets: [
+      "Searchable call history",
+      "Delivered to your inbox or dashboard",
+      "Exportable for your records",
+    ],
   },
   {
     icon: BrainCircuit,
     heading: "Knows your business, from your website",
     body: "We scan your website to build a profile of your services, hours, and policies. Your receptionist only speaks from that profile — accurate, on-brand, and easy to keep up to date.",
-    bullets: ["Set up in minutes, no scripting required", "Update anytime from your dashboard", "Answers stay grounded in your real information"],
+    bullets: [
+      "Set up in minutes, no scripting required",
+      "Update anytime from your dashboard",
+      "Answers stay grounded in your real information",
+    ],
   },
   {
     icon: Smartphone,
     heading: "One number for the phone and the browser",
     body: "Get a dedicated business phone number, or let visitors talk to your receptionist right from your website. Either way, it's the same AI, the same knowledge, the same consistent answers.",
-    bullets: ["Port or forward an existing number", "Embed a voice widget on your site", "Consistent experience across both"],
+    bullets: [
+      "Port or forward an existing number",
+      "Embed a voice widget on your site",
+      "Consistent experience across both",
+    ],
   },
 ];
 
@@ -127,7 +151,12 @@ function FeaturesPage() {
             <Button asChild size="lg" variant="secondary" className="shadow-glow">
               <a href="/auth?mode=signup">Create your receptionist</a>
             </Button>
-            <Button asChild size="lg" variant="outline" className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10"
+            >
               <Link to="/pricing">See pricing</Link>
             </Button>
           </div>

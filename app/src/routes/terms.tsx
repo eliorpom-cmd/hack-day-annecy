@@ -29,9 +29,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section className="mt-10">
       <h2 className="font-display text-xl font-semibold text-foreground">{title}</h2>
-      <div className="mt-3 space-y-3 text-sm leading-relaxed text-muted-foreground">
-        {children}
-      </div>
+      <div className="mt-3 space-y-3 text-sm leading-relaxed text-muted-foreground">{children}</div>
     </section>
   );
 }
@@ -49,40 +47,70 @@ function TermsPage() {
         <Section title="1. Agreement">
           <p>
             These Terms of Service ("Terms") are a binding agreement between you ("you", the
-            "Customer") and AI Phone Desk ("we", "us"). By creating an account or using the
-            service, you agree to these Terms. If you use the service on behalf of a business, you
-            represent that you are authorized to bind that business.
+            "Customer") and AI Phone Desk ("we", "us"). By creating an account or using the service,
+            you agree to these Terms. If you use the service on behalf of a business, you represent
+            that you are authorized to bind that business.
           </p>
         </Section>
 
         <Section title="2. The service">
           <p>
             AI Phone Desk provides software that answers phone calls and messages using an AI
-            receptionist, books appointments, and manages customer conversations on your behalf.
-            The AI receptionist speaks only from the business information you provide or approve.
-            We may improve, update, or modify features over time; we will not materially reduce the
-            core functionality of a paid plan during an active billing period.
+            receptionist, books appointments, and manages customer conversations on your behalf. The
+            AI receptionist speaks only from the business information you provide or approve. We may
+            improve, update, or modify features over time; we will not materially reduce the core
+            functionality of a paid plan during an active billing period.
           </p>
         </Section>
 
         <Section title="3. Your responsibilities">
           <ul className="list-disc space-y-2 pl-5">
-            <li>Provide accurate business information and keep it up to date. The receptionist's answers are only as good as the information you give it.</li>
-            <li>Comply with all laws applicable to your calls, including call-recording consent laws, telemarketing rules (TCPA), and industry regulations (for example HIPAA if you handle health information — contact us before using the service for regulated data).</li>
-            <li>Inform your callers where required that calls may be answered by an AI and may be recorded.</li>
-            <li>Keep your account credentials confidential. You are responsible for all activity under your account.</li>
-            <li>Review appointments, messages, and actions taken by the receptionist. You remain responsible for your customer relationships and commitments made to your callers.</li>
+            <li>
+              Provide accurate business information and keep it up to date. The receptionist's
+              answers are only as good as the information you give it.
+            </li>
+            <li>
+              Comply with all laws applicable to your calls, including call-recording consent laws,
+              telemarketing rules (TCPA), and industry regulations (for example HIPAA if you handle
+              health information — contact us before using the service for regulated data).
+            </li>
+            <li>
+              Inform your callers where required that calls may be answered by an AI and may be
+              recorded.
+            </li>
+            <li>
+              Keep your account credentials confidential. You are responsible for all activity under
+              your account.
+            </li>
+            <li>
+              Review appointments, messages, and actions taken by the receptionist. You remain
+              responsible for your customer relationships and commitments made to your callers.
+            </li>
           </ul>
         </Section>
 
         <Section title="4. Acceptable use">
           <p>You may not use the service to:</p>
           <ul className="list-disc space-y-2 pl-5">
-            <li>Make unsolicited marketing or robocalls, or violate anti-spam or telemarketing laws;</li>
-            <li>Impersonate another person or business, or misrepresent the AI as a human where disclosure is required;</li>
-            <li>Process emergency calls — the service is not a replacement for 911 or any emergency line;</li>
-            <li>Collect payment card numbers, Social Security numbers, or similarly sensitive data through calls;</li>
-            <li>Interfere with, probe, or reverse engineer the service, or resell access without our written consent;</li>
+            <li>
+              Make unsolicited marketing or robocalls, or violate anti-spam or telemarketing laws;
+            </li>
+            <li>
+              Impersonate another person or business, or misrepresent the AI as a human where
+              disclosure is required;
+            </li>
+            <li>
+              Process emergency calls — the service is not a replacement for 911 or any emergency
+              line;
+            </li>
+            <li>
+              Collect payment card numbers, Social Security numbers, or similarly sensitive data
+              through calls;
+            </li>
+            <li>
+              Interfere with, probe, or reverse engineer the service, or resell access without our
+              written consent;
+            </li>
             <li>Violate any third party's rights or any applicable law.</li>
           </ul>
           <p>
@@ -94,8 +122,8 @@ function TermsPage() {
         <Section title="5. Subscriptions and billing">
           <p>
             Paid plans are billed in advance on a monthly or annual cycle and renew automatically
-            until cancelled. Usage beyond your plan's included minutes is billed at the overage
-            rate shown on the pricing page. You can cancel anytime from your dashboard; cancellation
+            until cancelled. Usage beyond your plan's included minutes is billed at the overage rate
+            shown on the pricing page. You can cancel anytime from your dashboard; cancellation
             takes effect at the end of the current billing period and no further charges occur.
             Except where required by law, payments are non-refundable and we do not provide refunds
             or credits for partial periods or unused minutes.
@@ -119,9 +147,9 @@ function TermsPage() {
         <Section title="7. Your data">
           <p>
             You retain all rights to your business information, call recordings, transcripts, and
-            customer data. You grant us a limited license to process that data solely to provide
-            and improve the service for you. We do not sell your data. You can export or delete
-            your data at any time.
+            customer data. You grant us a limited license to process that data solely to provide and
+            improve the service for you. We do not sell your data. You can export or delete your
+            data at any time.
           </p>
         </Section>
 
@@ -130,9 +158,8 @@ function TermsPage() {
             The AI receptionist generates responses in real time. While it is configured to speak
             only from your approved business information, AI systems can occasionally produce
             inaccurate or unexpected statements. You acknowledge this and agree that commitments
-            made by the receptionist to your callers are your responsibility as between you and
-            your callers. We are not liable for statements made by the receptionist to your
-            callers.
+            made by the receptionist to your callers are your responsibility as between you and your
+            callers. We are not liable for statements made by the receptionist to your callers.
           </p>
         </Section>
 
@@ -178,9 +205,9 @@ function TermsPage() {
 
         <Section title="13. Termination">
           <p>
-            You may close your account at any time. We may suspend or terminate access for breach
-            of these Terms, non-payment, or risk to the service or other users. Sections that by
-            their nature should survive (including 7, 8, 10, 11, 12, and 14) survive termination.
+            You may close your account at any time. We may suspend or terminate access for breach of
+            these Terms, non-payment, or risk to the service or other users. Sections that by their
+            nature should survive (including 7, 8, 10, 11, 12, and 14) survive termination.
           </p>
         </Section>
 
@@ -204,7 +231,10 @@ function TermsPage() {
         <Section title="16. Contact">
           <p>
             Questions about these Terms: email{" "}
-            <a href="mailto:legal@ai-phone-desk.com" className="text-primary underline underline-offset-2">
+            <a
+              href="mailto:legal@ai-phone-desk.com"
+              className="text-primary underline underline-offset-2"
+            >
               legal@ai-phone-desk.com
             </a>
             .

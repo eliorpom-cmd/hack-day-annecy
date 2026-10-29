@@ -76,7 +76,15 @@ export const INDUSTRIES = [
   { value: "other", label: "Other" },
 ] as const;
 
-export const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+export const DAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
 
 export function defaultHours(): HoursInput[] {
   return Array.from({ length: 7 }, (_, d) => ({

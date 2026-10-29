@@ -7,7 +7,11 @@ import { getWorkspaceFn } from "@/lib/org/org.functions";
 import { setOnboardingStepFn } from "@/lib/org/org.functions";
 import type { BusinessProfile } from "@/lib/business/schema";
 import { Logo } from "@/components/brand/Logo";
-import { OnboardingProgress, ONBOARDING_STEPS, type OnboardingStepKey } from "@/components/onboarding/OnboardingProgress";
+import {
+  OnboardingProgress,
+  ONBOARDING_STEPS,
+  type OnboardingStepKey,
+} from "@/components/onboarding/OnboardingProgress";
 import { StepBusiness } from "@/components/onboarding/StepBusiness";
 import { StepReceptionist } from "@/components/onboarding/StepReceptionist";
 import { StepTest } from "@/components/onboarding/StepTest";
@@ -70,7 +74,8 @@ function OnboardingPage() {
     callAuthed(setOnboardingStepFn, { data: { step: next } }).catch(() => {});
   }
 
-  const businessName = state.profile?.business_name || workspace.data?.business?.business_name || "Your business";
+  const businessName =
+    state.profile?.business_name || workspace.data?.business?.business_name || "Your business";
 
   const content = useMemo(() => {
     if (!step) return null;
@@ -108,12 +113,7 @@ function OnboardingPage() {
       case "phone":
         return <StepPhone onContinue={() => goTo("live")} />;
       case "live":
-        return (
-          <StepLive
-            businessName={businessName}
-            receptionistId={state.receptionistId}
-          />
-        );
+        return <StepLive businessName={businessName} receptionistId={state.receptionistId} />;
     }
   }, [step, state, businessName, workspace.data]);
 
@@ -137,7 +137,10 @@ function OnboardingPage() {
             <Logo compact />
             <OnboardingProgress current={step} />
           </div>
-          <Link to="/app" className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground">
+          <Link
+            to="/app"
+            className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
+          >
             Save and exit to dashboard
           </Link>
         </div>

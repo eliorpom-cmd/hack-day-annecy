@@ -5,16 +5,24 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const envSchema = z.enum(["sandbox", "live"]);
 
-async function resolveOrCreateCustomer(stripe: Stripe, options: { email?: string; userId: string }): Promise<string> {
+async function resolveOrCreateCustomer(
+  stripe: Stripe,
+  options: { email?: string; userId: string },
+): Promise<string> {
   if (!/^[a-zA-Z0-9_-]+$/.test(options.userId)) throw new Error("Invalid userId");
-  const found = await stripe.customers.search({ query: `metadata['userId']:'${options.userId}'`, limit: 1 });
+  const found = await stripe.customers.search({
+    query: `metadata['userId']:'${options.userId}'`,
+    limit: 1,
+  });
   if (found.data[0]) return found.data[0].id;
   if (options.email) {
     const existing = await stripe.customers.list({ email: options.email, limit: 1 });
     const customer = existing.data[0];
     if (customer) {
       if (customer.metadata?.userId !== options.userId) {
-        await stripe.customers.update(customer.id, { metadata: { ...customer.metadata, userId: options.userId } });
+        await stripe.customers.update(customer.id, {
+          metadata: { ...customer.metadata, userId: options.userId },
+        });
       }
       return customer.id;
     }
@@ -47,7 +55,8 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }): Promise<{ clientSecret: string } | { error: string }> => {
     const { PAYMENTS_ENABLED } = await import("./config");
-    if (!PAYMENTS_ENABLED) return { error: "Payments are temporarily unavailable. Please try again soon." };
+    if (!PAYMENTS_ENABLED)
+      return { error: "Payments are temporarily unavailable. Please try again soon." };
     const { createStripeClient, getStripeErrorMessage } = await import("@/lib/stripe.server");
     const { requireOrg } = await import("@/lib/org/org.server");
     try {
@@ -77,10 +86,13 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
 
 export const createPortalSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ returnUrl: z.string().url(), environment: envSchema }).parse(d))
+  .inputValidator((d: unknown) =>
+    z.object({ returnUrl: z.string().url(), environment: envSchema }).parse(d),
+  )
   .handler(async ({ data, context }): Promise<{ url: string } | { error: string }> => {
     const { PAYMENTS_ENABLED } = await import("./config");
-    if (!PAYMENTS_ENABLED) return { error: "Payments are temporarily unavailable. Please try again soon." };
+    if (!PAYMENTS_ENABLED)
+      return { error: "Payments are temporarily unavailable. Please try again soon." };
     const { createStripeClient, getStripeErrorMessage } = await import("@/lib/stripe.server");
     const { requireOrg } = await import("@/lib/org/org.server");
     const { org } = await requireOrg(context.supabase, context.userId);
@@ -95,7 +107,10 @@ export const createPortalSession = createServerFn({ method: "POST" })
     if (!sub?.stripe_customer_id) return { error: "No subscription found yet." };
     try {
       const stripe = createStripeClient(data.environment);
-      const portal = await stripe.billingPortal.sessions.create({ customer: sub.stripe_customer_id, return_url: data.returnUrl });
+      const portal = await stripe.billingPortal.sessions.create({
+        customer: sub.stripe_customer_id,
+        return_url: data.returnUrl,
+      });
       return { url: portal.url };
     } catch (error) {
       return { error: getStripeErrorMessage(error) };

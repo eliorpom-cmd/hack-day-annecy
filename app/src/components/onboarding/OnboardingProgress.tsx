@@ -39,7 +39,12 @@ export function OnboardingProgress({ current }: { current: OnboardingStepKey }) 
                 >
                   {done ? <Check className="h-3.5 w-3.5" /> : i + 1}
                 </span>
-                <span className={cn("text-sm", active ? "font-semibold text-foreground" : "text-muted-foreground")}>
+                <span
+                  className={cn(
+                    "text-sm",
+                    active ? "font-semibold text-foreground" : "text-muted-foreground",
+                  )}
+                >
                   {step.label}
                 </span>
               </div>

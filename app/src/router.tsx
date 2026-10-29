@@ -4,8 +4,7 @@ import { routeTree } from "./routeTree.gen";
 
 export const getRouter = () => {
   // Retry brief network drops (e.g. server restarting) instead of blanking the page.
-  const isNetworkError = (e: unknown) =>
-    e instanceof TypeError && /fetch|network/i.test(e.message);
+  const isNetworkError = (e: unknown) => e instanceof TypeError && /fetch|network/i.test(e.message);
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {

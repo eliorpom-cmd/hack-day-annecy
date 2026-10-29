@@ -86,8 +86,8 @@ function IndustryPage() {
               key={q}
               className="card-elevated flex items-start gap-3 p-4 text-sm text-foreground/85"
             >
-              <MessageCircleQuestion className="mt-0.5 h-5 w-5 shrink-0 text-accent" aria-hidden />
-              "{q}"
+              <MessageCircleQuestion className="mt-0.5 h-5 w-5 shrink-0 text-accent" aria-hidden />"
+              {q}"
             </li>
           ))}
         </ul>
@@ -102,7 +102,12 @@ function IndustryPage() {
             <Button asChild size="lg" variant="secondary" className="shadow-glow">
               <a href="/auth?mode=signup">Create your receptionist</a>
             </Button>
-            <Button asChild size="lg" variant="outline" className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10"
+            >
               <Link to="/pricing">See pricing</Link>
             </Button>
           </div>

@@ -58,7 +58,10 @@ function SettingsPage() {
           <Label>Business name</Label>
           <Input value={orgName} onChange={(e) => setOrgName(e.target.value)} maxLength={120} />
         </div>
-        <Button onClick={() => saveOrg.mutate(orgName)} disabled={!orgName.trim() || orgName === workspace.organization.name || saveOrg.isPending}>
+        <Button
+          onClick={() => saveOrg.mutate(orgName)}
+          disabled={!orgName.trim() || orgName === workspace.organization.name || saveOrg.isPending}
+        >
           {saveOrg.isPending ? "Saving…" : "Save"}
         </Button>
       </section>
@@ -67,7 +70,11 @@ function SettingsPage() {
         <h3 className="eyebrow">Your profile</h3>
         <div className="space-y-1.5">
           <Label>Full name</Label>
-          <Input value={profileName} onChange={(e) => setProfileName(e.target.value)} maxLength={120} />
+          <Input
+            value={profileName}
+            onChange={(e) => setProfileName(e.target.value)}
+            maxLength={120}
+          />
         </div>
         <div className="space-y-1.5">
           <Label>Email</Label>
@@ -75,7 +82,11 @@ function SettingsPage() {
         </div>
         <Button
           onClick={() => saveProfile.mutate(profileName)}
-          disabled={!profileName.trim() || profileName === (workspace.profile?.name ?? "") || saveProfile.isPending}
+          disabled={
+            !profileName.trim() ||
+            profileName === (workspace.profile?.name ?? "") ||
+            saveProfile.isPending
+          }
         >
           {saveProfile.isPending ? "Saving…" : "Save"}
         </Button>
@@ -84,7 +95,9 @@ function SettingsPage() {
       <section className="card-elevated flex items-center justify-between p-6">
         <div>
           <h3 className="font-display text-base font-semibold text-foreground">Sign out</h3>
-          <p className="text-sm text-muted-foreground">You'll need to sign back in to access your dashboard.</p>
+          <p className="text-sm text-muted-foreground">
+            You'll need to sign back in to access your dashboard.
+          </p>
         </div>
         <Button variant="outline" onClick={handleSignOut}>
           <LogOut className="mr-1.5 h-4 w-4" /> Sign out

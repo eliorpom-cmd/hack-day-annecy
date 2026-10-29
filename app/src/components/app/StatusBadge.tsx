@@ -5,7 +5,11 @@ export function StatusBadge({ status, className }: { status: string; className?:
   const label = RECEPTIONIST_STATUS_LABELS[status] ?? status;
   const isLive = status === "live";
   const isError = status === "error" || status === "suspended";
-  const isBusy = status === "creating_agent" || status === "phone_provisioning" || status === "phone_configuring" || status === "scanning";
+  const isBusy =
+    status === "creating_agent" ||
+    status === "phone_provisioning" ||
+    status === "phone_configuring" ||
+    status === "scanning";
   const isReady = status === "agent_ready";
 
   return (

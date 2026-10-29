@@ -50,12 +50,23 @@ function BusinessPage() {
       const { jobId } = await callAuthed(startScanFn, { data: { url: website } });
       for (;;) {
         const res = await callAuthed(advanceScanFn, { data: { jobId } });
-        setScan({ stage: res.stage, progress: res.progress, status: res.status, error: res.error, profile: res.profile });
+        setScan({
+          stage: res.stage,
+          progress: res.progress,
+          status: res.status,
+          error: res.error,
+          profile: res.profile,
+        });
         if (res.status === "completed" || res.status === "failed") break;
         await new Promise((r) => setTimeout(r, 1200));
       }
     } catch (e) {
-      setScan({ stage: "Scan failed", progress: 0, status: "failed", error: e instanceof Error ? e.message : "We couldn't scan that website." });
+      setScan({
+        stage: "Scan failed",
+        progress: 0,
+        status: "failed",
+        error: e instanceof Error ? e.message : "We couldn't scan that website.",
+      });
     } finally {
       setScanning(false);
     }
@@ -71,7 +82,8 @@ function BusinessPage() {
     );
   }
 
-  const initial: BusinessProfile = pending ?? query.data.profile ?? { ...emptyBusinessProfile(), hours: defaultHours() };
+  const initial: BusinessProfile = pending ??
+    query.data.profile ?? { ...emptyBusinessProfile(), hours: defaultHours() };
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -83,13 +95,21 @@ function BusinessPage() {
       {query.data.profile?.website && (
         <div className="card-elevated flex flex-wrap items-center justify-between gap-3 p-5">
           <div>
-            <h3 className="font-display text-base font-semibold text-foreground">Knowledge sources</h3>
+            <h3 className="font-display text-base font-semibold text-foreground">
+              Knowledge sources
+            </h3>
             <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
               <Globe className="h-3.5 w-3.5" /> {query.data.profile.website}
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => rescan(query.data.profile!.website!)} disabled={scanning}>
-            <RotateCw className={`mr-1.5 h-3.5 w-3.5 ${scanning ? "animate-spin" : ""}`} /> Rescan website
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => rescan(query.data.profile!.website!)}
+            disabled={scanning}
+          >
+            <RotateCw className={`mr-1.5 h-3.5 w-3.5 ${scanning ? "animate-spin" : ""}`} /> Rescan
+            website
           </Button>
         </div>
       )}
@@ -98,9 +118,16 @@ function BusinessPage() {
         <div className="card-elevated space-y-3 p-5">
           <p className="text-sm font-medium text-foreground">{scan.stage}</p>
           <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-            <div className="h-full rounded-full bg-accent transition-all duration-500" style={{ width: `${scan.progress}%` }} />
+            <div
+              className="h-full rounded-full bg-accent transition-all duration-500"
+              style={{ width: `${scan.progress}%` }}
+            />
           </div>
-          {scan.status === "failed" && <p className="text-sm text-destructive">{scan.error ?? "Something went wrong scanning that website."}</p>}
+          {scan.status === "failed" && (
+            <p className="text-sm text-destructive">
+              {scan.error ?? "Something went wrong scanning that website."}
+            </p>
+          )}
           {scan.status === "completed" && scan.profile && (
             <Button
               size="sm"

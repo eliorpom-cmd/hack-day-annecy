@@ -7,7 +7,9 @@ export interface ImportTwilioNumberInput {
   twilioAuthToken: string;
 }
 
-export async function importPhoneNumber(input: ImportTwilioNumberInput): Promise<{ phone_number_id: string }> {
+export async function importPhoneNumber(
+  input: ImportTwilioNumberInput,
+): Promise<{ phone_number_id: string }> {
   if (isDemoMode()) return { phone_number_id: `mock_phone_${crypto.randomUUID().slice(0, 8)}` };
   return elRequest<{ phone_number_id: string }>("/v1/convai/phone-numbers", {
     method: "POST",
@@ -23,7 +25,10 @@ export async function importPhoneNumber(input: ImportTwilioNumberInput): Promise
 
 export async function assignPhoneNumber(phoneNumberId: string, agentId: string): Promise<void> {
   if (isDemoMode()) return;
-  await elRequest(`/v1/convai/phone-numbers/${phoneNumberId}`, { method: "PATCH", body: { agent_id: agentId } });
+  await elRequest(`/v1/convai/phone-numbers/${phoneNumberId}`, {
+    method: "PATCH",
+    body: { agent_id: agentId },
+  });
 }
 
 export async function removePhoneNumber(phoneNumberId: string): Promise<void> {

@@ -71,14 +71,23 @@ const NAV_SETUP = [
   { title: "Settings", url: "/app/settings", icon: SettingsIcon },
 ];
 
-function NavGroup({ label, items, pathname }: { label?: string; items: typeof NAV_MAIN; pathname: string }) {
+function NavGroup({
+  label,
+  items,
+  pathname,
+}: {
+  label?: string;
+  items: typeof NAV_MAIN;
+  pathname: string;
+}) {
   return (
     <SidebarGroup>
       {label && <SidebarGroupLabel>{label}</SidebarGroupLabel>}
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => {
-            const isActive = item.url === "/app" ? pathname === "/app" : pathname.startsWith(item.url);
+            const isActive =
+              item.url === "/app" ? pathname === "/app" : pathname.startsWith(item.url);
             return (
               <SidebarMenuItem key={item.url}>
                 <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
@@ -148,17 +157,24 @@ export function AppShell({ children }: { children: ReactNode }) {
           {workspace.isAdmin && (
             <>
               <Separator className="mx-2 my-1 w-auto" />
-              <NavGroup items={[{ title: "Admin", url: "/app/admin", icon: ShieldCheck }]} pathname={pathname} />
+              <NavGroup
+                items={[{ title: "Admin", url: "/app/admin", icon: ShieldCheck }]}
+                pathname={pathname}
+              />
             </>
           )}
         </SidebarContent>
         <SidebarFooter className="gap-3 px-2 pb-3">
           <div className="card-elevated flex flex-col gap-2 p-3">
-            <p className="text-sm font-medium text-foreground">{workspace.plan?.name ?? "Free"} plan</p>
+            <p className="text-sm font-medium text-foreground">
+              {workspace.plan?.name ?? "Free"} plan
+            </p>
             {workspace.subscription ? (
               <>
                 <p className="text-xs text-muted-foreground">
-                  {workspace.subscription.cancel_at_period_end ? "Cancels at period end" : "Subscription active"}
+                  {workspace.subscription.cancel_at_period_end
+                    ? "Cancels at period end"
+                    : "Subscription active"}
                 </p>
                 <UsageMeter compact />
                 <Button size="sm" variant="secondary" asChild className="mt-1 w-full">
@@ -168,7 +184,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             ) : (
               <>
                 <p className="text-xs text-muted-foreground">
-                  {workspace.trialDaysLeft != null ? `Trial: ${workspace.trialDaysLeft} day${workspace.trialDaysLeft === 1 ? "" : "s"} left` : "Trial ended"}
+                  {workspace.trialDaysLeft != null
+                    ? `Trial: ${workspace.trialDaysLeft} day${workspace.trialDaysLeft === 1 ? "" : "s"} left`
+                    : "Trial ended"}
                 </p>
                 <Button size="sm" variant="secondary" asChild className="mt-1 w-full">
                   <Link to="/app/billing">Upgrade</Link>
@@ -182,7 +200,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                 </Avatar>
-                <span className="min-w-0 flex-1 truncate text-sm text-sidebar-foreground">{email}</span>
+                <span className="min-w-0 flex-1 truncate text-sm text-sidebar-foreground">
+                  {email}
+                </span>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" side="top" className="w-56">
@@ -199,7 +219,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-2 border-b bg-background/95 px-4 backdrop-blur">
           <div className="flex items-center gap-2">
             <SidebarTrigger />
-            <span className="font-display text-sm font-semibold text-foreground">{pageTitle(pathname)}</span>
+            <span className="font-display text-sm font-semibold text-foreground">
+              {pageTitle(pathname)}
+            </span>
           </div>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -220,7 +242,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-accent" /> Talk to {firstReceptionist?.name ?? "your receptionist"}
+              <Sparkles className="h-4 w-4 text-accent" /> Talk to{" "}
+              {firstReceptionist?.name ?? "your receptionist"}
             </DialogTitle>
           </DialogHeader>
           {firstReceptionist && (

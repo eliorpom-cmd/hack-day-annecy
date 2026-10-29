@@ -7,7 +7,11 @@ export const ensureOrganizationFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { ensureOrganization } = await import("./org.server");
-    const { org, isNew } = await ensureOrganization(context.supabase, context.userId, context.claims as Record<string, unknown>);
+    const { org, isNew } = await ensureOrganization(
+      context.supabase,
+      context.userId,
+      context.claims as Record<string, unknown>,
+    );
     return { organization: org, isNew };
   });
 
@@ -18,15 +22,27 @@ export const getWorkspaceFn = createServerFn({ method: "GET" })
     const { requireOrg } = await import("./org.server");
     const db = context.supabase;
     const { org, role } = await requireOrg(db, context.userId);
-    const [{ data: receptionists }, { data: plan }, { data: profile }, { data: bp }, { data: subscription }] = await Promise.all([
+    const [
+      { data: receptionists },
+      { data: plan },
+      { data: profile },
+      { data: bp },
+      { data: subscription },
+    ] = await Promise.all([
       db
         .from("receptionists")
-        .select("id, name, status, status_message, language, greeting, elevenlabs_agent_id, created_at, voices(name)")
+        .select(
+          "id, name, status, status_message, language, greeting, elevenlabs_agent_id, created_at, voices(name)",
+        )
         .eq("organization_id", org.id)
         .order("created_at"),
       db.from("plans").select("*").eq("id", org.plan_id).maybeSingle(),
       db.from("profiles").select("*").eq("id", context.userId).maybeSingle(),
-      db.from("business_profiles").select("business_name, industry, website, phone").eq("organization_id", org.id).maybeSingle(),
+      db
+        .from("business_profiles")
+        .select("business_name, industry, website, phone")
+        .eq("organization_id", org.id)
+        .maybeSingle(),
       db
         .from("subscriptions")
         .select("id, status, price_id, current_period_end, cancel_at_period_end")
@@ -73,7 +89,10 @@ export const setOnboardingStepFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { requireOrg } = await import("./org.server");
     const { org } = await requireOrg(context.supabase, context.userId);
-    await context.supabase.from("organizations").update({ onboarding_step: data.step }).eq("id", org.id);
+    await context.supabase
+      .from("organizations")
+      .update({ onboarding_step: data.step })
+      .eq("id", org.id);
     return { ok: true };
   });
 
@@ -83,7 +102,10 @@ export const completeOnboardingFn = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { requireOrg } = await import("./org.server");
     const { org } = await requireOrg(context.supabase, context.userId);
-    await context.supabase.from("organizations").update({ onboarding_completed: true, onboarding_step: "live" }).eq("id", org.id);
+    await context.supabase
+      .from("organizations")
+      .update({ onboarding_completed: true, onboarding_step: "live" })
+      .eq("id", org.id);
     return { ok: true };
   });
 
@@ -100,7 +122,10 @@ export const updateOrganizationFn = createServerFn({ method: "POST" })
     if (role !== "owner" && role !== "admin") {
       throw new AppError("Only owners and admins can rename the business.", { status: 403 });
     }
-    const { error } = await context.supabase.from("organizations").update({ name: data.name }).eq("id", org.id);
+    const { error } = await context.supabase
+      .from("organizations")
+      .update({ name: data.name })
+      .eq("id", org.id);
     if (error) throw new AppError("We couldn't save that name.", { cause: error });
     await audit(context.supabase, org.id, context.userId, "organization.renamed");
     return { ok: true };
@@ -114,7 +139,10 @@ export const updateProfileFn = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => updateProfileSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { AppError } = await import("@/lib/server/errors.server");
-    const { error } = await context.supabase.from("profiles").update({ name: data.name }).eq("id", context.userId);
+    const { error } = await context.supabase
+      .from("profiles")
+      .update({ name: data.name })
+      .eq("id", context.userId);
     if (error) throw new AppError("We couldn't save your profile.", { cause: error });
     return { ok: true };
   });

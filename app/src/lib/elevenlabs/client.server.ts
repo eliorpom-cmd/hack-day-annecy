@@ -49,7 +49,9 @@ export async function elRequest<T>(
       }),
     3,
   );
-  console.log(JSON.stringify({ level: "info", event: "elevenlabs.request", path, ms: Date.now() - started }));
+  console.log(
+    JSON.stringify({ level: "info", event: "elevenlabs.request", path, ms: Date.now() - started }),
+  );
   if (init.raw) return res as unknown as T;
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;

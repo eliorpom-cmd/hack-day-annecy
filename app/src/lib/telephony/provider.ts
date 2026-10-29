@@ -20,7 +20,11 @@ export interface TelephonyProvider {
     region?: string;
     type?: "local" | "toll_free";
   }): Promise<AvailableNumber[]>;
-  purchaseNumber(input: { phoneNumber: string; voiceUrl: string; label: string }): Promise<PurchasedNumber>;
+  purchaseNumber(input: {
+    phoneNumber: string;
+    voiceUrl: string;
+    label: string;
+  }): Promise<PurchasedNumber>;
   configureNumber(sid: string, voiceUrl: string): Promise<boolean>;
   releaseNumber(sid: string): Promise<void>;
 }

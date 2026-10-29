@@ -38,7 +38,9 @@ export async function getUserConnection(userId: string) {
   const db = await admin();
   const { data } = await db
     .from("app_user_connections")
-    .select("id, organization_id, connection_key_ciphertext, account_email, calendar_id, reconnect_required")
+    .select(
+      "id, organization_id, connection_key_ciphertext, account_email, calendar_id, reconnect_required",
+    )
     .eq("user_id", userId)
     .eq("connector_id", GOOGLE_CAL)
     .maybeSingle();
@@ -59,13 +61,21 @@ export async function getOrgConnection(orgId: string) {
   return data;
 }
 
-async function google(conn: { id: string; connection_key_ciphertext: string }, path: string, init?: RequestInit) {
+async function google(
+  conn: { id: string; connection_key_ciphertext: string },
+  path: string,
+  init?: RequestInit,
+) {
   const res = await callAsAppUser({
     gatewayBaseUrl: GATEWAY_BASE_URL,
     connectionAPIKey: decryptKey(conn.connection_key_ciphertext),
     connectorId: GOOGLE_CAL,
     path,
-    init: { ...init, headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) }, signal: AbortSignal.timeout(12000) },
+    init: {
+      ...init,
+      headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+      signal: AbortSignal.timeout(12000),
+    },
     requiredScopes: GOOGLE_SCOPES,
   });
   if (await appUserReconnectRequired(res)) {
@@ -96,10 +106,21 @@ export async function fetchAccountEmail(connectionAPIKey: string) {
 // ---------- time zone helpers (no external deps) ----------
 function tzOffsetMin(date: Date, tz: string) {
   const p = new Intl.DateTimeFormat("en-US", {
-    timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit",
+    timeZone: tz,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
   }).formatToParts(date);
   const g = (t: string) => Number(p.find((x) => x.type === t)?.value ?? 0);
-  return (Date.UTC(g("year"), g("month") - 1, g("day"), g("hour"), g("minute"), g("second")) - date.getTime()) / 60000;
+  return (
+    (Date.UTC(g("year"), g("month") - 1, g("day"), g("hour"), g("minute"), g("second")) -
+      date.getTime()) /
+    60000
+  );
 }
 export function zoned(dateStr: string, hhmm: string, tz: string) {
   const [y, m, d] = dateStr.split("-").map(Number) as [number, number, number];
@@ -108,7 +129,12 @@ export function zoned(dateStr: string, hhmm: string, tz: string) {
   return new Date(guess - tzOffsetMin(new Date(guess), tz) * 60000);
 }
 export function localDate(date: Date, tz: string) {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
 }
 function addDays(dateStr: string, n: number) {
   const d = new Date(`${dateStr}T12:00:00Z`);
@@ -116,7 +142,14 @@ function addDays(dateStr: string, n: number) {
   return d.toISOString().slice(0, 10);
 }
 function speak(date: Date, tz: string) {
-  return new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "long", month: "long", day: "numeric", hour: "numeric", minute: "2-digit" }).format(date);
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
 }
 
 // ---------- availability ----------
@@ -125,13 +158,28 @@ type Busy = { start: number; end: number };
 async function orgContext(orgId: string) {
   const db = await admin();
   const [{ data: bp }, { data: hours }] = await Promise.all([
-    db.from("business_profiles").select("timezone, business_name").eq("organization_id", orgId).maybeSingle(),
-    db.from("business_hours").select("day_of_week, enabled, open_time, close_time").eq("organization_id", orgId),
+    db
+      .from("business_profiles")
+      .select("timezone, business_name")
+      .eq("organization_id", orgId)
+      .maybeSingle(),
+    db
+      .from("business_hours")
+      .select("day_of_week, enabled, open_time, close_time")
+      .eq("organization_id", orgId),
   ]);
-  return { tz: bp?.timezone || "America/New_York", name: bp?.business_name ?? "", hours: hours ?? [] };
+  return {
+    tz: bp?.timezone || "America/New_York",
+    name: bp?.business_name ?? "",
+    hours: hours ?? [],
+  };
 }
 
-async function busyBetween(orgId: string, from: Date, to: Date): Promise<{ busy: Busy[]; source: "google" | "built_in" }> {
+async function busyBetween(
+  orgId: string,
+  from: Date,
+  to: Date,
+): Promise<{ busy: Busy[]; source: "google" | "built_in" }> {
   const db = await admin();
   const { data: appts } = await db
     .from("appointments")
@@ -140,18 +188,29 @@ async function busyBetween(orgId: string, from: Date, to: Date): Promise<{ busy:
     .eq("status", "confirmed")
     .lt("starts_at", to.toISOString())
     .gt("ends_at", from.toISOString());
-  const busy: Busy[] = (appts ?? []).map((a) => ({ start: Date.parse(a.starts_at), end: Date.parse(a.ends_at) }));
+  const busy: Busy[] = (appts ?? []).map((a) => ({
+    start: Date.parse(a.starts_at),
+    end: Date.parse(a.ends_at),
+  }));
   const conn = await getOrgConnection(orgId);
   if (!conn || conn.reconnect_required) return { busy, source: "built_in" };
   const fb = (await google(conn, "/calendar/v3/freeBusy", {
     method: "POST",
-    body: JSON.stringify({ timeMin: from.toISOString(), timeMax: to.toISOString(), items: [{ id: conn.calendar_id }] }),
+    body: JSON.stringify({
+      timeMin: from.toISOString(),
+      timeMax: to.toISOString(),
+      items: [{ id: conn.calendar_id }],
+    }),
   })) as { calendars?: Record<string, { busy?: { start: string; end: string }[] }> };
-  for (const b of fb.calendars?.[conn.calendar_id]?.busy ?? []) busy.push({ start: Date.parse(b.start), end: Date.parse(b.end) });
+  for (const b of fb.calendars?.[conn.calendar_id]?.busy ?? [])
+    busy.push({ start: Date.parse(b.start), end: Date.parse(b.end) });
   return { busy, source: "google" };
 }
 
-export async function getAvailability(orgId: string, opts: { date?: string; durationMinutes?: number; days?: number }) {
+export async function getAvailability(
+  orgId: string,
+  opts: { date?: string; durationMinutes?: number; days?: number },
+) {
   const { tz, hours } = await orgContext(orgId);
   const duration = Math.min(Math.max(opts.durationMinutes ?? 30, 15), 240);
   const now = new Date();
@@ -167,7 +226,10 @@ export async function getAvailability(orgId: string, opts: { date?: string; dura
     const date = addDays(startDate, i);
     const dow = new Date(`${date}T12:00:00Z`).getUTCDay();
     const h = hours.find((x) => x.day_of_week === dow);
-    if (!h?.enabled) { days.push({ date, slots: [] }); continue; }
+    if (!h?.enabled) {
+      days.push({ date, slots: [] });
+      continue;
+    }
     const open = zoned(date, String(h.open_time).slice(0, 5), tz).getTime();
     const close = zoned(date, String(h.close_time).slice(0, 5), tz).getTime();
     const slots: { start: string; label: string }[] = [];
@@ -179,38 +241,71 @@ export async function getAvailability(orgId: string, opts: { date?: string; dura
     }
     days.push({ date, slots });
   }
-  return { timezone: tz, today, todayLabel: new Intl.DateTimeFormat("en-US", { timeZone: tz, dateStyle: "full" }).format(now), source, duration, days };
+  return {
+    timezone: tz,
+    today,
+    todayLabel: new Intl.DateTimeFormat("en-US", { timeZone: tz, dateStyle: "full" }).format(now),
+    source,
+    duration,
+    days,
+  };
 }
 
 // ---------- booking ----------
 export async function bookAppointment(
   orgId: string,
-  input: { start: string; durationMinutes?: number; name: string; phone?: string; email?: string; service?: string; notes?: string; source: string; receptionistId?: string | null },
+  input: {
+    start: string;
+    durationMinutes?: number;
+    name: string;
+    phone?: string;
+    email?: string;
+    service?: string;
+    notes?: string;
+    source: string;
+    receptionistId?: string | null;
+  },
 ) {
   const { tz, name: businessName } = await orgContext(orgId);
   const duration = Math.min(Math.max(input.durationMinutes ?? 30, 15), 240);
   const start = new Date(input.start);
-  if (Number.isNaN(start.getTime()) || start.getTime() < Date.now()) return { confirmed: false, reason: "That time is not available." };
+  if (Number.isNaN(start.getTime()) || start.getTime() < Date.now())
+    return { confirmed: false, reason: "That time is not available." };
   const end = new Date(start.getTime() + duration * 60000);
 
   // Re-check: the slot must still be open in business hours and free.
-  const avail = await getAvailability(orgId, { date: localDate(start, tz), durationMinutes: duration });
+  const avail = await getAvailability(orgId, {
+    date: localDate(start, tz),
+    durationMinutes: duration,
+  });
   const open = avail.days.some((d) => d.slots.some((s) => Date.parse(s.start) === start.getTime()));
-  if (!open) return { confirmed: false, reason: "That time was just taken or is outside business hours." };
+  if (!open)
+    return { confirmed: false, reason: "That time was just taken or is outside business hours." };
 
   let externalId: string | null = null;
   let provider = "built_in";
   const conn = await getOrgConnection(orgId);
   if (conn && !conn.reconnect_required) {
-    const ev = (await google(conn, `/calendar/v3/calendars/${encodeURIComponent(conn.calendar_id)}/events`, {
-      method: "POST",
-      body: JSON.stringify({
-        summary: `${input.service ? `${input.service} — ` : ""}${input.name}`,
-        description: [input.phone && `Phone: ${input.phone}`, input.email && `Email: ${input.email}`, input.notes, `Booked by your ${businessName} receptionist.`].filter(Boolean).join("\n"),
-        start: { dateTime: start.toISOString(), timeZone: tz },
-        end: { dateTime: end.toISOString(), timeZone: tz },
-      }),
-    })) as { id?: string; status?: string };
+    const ev = (await google(
+      conn,
+      `/calendar/v3/calendars/${encodeURIComponent(conn.calendar_id)}/events`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          summary: `${input.service ? `${input.service} — ` : ""}${input.name}`,
+          description: [
+            input.phone && `Phone: ${input.phone}`,
+            input.email && `Email: ${input.email}`,
+            input.notes,
+            `Booked by your ${businessName} receptionist.`,
+          ]
+            .filter(Boolean)
+            .join("\n"),
+          start: { dateTime: start.toISOString(), timeZone: tz },
+          end: { dateTime: end.toISOString(), timeZone: tz },
+        }),
+      },
+    )) as { id?: string; status?: string };
     if (!ev.id) return { confirmed: false, reason: "The calendar did not confirm the booking." };
     externalId = ev.id;
     provider = "google";
@@ -243,7 +338,12 @@ export async function bookAppointment(
 
 export async function cancelAppointment(orgId: string, id: string) {
   const db = await admin();
-  const { data: appt } = await db.from("appointments").select("id, external_event_id, calendar_provider").eq("id", id).eq("organization_id", orgId).maybeSingle();
+  const { data: appt } = await db
+    .from("appointments")
+    .select("id, external_event_id, calendar_provider")
+    .eq("id", id)
+    .eq("organization_id", orgId)
+    .maybeSingle();
   if (!appt) throw new AppError("Appointment not found.", { status: 404 });
   if (appt.calendar_provider === "google" && appt.external_event_id) {
     const conn = await getOrgConnection(orgId);
@@ -261,7 +361,15 @@ export async function cancelAppointment(orgId: string, id: string) {
 }
 
 // ---------- Google events (view + edit) ----------
-export type GEvent = { id: string; summary: string; description: string; start: string; end: string; allDay: boolean; htmlLink?: string };
+export type GEvent = {
+  id: string;
+  summary: string;
+  description: string;
+  start: string;
+  end: string;
+  allDay: boolean;
+  htmlLink?: string;
+};
 
 function requireConn<T>(c: T | null | undefined): T {
   if (!c) throw new AppError("Connect Google Calendar first.", { status: 400 });
@@ -270,8 +378,17 @@ function requireConn<T>(c: T | null | undefined): T {
 
 export async function listGoogleEvents(orgId: string, from: string, to: string): Promise<GEvent[]> {
   const conn = requireConn(await getOrgConnection(orgId));
-  const q = new URLSearchParams({ timeMin: from, timeMax: to, singleEvents: "true", orderBy: "startTime", maxResults: "250" });
-  const data = (await google(conn, `/calendar/v3/calendars/${encodeURIComponent(conn.calendar_id)}/events?${q}`)) as { items?: any[] };
+  const q = new URLSearchParams({
+    timeMin: from,
+    timeMax: to,
+    singleEvents: "true",
+    orderBy: "startTime",
+    maxResults: "250",
+  });
+  const data = (await google(
+    conn,
+    `/calendar/v3/calendars/${encodeURIComponent(conn.calendar_id)}/events?${q}`,
+  )) as { items?: any[] };
   return (data.items ?? [])
     .filter((e) => e.status !== "cancelled")
     .map((e) => ({
@@ -285,10 +402,18 @@ export async function listGoogleEvents(orgId: string, from: string, to: string):
     }));
 }
 
-export async function saveGoogleEvent(orgId: string, ev: { id?: string; summary: string; description?: string; start: string; end: string }) {
+export async function saveGoogleEvent(
+  orgId: string,
+  ev: { id?: string; summary: string; description?: string; start: string; end: string },
+) {
   const conn = requireConn(await getOrgConnection(orgId));
   const base = `/calendar/v3/calendars/${encodeURIComponent(conn.calendar_id)}/events`;
-  const body = JSON.stringify({ summary: ev.summary, description: ev.description ?? "", start: { dateTime: ev.start }, end: { dateTime: ev.end } });
+  const body = JSON.stringify({
+    summary: ev.summary,
+    description: ev.description ?? "",
+    start: { dateTime: ev.start },
+    end: { dateTime: ev.end },
+  });
   return ev.id
     ? google(conn, `${base}/${encodeURIComponent(ev.id)}`, { method: "PATCH", body })
     : google(conn, base, { method: "POST", body });
@@ -304,7 +429,12 @@ export async function deleteGoogleEvent(orgId: string, id: string) {
     init: { method: "DELETE", signal: AbortSignal.timeout(12000) },
     requiredScopes: GOOGLE_SCOPES,
   });
-  if (!res.ok && res.status !== 410 && res.status !== 404) throw new AppError("We couldn't delete that event.", { status: 502 });
+  if (!res.ok && res.status !== 410 && res.status !== 404)
+    throw new AppError("We couldn't delete that event.", { status: 502 });
   const db = await admin();
-  await db.from("appointments").update({ status: "cancelled" }).eq("organization_id", orgId).eq("external_event_id", id);
+  await db
+    .from("appointments")
+    .update({ status: "cancelled" })
+    .eq("organization_id", orgId)
+    .eq("external_event_id", id);
 }

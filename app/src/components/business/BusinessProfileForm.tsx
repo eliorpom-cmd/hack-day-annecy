@@ -5,8 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   businessProfileSchema,
   INDUSTRIES,
@@ -173,7 +186,12 @@ export function BusinessProfileForm({
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Textarea rows={3} placeholder="What does your business do?" {...field} value={field.value ?? ""} />
+                  <Textarea
+                    rows={3}
+                    placeholder="What does your business do?"
+                    {...field}
+                    value={field.value ?? ""}
+                  />
                 </FormControl>
               </FormItem>
             )}
@@ -184,8 +202,13 @@ export function BusinessProfileForm({
           <h3 className="eyebrow">Hours</h3>
           <div className="space-y-2">
             {hours.fields.map((f, i) => (
-              <div key={f.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border px-3 py-2">
-                <span className="w-24 text-sm font-medium text-foreground">{DAY_NAMES[form.watch(`hours.${i}.day_of_week`) ?? i] ?? ""}</span>
+              <div
+                key={f.id}
+                className="flex flex-wrap items-center gap-3 rounded-lg border border-border px-3 py-2"
+              >
+                <span className="w-24 text-sm font-medium text-foreground">
+                  {DAY_NAMES[form.watch(`hours.${i}.day_of_week`) ?? i] ?? ""}
+                </span>
                 <label className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Checkbox
                     checked={!form.watch(`hours.${i}.enabled`)}
@@ -195,9 +218,17 @@ export function BusinessProfileForm({
                 </label>
                 {form.watch(`hours.${i}.enabled`) && (
                   <div className="flex items-center gap-2">
-                    <Input type="time" className="w-32" {...form.register(`hours.${i}.open_time`)} />
+                    <Input
+                      type="time"
+                      className="w-32"
+                      {...form.register(`hours.${i}.open_time`)}
+                    />
                     <span className="text-muted-foreground">to</span>
-                    <Input type="time" className="w-32" {...form.register(`hours.${i}.close_time`)} />
+                    <Input
+                      type="time"
+                      className="w-32"
+                      {...form.register(`hours.${i}.close_time`)}
+                    />
                   </div>
                 )}
               </div>
@@ -212,18 +243,41 @@ export function BusinessProfileForm({
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => services.append({ name: "", price: null, price_note: "", duration_minutes: null, description: "" })}
+              onClick={() =>
+                services.append({
+                  name: "",
+                  price: null,
+                  price_note: "",
+                  duration_minutes: null,
+                  description: "",
+                })
+              }
             >
               <Plus className="mr-1 h-3.5 w-3.5" /> Add service
             </Button>
           </div>
           <div className="space-y-3">
             {services.fields.map((f, i) => (
-              <div key={f.id} className="grid gap-2 rounded-lg border border-border p-3 sm:grid-cols-[1fr_1fr_100px_auto]">
+              <div
+                key={f.id}
+                className="grid gap-2 rounded-lg border border-border p-3 sm:grid-cols-[1fr_1fr_100px_auto]"
+              >
                 <Input placeholder="Service name" {...form.register(`services.${i}.name`)} />
-                <Input placeholder="Price (e.g. $50)" {...form.register(`services.${i}.price_note`)} />
-                <Input type="number" placeholder="Minutes" {...form.register(`services.${i}.duration_minutes`, { valueAsNumber: true })} />
-                <Button type="button" variant="ghost" size="icon" onClick={() => services.remove(i)}>
+                <Input
+                  placeholder="Price (e.g. $50)"
+                  {...form.register(`services.${i}.price_note`)}
+                />
+                <Input
+                  type="number"
+                  placeholder="Minutes"
+                  {...form.register(`services.${i}.duration_minutes`, { valueAsNumber: true })}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => services.remove(i)}
+                >
                   <Trash2 className="h-4 w-4 text-muted-foreground" />
                 </Button>
                 <Textarea
@@ -234,14 +288,21 @@ export function BusinessProfileForm({
                 />
               </div>
             ))}
-            {services.fields.length === 0 && <p className="text-sm text-muted-foreground">No services added yet.</p>}
+            {services.fields.length === 0 && (
+              <p className="text-sm text-muted-foreground">No services added yet.</p>
+            )}
           </div>
         </section>
 
         <section className="card-elevated space-y-3 p-6">
           <div className="flex items-center justify-between">
             <h3 className="eyebrow">FAQs</h3>
-            <Button type="button" variant="outline" size="sm" onClick={() => faqs.append({ question: "", answer: "" })}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => faqs.append({ question: "", answer: "" })}
+            >
               <Plus className="mr-1 h-3.5 w-3.5" /> Add FAQ
             </Button>
           </div>
@@ -257,20 +318,30 @@ export function BusinessProfileForm({
                 <Textarea placeholder="Answer" rows={2} {...form.register(`faqs.${i}.answer`)} />
               </div>
             ))}
-            {faqs.fields.length === 0 && <p className="text-sm text-muted-foreground">No FAQs added yet.</p>}
+            {faqs.fields.length === 0 && (
+              <p className="text-sm text-muted-foreground">No FAQs added yet.</p>
+            )}
           </div>
         </section>
 
         <section className="card-elevated space-y-3 p-6">
           <div className="flex items-center justify-between">
             <h3 className="eyebrow">Staff</h3>
-            <Button type="button" variant="outline" size="sm" onClick={() => staff.append({ name: "", role: "", phone: "", email: "" })}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => staff.append({ name: "", role: "", phone: "", email: "" })}
+            >
               <Plus className="mr-1 h-3.5 w-3.5" /> Add person
             </Button>
           </div>
           <div className="space-y-2">
             {staff.fields.map((f, i) => (
-              <div key={f.id} className="grid gap-2 rounded-lg border border-border p-3 sm:grid-cols-[1fr_1fr_1fr_1fr_auto]">
+              <div
+                key={f.id}
+                className="grid gap-2 rounded-lg border border-border p-3 sm:grid-cols-[1fr_1fr_1fr_1fr_auto]"
+              >
                 <Input placeholder="Name" {...form.register(`staff.${i}.name`)} />
                 <Input placeholder="Role" {...form.register(`staff.${i}.role`)} />
                 <Input placeholder="Phone" {...form.register(`staff.${i}.phone`)} />
@@ -280,7 +351,9 @@ export function BusinessProfileForm({
                 </Button>
               </div>
             ))}
-            {staff.fields.length === 0 && <p className="text-sm text-muted-foreground">No staff added yet.</p>}
+            {staff.fields.length === 0 && (
+              <p className="text-sm text-muted-foreground">No staff added yet.</p>
+            )}
           </div>
         </section>
 

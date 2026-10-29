@@ -11,7 +11,14 @@ import { ensureOrganizationFn } from "@/lib/org/org.functions";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { toast } from "sonner";
 
 const searchSchema = z.object({
@@ -24,7 +31,10 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — AI Phone Desk" },
-      { name: "description", content: "Sign in or create your AI Phone Desk account to set up your receptionist." },
+      {
+        name: "description",
+        content: "Sign in or create your AI Phone Desk account to set up your receptionist.",
+      },
       { property: "og:title", content: "Sign in — AI Phone Desk" },
       { property: "og:description", content: "Sign in or create your AI Phone Desk account." },
       { property: "og:type", content: "website" },
@@ -36,8 +46,13 @@ export const Route = createFileRoute("/auth")({
 
 function friendlyAuthError(message: string) {
   const m = message.toLowerCase();
-  if (m.includes("invalid login credentials")) return "That email or password isn't right. Try again.";
-  if (m.includes("already registered") || m.includes("already exists") || m.includes("user already"))
+  if (m.includes("invalid login credentials"))
+    return "That email or password isn't right. Try again.";
+  if (
+    m.includes("already registered") ||
+    m.includes("already exists") ||
+    m.includes("user already")
+  )
     return "An account with that email already exists. Try signing in instead.";
   if (m.includes("rate limit")) return "Too many attempts. Please wait a minute and try again.";
   if (m.includes("password")) return message;
@@ -90,10 +105,22 @@ function GoogleButton({ onGoogleSession }: { onGoogleSession?: () => void }) {
       }}
     >
       <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
-        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.25 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z" />
-        <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z" />
-        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1a11 11 0 0 0-9.82 6.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38z" />
+        <path
+          fill="#4285F4"
+          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+        />
+        <path
+          fill="#34A853"
+          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.25 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"
+        />
+        <path
+          fill="#FBBC05"
+          d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"
+        />
+        <path
+          fill="#EA4335"
+          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1a11 11 0 0 0-9.82 6.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38z"
+        />
       </svg>
       Continue with Google
     </Button>
@@ -158,7 +185,11 @@ function AuthPage() {
               {mode !== "signin" && (
                 <p className="text-muted-foreground">
                   Have an account?{" "}
-                  <Link to="/auth" search={{ mode: "signin" }} className="font-medium text-foreground underline underline-offset-4">
+                  <Link
+                    to="/auth"
+                    search={{ mode: "signin" }}
+                    className="font-medium text-foreground underline underline-offset-4"
+                  >
                     Sign in
                   </Link>
                 </p>
@@ -166,14 +197,22 @@ function AuthPage() {
               {mode !== "signup" && (
                 <p className="text-muted-foreground">
                   New here?{" "}
-                  <Link to="/auth" search={{ mode: "signup" }} className="font-medium text-foreground underline underline-offset-4">
+                  <Link
+                    to="/auth"
+                    search={{ mode: "signup" }}
+                    className="font-medium text-foreground underline underline-offset-4"
+                  >
                     Create an account
                   </Link>
                 </p>
               )}
               {mode !== "magic" && (
                 <p className="text-muted-foreground">
-                  <Link to="/auth" search={{ mode: "magic" }} className="font-medium text-foreground underline underline-offset-4">
+                  <Link
+                    to="/auth"
+                    search={{ mode: "magic" }}
+                    className="font-medium text-foreground underline underline-offset-4"
+                  >
                     Sign in with a magic link instead
                   </Link>
                 </p>
@@ -238,7 +277,12 @@ function SignInForm({ onDone }: { onDone: () => void }) {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" autoComplete="email" placeholder="you@business.com" {...field} />
+                  <Input
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@business.com"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -251,7 +295,12 @@ function SignInForm({ onDone }: { onDone: () => void }) {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input type="password" autoComplete="current-password" placeholder="••••••••" {...field} />
+                  <Input
+                    type="password"
+                    autoComplete="current-password"
+                    placeholder="••••••••"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -296,7 +345,10 @@ function SignUpForm({ onDone }: { redirect?: string; onDone: () => void }) {
       toast.error(friendlyAuthError(error.message));
       return;
     }
-    (window as unknown as { fbq?: (...a: unknown[]) => void }).fbq?.("track", "CompleteRegistration");
+    (window as unknown as { fbq?: (...a: unknown[]) => void }).fbq?.(
+      "track",
+      "CompleteRegistration",
+    );
     if (data.session) {
       onDone();
     } else {
@@ -308,7 +360,9 @@ function SignUpForm({ onDone }: { redirect?: string; onDone: () => void }) {
     return (
       <div className="text-center">
         <CheckCircle2 className="mx-auto h-10 w-10 text-accent" />
-        <h2 className="mt-4 font-display text-xl font-semibold text-foreground">Check your email</h2>
+        <h2 className="mt-4 font-display text-xl font-semibold text-foreground">
+          Check your email
+        </h2>
         <p className="mt-2 text-sm text-muted-foreground">
           We sent a confirmation link to finish creating your account.
         </p>
@@ -319,7 +373,9 @@ function SignUpForm({ onDone }: { redirect?: string; onDone: () => void }) {
   return (
     <>
       <h2 className="font-display text-xl font-semibold text-foreground">Create your account</h2>
-      <p className="mt-1 text-sm text-muted-foreground">Set up your AI receptionist in a few minutes.</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Set up your AI receptionist in a few minutes.
+      </p>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="mt-6 space-y-4">
           <FormField
@@ -342,7 +398,12 @@ function SignUpForm({ onDone }: { redirect?: string; onDone: () => void }) {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" autoComplete="email" placeholder="you@business.com" {...field} />
+                  <Input
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@business.com"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -355,7 +416,12 @@ function SignUpForm({ onDone }: { redirect?: string; onDone: () => void }) {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input type="password" autoComplete="new-password" placeholder="At least 8 characters" {...field} />
+                  <Input
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="At least 8 characters"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -376,7 +442,10 @@ const magicSchema = z.object({ email: z.string().email("Enter a valid email addr
 function MagicLinkForm() {
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
-  const form = useForm<z.infer<typeof magicSchema>>({ resolver: zodResolver(magicSchema), defaultValues: { email: "" } });
+  const form = useForm<z.infer<typeof magicSchema>>({
+    resolver: zodResolver(magicSchema),
+    defaultValues: { email: "" },
+  });
 
   async function onSubmit(values: z.infer<typeof magicSchema>) {
     setSubmitting(true);
@@ -397,15 +466,21 @@ function MagicLinkForm() {
       <div className="text-center">
         <CheckCircle2 className="mx-auto h-10 w-10 text-accent" />
         <h2 className="mt-4 font-display text-xl font-semibold text-foreground">Link sent</h2>
-        <p className="mt-2 text-sm text-muted-foreground">Check your email and click the link to sign in.</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Check your email and click the link to sign in.
+        </p>
       </div>
     );
   }
 
   return (
     <>
-      <h2 className="font-display text-xl font-semibold text-foreground">Sign in with a magic link</h2>
-      <p className="mt-1 text-sm text-muted-foreground">We'll email you a link — no password needed.</p>
+      <h2 className="font-display text-xl font-semibold text-foreground">
+        Sign in with a magic link
+      </h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        We'll email you a link — no password needed.
+      </p>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="mt-6 space-y-4">
           <FormField
@@ -415,7 +490,12 @@ function MagicLinkForm() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" autoComplete="email" placeholder="you@business.com" {...field} />
+                  <Input
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@business.com"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

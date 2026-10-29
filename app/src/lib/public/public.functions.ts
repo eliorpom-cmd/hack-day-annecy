@@ -10,7 +10,8 @@ function publicClient() {
     global: {
       fetch: (input, init) => {
         const h = new Headers(init?.headers);
-        if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) h.delete("Authorization");
+        if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`)
+          h.delete("Authorization");
         h.set("apikey", key);
         return fetch(input, { ...init, headers: h });
       },
@@ -21,7 +22,9 @@ function publicClient() {
 export const getPlansFn = createServerFn({ method: "GET" }).handler(async () => {
   const { data } = await publicClient()
     .from("plans")
-    .select("id, name, description, monthly_price, annual_price, included_minutes, included_numbers, max_receptionists, max_concurrent_calls, overage_price_per_minute, features, highlights, is_popular, is_custom, sort_order")
+    .select(
+      "id, name, description, monthly_price, annual_price, included_minutes, included_numbers, max_receptionists, max_concurrent_calls, overage_price_per_minute, features, highlights, is_popular, is_custom, sort_order",
+    )
     .eq("active", true)
     .order("sort_order");
   return (data ?? []).map((p) => ({
@@ -36,7 +39,9 @@ export const getPlansFn = createServerFn({ method: "GET" }).handler(async () => 
 export const getVoicesFn = createServerFn({ method: "GET" }).handler(async () => {
   const { data } = await publicClient()
     .from("voices")
-    .select("id, name, language, gender, description, accent, preview_url, recommended_industries, is_default, sort_order")
+    .select(
+      "id, name, language, gender, description, accent, preview_url, recommended_industries, is_default, sort_order",
+    )
     .eq("active", true)
     .order("sort_order");
   return data ?? [];
@@ -76,7 +81,10 @@ export const getDemoTokenFn = createServerFn({ method: "POST" }).handler(async (
   const { AppError } = await import("@/lib/server/errors.server");
 
   const req = getRequest();
-  const ip = req?.headers.get("cf-connecting-ip") || req?.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const ip =
+    req?.headers.get("cf-connecting-ip") ||
+    req?.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "unknown";
   const ipHash = await sha256(`${ip}:${process.env["LOVABLE_CRON_SECRET"] ?? "salt"}`);
 
   const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
@@ -86,7 +94,10 @@ export const getDemoTokenFn = createServerFn({ method: "POST" }).handler(async (
     .eq("ip_hash", ipHash)
     .gte("started_at", since);
   if ((count ?? 0) >= DEMO_MAX_SESSIONS_PER_DAY) {
-    throw new AppError("You've reached today's demo limit. Create a free account to keep talking to your own receptionist.", { status: 429 });
+    throw new AppError(
+      "You've reached today's demo limit. Create a free account to keep talking to your own receptionist.",
+      { status: 429 },
+    );
   }
 
   if (ElevenLabsService.isDemoMode()) {
@@ -94,30 +105,43 @@ export const getDemoTokenFn = createServerFn({ method: "POST" }).handler(async (
   }
 
   // Resolve (or lazily create) the dedicated demo agent.
-  const { data: setting } = await supabaseAdmin.from("platform_settings").select("value").eq("key", "demo_agent").maybeSingle();
+  const { data: setting } = await supabaseAdmin
+    .from("platform_settings")
+    .select("value")
+    .eq("key", "demo_agent")
+    .maybeSingle();
   let agentId = (setting?.value as { agent_id?: string } | null)?.agent_id;
   if (!agentId) {
     try {
       const created = await ElevenLabsService.createAgent({
         name: "AI Phone Desk — Public demo (Harbor Dental Studio)",
         voiceId: "EXAVITQu4vr4xnSDxMaL",
-        firstMessage: "Hi, thanks for calling Harbor Dental Studio! This is Ava. How can I help you today?",
+        firstMessage:
+          "Hi, thanks for calling Harbor Dental Studio! This is Ava. How can I help you today?",
         prompt: DEMO_PROMPT,
         language: "en",
         maxDurationSeconds: DEMO_SECONDS,
       });
       agentId = created.agent_id;
-      await supabaseAdmin.from("platform_settings").upsert({ key: "demo_agent", value: { agent_id: agentId } });
+      await supabaseAdmin
+        .from("platform_settings")
+        .upsert({ key: "demo_agent", value: { agent_id: agentId } });
     } catch (e) {
-      throw new AppError("The demo isn't available right now. Please try again in a moment.", { cause: e });
+      throw new AppError("The demo isn't available right now. Please try again in a moment.", {
+        cause: e,
+      });
     }
   }
 
   try {
     const { token } = await ElevenLabsService.getConversationToken(agentId);
-    await supabaseAdmin.from("demo_sessions").insert({ ip_hash: ipHash, seconds_allowed: DEMO_SECONDS });
+    await supabaseAdmin
+      .from("demo_sessions")
+      .insert({ ip_hash: ipHash, seconds_allowed: DEMO_SECONDS });
     return { token, mock: false, secondsAllowed: DEMO_SECONDS };
   } catch (e) {
-    throw new AppError("The demo isn't available right now. Please try again in a moment.", { cause: e });
+    throw new AppError("The demo isn't available right now. Please try again in a moment.", {
+      cause: e,
+    });
   }
 });

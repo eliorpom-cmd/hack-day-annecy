@@ -9,10 +9,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useWorkspace } from "@/components/app/WorkspaceProvider";
 import { callAuthed } from "@/lib/auth/client";
-import { getAdminOverviewFn, retryReceptionistFn, setOrgSuspendedFn } from "@/lib/admin/admin.functions";
+import {
+  getAdminOverviewFn,
+  retryReceptionistFn,
+  setOrgSuspendedFn,
+} from "@/lib/admin/admin.functions";
 
 export const Route = createFileRoute("/app/admin")({
-  head: () => ({ meta: [{ title: "Admin — AI Phone Desk" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [{ title: "Admin — AI Phone Desk" }, { name: "robots", content: "noindex" }],
+  }),
   component: AdminPage,
 });
 
@@ -27,7 +33,8 @@ function AdminPage() {
   if (!workspace.isAdmin) return <Navigate to="/app" />;
 
   async function suspend(id: string, suspended: boolean) {
-    if (suspended && !confirm("Suspend this account? Its receptionists will stop answering calls.")) return;
+    if (suspended && !confirm("Suspend this account? Its receptionists will stop answering calls."))
+      return;
     await callAuthed(setOrgSuspendedFn, { data: { organizationId: id, suspended } });
     toast.success(suspended ? "Account suspended" : "Account restored");
     q.refetch();
@@ -42,10 +49,15 @@ function AdminPage() {
   const d = q.data;
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
-      <PageHeader title="Admin" description="Every customer, receptionist and number across AI Phone Desk." />
+      <PageHeader
+        title="Admin"
+        description="Every customer, receptionist and number across AI Phone Desk."
+      />
       {!d ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-24" />)}
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-24" />
+          ))}
         </div>
       ) : (
         <>
@@ -63,7 +75,9 @@ function AdminPage() {
           <Tabs defaultValue="customers">
             <TabsList>
               <TabsTrigger value="customers">Customers</TabsTrigger>
-              <TabsTrigger value="failed">Needs attention {d.failed.length > 0 && `(${d.failed.length})`}</TabsTrigger>
+              <TabsTrigger value="failed">
+                Needs attention {d.failed.length > 0 && `(${d.failed.length})`}
+              </TabsTrigger>
               <TabsTrigger value="logs">Activity</TabsTrigger>
             </TabsList>
 
@@ -71,8 +85,12 @@ function AdminPage() {
               <table className="w-full text-sm">
                 <thead className="border-b text-left text-xs text-muted-foreground">
                   <tr>
-                    <th className="p-3">Business</th><th className="p-3">Plan</th><th className="p-3">Minutes</th>
-                    <th className="p-3">Number</th><th className="p-3">Joined</th><th className="p-3" />
+                    <th className="p-3">Business</th>
+                    <th className="p-3">Plan</th>
+                    <th className="p-3">Minutes</th>
+                    <th className="p-3">Number</th>
+                    <th className="p-3">Joined</th>
+                    <th className="p-3" />
                   </tr>
                 </thead>
                 <tbody>
@@ -84,16 +102,26 @@ function AdminPage() {
                       </td>
                       <td className="p-3">
                         <p>{c.plan}</p>
-                        {c.subscription && <p className="text-xs text-muted-foreground">{c.subscription}</p>}
+                        {c.subscription && (
+                          <p className="text-xs text-muted-foreground">{c.subscription}</p>
+                        )}
                       </td>
-                      <td className="p-3">{c.minutesUsed != null ? `${c.minutesUsed} / ${c.includedMinutes}` : "—"}</td>
+                      <td className="p-3">
+                        {c.minutesUsed != null ? `${c.minutesUsed} / ${c.includedMinutes}` : "—"}
+                      </td>
                       <td className="p-3">{c.liveNumbers.join(", ") || "—"}</td>
-                      <td className="p-3 text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</td>
+                      <td className="p-3 text-muted-foreground">
+                        {new Date(c.createdAt).toLocaleDateString()}
+                      </td>
                       <td className="p-3 text-right">
                         {c.suspended ? (
-                          <Button size="sm" variant="outline" onClick={() => suspend(c.id, false)}>Restore</Button>
+                          <Button size="sm" variant="outline" onClick={() => suspend(c.id, false)}>
+                            Restore
+                          </Button>
                         ) : c.receptionists > 0 ? (
-                          <Button size="sm" variant="ghost" onClick={() => suspend(c.id, true)}>Suspend</Button>
+                          <Button size="sm" variant="ghost" onClick={() => suspend(c.id, true)}>
+                            Suspend
+                          </Button>
                         ) : null}
                       </td>
                     </tr>
@@ -104,18 +132,29 @@ function AdminPage() {
 
             <TabsContent value="failed" className="mt-4 flex flex-col gap-3">
               {d.failed.length === 0 ? (
-                <p className="card-elevated p-6 text-center text-sm text-muted-foreground">Nothing needs attention. Every receptionist and number is healthy.</p>
+                <p className="card-elevated p-6 text-center text-sm text-muted-foreground">
+                  Nothing needs attention. Every receptionist and number is healthy.
+                </p>
               ) : (
                 d.failed.map((f) => (
-                  <div key={f.id} className="card-elevated flex flex-wrap items-center justify-between gap-3 p-4">
+                  <div
+                    key={f.id}
+                    className="card-elevated flex flex-wrap items-center justify-between gap-3 p-4"
+                  >
                     <div>
                       <p className="font-medium text-foreground">
-                        <Badge variant="secondary" className="mr-2">{f.kind === "phone" ? "Number" : "Receptionist"}</Badge>
+                        <Badge variant="secondary" className="mr-2">
+                          {f.kind === "phone" ? "Number" : "Receptionist"}
+                        </Badge>
                         {f.label} · <span className="text-muted-foreground">{f.org}</span>
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">{f.message}</p>
                     </div>
-                    {f.kind === "receptionist" && <Button size="sm" onClick={() => retry(f.id)}>Retry</Button>}
+                    {f.kind === "receptionist" && (
+                      <Button size="sm" onClick={() => retry(f.id)}>
+                        Retry
+                      </Button>
+                    )}
                   </div>
                 ))
               )}
@@ -124,8 +163,13 @@ function AdminPage() {
             <TabsContent value="logs" className="card-elevated mt-4 divide-y p-0">
               {d.logs.map((l) => (
                 <div key={l.id} className="flex items-center justify-between gap-3 p-3 text-sm">
-                  <span className="text-foreground">{l.action}<span className="text-muted-foreground"> · {l.org ?? "—"}</span></span>
-                  <span className="text-xs text-muted-foreground">{new Date(l.created_at).toLocaleString()}</span>
+                  <span className="text-foreground">
+                    {l.action}
+                    <span className="text-muted-foreground"> · {l.org ?? "—"}</span>
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(l.created_at).toLocaleString()}
+                  </span>
                 </div>
               ))}
             </TabsContent>

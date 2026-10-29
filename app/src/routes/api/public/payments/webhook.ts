@@ -19,7 +19,8 @@ async function syncSubscription(subscription: any, env: StripeEnv) {
     return;
   }
   const item = subscription.items?.data?.[0];
-  const priceId = item?.price?.lookup_key || item?.price?.metadata?.lovable_external_id || item?.price?.id;
+  const priceId =
+    item?.price?.lookup_key || item?.price?.metadata?.lovable_external_id || item?.price?.id;
   const periodStart = item?.current_period_start ?? subscription.current_period_start;
   const periodEnd = item?.current_period_end ?? subscription.current_period_end;
 
@@ -28,8 +29,14 @@ async function syncSubscription(subscription: any, env: StripeEnv) {
       user_id: userId,
       organization_id: orgId,
       stripe_subscription_id: subscription.id,
-      stripe_customer_id: typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id,
-      product_id: typeof item?.price?.product === "string" ? item.price.product : item?.price?.product?.id ?? "",
+      stripe_customer_id:
+        typeof subscription.customer === "string"
+          ? subscription.customer
+          : subscription.customer?.id,
+      product_id:
+        typeof item?.price?.product === "string"
+          ? item.price.product
+          : (item?.price?.product?.id ?? ""),
       price_id: priceId ?? "",
       status: subscription.status,
       current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : null,

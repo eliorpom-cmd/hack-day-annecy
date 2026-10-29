@@ -24,7 +24,10 @@ export function FeatureGate({
   children: (live: LiveNumber) => ReactNode;
 }) {
   const { workspace } = useWorkspace();
-  const overview = useQuery({ queryKey: ["phone-overview"], queryFn: () => callAuthed(getPhoneOverviewFn) });
+  const overview = useQuery({
+    queryKey: ["phone-overview"],
+    queryFn: () => callAuthed(getPhoneOverviewFn),
+  });
   const plan = (workspace as { plan?: { included_numbers?: number; name?: string } | null }).plan;
   const isPaid = (plan?.included_numbers ?? 0) > 0;
 
@@ -44,7 +47,11 @@ export function FeatureGate({
   return (
     <div className="card-elevated flex flex-col items-center gap-4 px-6 py-14 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/15">
-        {isPaid ? <Phone className="h-5 w-5 text-accent" /> : <Lock className="h-5 w-5 text-accent" />}
+        {isPaid ? (
+          <Phone className="h-5 w-5 text-accent" />
+        ) : (
+          <Lock className="h-5 w-5 text-accent" />
+        )}
       </div>
       <p className="eyebrow">{isPaid ? "One step left" : "Available on paid plans"}</p>
       <h3 className="font-display text-xl font-semibold text-foreground">

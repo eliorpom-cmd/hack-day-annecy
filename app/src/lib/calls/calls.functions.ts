@@ -5,7 +5,9 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 /** Sync new calls from the voice provider, then return everything the dashboard needs. */
 export const getCallDataFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { days?: number } | undefined) => z.object({ days: z.number().int().min(1).max(365).optional() }).parse(d ?? {}))
+  .inputValidator((d: { days?: number } | undefined) =>
+    z.object({ days: z.number().int().min(1).max(365).optional() }).parse(d ?? {}),
+  )
   .handler(async ({ context, data }) => {
     const { requireOrg } = await import("@/lib/org/org.server");
     const { org } = await requireOrg(context.supabase, context.userId);
@@ -22,7 +24,9 @@ export const getCallDataFn = createServerFn({ method: "POST" })
     const [{ data: calls }, { data: clients }, { data: appts }] = await Promise.all([
       context.supabase
         .from("calls")
-        .select("id, channel, caller_phone, status, outcome, summary, title, duration_secs, has_audio, started_at, client_id, receptionist_id")
+        .select(
+          "id, channel, caller_phone, status, outcome, summary, title, duration_secs, has_audio, started_at, client_id, receptionist_id",
+        )
         .eq("organization_id", org.id)
         .gte("started_at", since)
         .order("started_at", { ascending: false })
@@ -39,7 +43,13 @@ export const getCallDataFn = createServerFn({ method: "POST" })
         .eq("organization_id", org.id)
         .gte("created_at", since),
     ]);
-    return { calls: calls ?? [], clients: clients ?? [], appointments: appts ?? [], timezone: org.timezone, syncError };
+    return {
+      calls: calls ?? [],
+      clients: clients ?? [],
+      appointments: appts ?? [],
+      timezone: org.timezone,
+      syncError,
+    };
   });
 
 export const getCallDetailFn = createServerFn({ method: "POST" })
@@ -55,7 +65,9 @@ export const getCallDetailFn = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .maybeSingle();
     if (!call) throw new Error("Call not found.");
-    return call as typeof call & { transcript: { role: "user" | "agent"; message: string; t: number }[] };
+    return call as typeof call & {
+      transcript: { role: "user" | "agent"; message: string; t: number }[];
+    };
   });
 
 /** Returns the recording as a base64 data URL. */

@@ -13,7 +13,12 @@ export interface PromptContext {
   settings: {
     appointment_booking_enabled: boolean;
     call_transfer_enabled: boolean;
-    transfer_destinations: { name: string; department?: string; phone?: string; rules?: string[] }[];
+    transfer_destinations: {
+      name: string;
+      department?: string;
+      phone?: string;
+      rules?: string[];
+    }[];
     voicemail_enabled: boolean;
   };
 }
@@ -26,11 +31,15 @@ function fmtTime(t: string) {
 }
 
 function formatHours(b: BusinessProfile) {
-  if (!b.hours.length) return "Hours not provided. If asked, say you don't have the hours on hand and offer to take a message.";
+  if (!b.hours.length)
+    return "Hours not provided. If asked, say you don't have the hours on hand and offer to take a message.";
   return b.hours
     .slice()
     .sort((a, z) => a.day_of_week - z.day_of_week)
-    .map((h) => `${DAY_NAMES[h.day_of_week]}: ${h.enabled ? `${fmtTime(h.open_time)} – ${fmtTime(h.close_time)}` : "Closed"}`)
+    .map(
+      (h) =>
+        `${DAY_NAMES[h.day_of_week]}: ${h.enabled ? `${fmtTime(h.open_time)} – ${fmtTime(h.close_time)}` : "Closed"}`,
+    )
     .join("\n");
 }
 
@@ -62,11 +71,15 @@ function formatStaff(b: BusinessProfile) {
 export function generateSystemPrompt(ctx: PromptContext): string {
   const { business: b, receptionist: r, settings: s } = ctx;
   const location = [b.address, b.city, b.state, b.postal_code].filter(Boolean).join(", ");
-  const transfers = s.call_transfer_enabled && s.transfer_destinations.length
-    ? s.transfer_destinations
-        .map((d) => `- ${d.name}${d.department ? ` (${d.department})` : ""}: transfer when the call is about ${d.rules?.length ? d.rules.join(", ") : "matters they handle"}.`)
-        .join("\n")
-    : "Call transfer is not available. If a caller needs a person, take a detailed message and promise a call back.";
+  const transfers =
+    s.call_transfer_enabled && s.transfer_destinations.length
+      ? s.transfer_destinations
+          .map(
+            (d) =>
+              `- ${d.name}${d.department ? ` (${d.department})` : ""}: transfer when the call is about ${d.rules?.length ? d.rules.join(", ") : "matters they handle"}.`,
+          )
+          .join("\n")
+      : "Call transfer is not available. If a caller needs a person, take a detailed message and promise a call back.";
 
   return `IDENTITY
 You are ${r.name}, the AI receptionist for ${b.business_name}. You answer the phone on behalf of the business. Speak in ${r.language === "en" ? "English" : r.language}. Your personality: ${r.personality}. Tone: ${r.tone}.
@@ -92,13 +105,15 @@ ${r.after_hours_greeting ? `If the business is currently closed, open with: "${r
 ${formatFaqs(b)}${formatStaff(b)}
 ${b.policies ? `POLICIES\n${b.policies}\n` : ""}
 BOOKING RULES
-${s.appointment_booking_enabled
-  ? `${b.booking_rules ?? "Collect the caller's full name, phone number, the service they want, and their preferred day and time."}
+${
+  s.appointment_booking_enabled
+    ? `${b.booking_rules ?? "Collect the caller's full name, phone number, the service they want, and their preferred day and time."}
 ${b.booking_url ? `Online booking is available at ${b.booking_url}; offer it when helpful.` : ""}
 ${b.cancellation_rules ? `Cancellation policy: ${b.cancellation_rules}` : ""}
 To book: first call the check_availability tool (pass a date as YYYY-MM-DD when the caller names a day; it also tells you today's date). Offer at most three open times. Once the caller picks one and you have their full name and phone number, call the book_appointment tool with the exact start time returned by check_availability.
 Only say the appointment is confirmed when book_appointment returns confirmed: true. If it fails or the time is taken, apologize, offer other open times, or take a message so the team can call back.`
-  : "Appointment booking is not enabled. Collect the caller's details and preferred times as a message so the team can call back."}
+    : "Appointment booking is not enabled. Collect the caller's details and preferred times as a message so the team can call back."
+}
 
 CALL HANDLING
 - Greet warmly, then listen. Ask one question at a time.

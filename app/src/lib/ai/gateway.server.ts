@@ -18,7 +18,11 @@ function createGateway() {
   });
 }
 
-async function runCompletion(opts: { system: string; user: string; effort?: "low" | "medium" | "high" }): Promise<string> {
+async function runCompletion(opts: {
+  system: string;
+  user: string;
+  effort?: "low" | "medium" | "high";
+}): Promise<string> {
   const gateway = createGateway();
   const started = Date.now();
   const result = streamText({
@@ -38,7 +42,14 @@ async function runCompletion(opts: { system: string; user: string; effort?: "low
   });
 
   const text = await result.text;
-  console.log(JSON.stringify({ level: "info", event: "ai.completion", model: MODEL, ms: Date.now() - started }));
+  console.log(
+    JSON.stringify({
+      level: "info",
+      event: "ai.completion",
+      model: MODEL,
+      ms: Date.now() - started,
+    }),
+  );
   if (!text.trim()) throw new Error("The website reader returned an empty result");
   return text;
 }
@@ -60,6 +71,10 @@ export async function completeJson<T>(opts: {
   return JSON.parse(cleaned) as T;
 }
 
-export async function completeText(opts: { system: string; user: string; model?: string }): Promise<string> {
+export async function completeText(opts: {
+  system: string;
+  user: string;
+  model?: string;
+}): Promise<string> {
   return runCompletion({ system: opts.system, user: opts.user });
 }

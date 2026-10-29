@@ -1,18 +1,55 @@
 import { useEffect, useRef, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Globe, Pencil, Plus, Trash2, Loader2, AlertTriangle, ArrowRight, Check, Terminal, Search } from "lucide-react";
+import {
+  Globe,
+  Pencil,
+  Plus,
+  Trash2,
+  Loader2,
+  AlertTriangle,
+  ArrowRight,
+  Check,
+  Terminal,
+  Search,
+} from "lucide-react";
 import { toast } from "sonner";
 import { callAuthed } from "@/lib/auth/client";
-import { startScanFn, advanceScanFn, saveBusinessFn, getBusinessFn } from "@/lib/onboarding/onboarding.functions";
-import { businessProfileSchema, emptyBusinessProfile, defaultHours, INDUSTRIES, DAY_NAMES, type BusinessProfile, type BusinessProfileInput } from "@/lib/business/schema";
+import {
+  startScanFn,
+  advanceScanFn,
+  saveBusinessFn,
+  getBusinessFn,
+} from "@/lib/onboarding/onboarding.functions";
+import {
+  businessProfileSchema,
+  emptyBusinessProfile,
+  defaultHours,
+  INDUSTRIES,
+  DAY_NAMES,
+  type BusinessProfile,
+  type BusinessProfileInput,
+} from "@/lib/business/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { VoiceOrb } from "@/components/voice/VoiceOrb";
 
 type Stage = "loading" | "choice" | "scanning" | "failed" | "review";
@@ -78,10 +115,15 @@ function ScanProgress({ scan }: { scan: ScanState }) {
           <VoiceOrb state="connecting" size="sm" />
           <div className="text-left">
             <p className="eyebrow">Reading your website</p>
-            <h2 className="mt-1 font-display text-xl font-semibold text-foreground">Teaching your receptionist</h2>
+            <h2 className="mt-1 font-display text-xl font-semibold text-foreground">
+              Teaching your receptionist
+            </h2>
           </div>
         </div>
-        <div className="font-display text-4xl font-semibold tabular-nums text-foreground" aria-hidden="true">
+        <div
+          className="font-display text-4xl font-semibold tabular-nums text-foreground"
+          aria-hidden="true"
+        >
           {progress}%
         </div>
       </div>
@@ -90,7 +132,9 @@ function ScanProgress({ scan }: { scan: ScanState }) {
         <div className="mb-2 flex items-center justify-between gap-4 text-sm">
           <span className="font-medium text-foreground">{scan.stage}</span>
           <span className="shrink-0 text-muted-foreground">
-            {scan.pagesFound > 0 ? `${scan.pagesCrawled} of ${scan.pagesFound} pages read` : "Finding pages…"}
+            {scan.pagesFound > 0
+              ? `${scan.pagesCrawled} of ${scan.pagesFound} pages read`
+              : "Finding pages…"}
           </span>
         </div>
         <div
@@ -101,7 +145,10 @@ function ScanProgress({ scan }: { scan: ScanState }) {
           aria-valuemax={100}
           aria-valuenow={progress}
         >
-          <div className="h-full rounded-full bg-accent transition-all duration-500" style={{ width: `${progress}%` }} />
+          <div
+            className="h-full rounded-full bg-accent transition-all duration-500"
+            style={{ width: `${progress}%` }}
+          />
         </div>
       </div>
 
@@ -116,7 +163,10 @@ function ScanProgress({ scan }: { scan: ScanState }) {
             In progress
           </span>
         </div>
-        <div ref={feedRef} className="h-64 overflow-y-auto px-4 py-3 text-left font-mono text-xs leading-6 sm:h-72">
+        <div
+          ref={feedRef}
+          className="h-64 overflow-y-auto px-4 py-3 text-left font-mono text-xs leading-6 sm:h-72"
+        >
           {SCAN_ACTIVITY.slice(0, visibleLines).map((message, index) => {
             const isCurrent = index === visibleLines - 1 && visibleLines < SCAN_ACTIVITY.length;
             return (
@@ -126,7 +176,11 @@ function ScanProgress({ scan }: { scan: ScanState }) {
                 ) : (
                   <Check className="mt-1.5 h-3 w-3 shrink-0 text-accent" />
                 )}
-                <span className={isCurrent ? "text-primary-foreground" : "text-primary-foreground/70"}>{message}</span>
+                <span
+                  className={isCurrent ? "text-primary-foreground" : "text-primary-foreground/70"}
+                >
+                  {message}
+                </span>
               </div>
             );
           })}
@@ -178,7 +232,13 @@ export function StepBusiness({ onSaved }: { onSaved: (profile: BusinessProfile) 
       const { jobId } = await callAuthed(startScanFn, { data: { url: url.trim() } });
       await poll(jobId);
     } catch (e) {
-      setScan({ stage: "Scan failed", progress: 0, pagesCrawled: 0, pagesFound: 0, error: e instanceof Error ? e.message : "We couldn't start the scan." });
+      setScan({
+        stage: "Scan failed",
+        progress: 0,
+        pagesCrawled: 0,
+        pagesFound: 0,
+        error: e instanceof Error ? e.message : "We couldn't start the scan.",
+      });
       setStage("failed");
     }
   }
@@ -219,14 +279,22 @@ export function StepBusiness({ onSaved }: { onSaved: (profile: BusinessProfile) 
   if (stage === "choice") {
     return (
       <div>
-        <h1 className="font-display text-2xl font-semibold text-foreground">Tell us about your business</h1>
-        <p className="mt-1 text-sm text-muted-foreground">We'll use this to teach your receptionist how to talk about your business.</p>
+        <h1 className="font-display text-2xl font-semibold text-foreground">
+          Tell us about your business
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          We'll use this to teach your receptionist how to talk about your business.
+        </p>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
           <div className="card-elevated flex flex-col gap-3 p-6">
             <Globe className="h-5 w-5 text-accent" />
-            <h3 className="font-display text-base font-semibold text-foreground">Scan my website</h3>
-            <p className="text-sm text-muted-foreground">We'll read your site and fill everything in for you.</p>
+            <h3 className="font-display text-base font-semibold text-foreground">
+              Scan my website
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              We'll read your site and fill everything in for you.
+            </p>
             <div className="mt-auto flex flex-col gap-2 pt-2">
               <Input
                 placeholder="yourbusiness.com"
@@ -241,8 +309,12 @@ export function StepBusiness({ onSaved }: { onSaved: (profile: BusinessProfile) 
           </div>
           <div className="card-elevated flex flex-col gap-3 p-6">
             <Pencil className="h-5 w-5 text-muted-foreground" />
-            <h3 className="font-display text-base font-semibold text-foreground">Enter details manually</h3>
-            <p className="text-sm text-muted-foreground">No website yet? No problem — add your details yourself.</p>
+            <h3 className="font-display text-base font-semibold text-foreground">
+              Enter details manually
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              No website yet? No problem — add your details yourself.
+            </p>
             <Button
               variant="outline"
               className="mt-auto"
@@ -262,7 +334,16 @@ export function StepBusiness({ onSaved }: { onSaved: (profile: BusinessProfile) 
   if (stage === "scanning") {
     return (
       <div className="card-elevated p-5 sm:p-8">
-        <ScanProgress scan={scan ?? { stage: "Starting website reader…", progress: 5, pagesCrawled: 0, pagesFound: 0 }} />
+        <ScanProgress
+          scan={
+            scan ?? {
+              stage: "Starting website reader…",
+              progress: 5,
+              pagesCrawled: 0,
+              pagesFound: 0,
+            }
+          }
+        />
       </div>
     );
   }
@@ -271,9 +352,15 @@ export function StepBusiness({ onSaved }: { onSaved: (profile: BusinessProfile) 
     return (
       <div className="card-elevated flex flex-col items-center p-10 text-center">
         <AlertTriangle className="h-8 w-8 text-destructive" />
-        <h2 className="mt-4 font-display text-xl font-semibold text-foreground">We couldn't finish that scan</h2>
-        <p className="mt-2 max-w-sm text-sm text-muted-foreground">{scan?.error ?? "Something went wrong reading that website."}</p>
-        {scan?.errorId && <p className="mt-1 text-xs text-muted-foreground/70">Ref: {scan.errorId}</p>}
+        <h2 className="mt-4 font-display text-xl font-semibold text-foreground">
+          We couldn't finish that scan
+        </h2>
+        <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+          {scan?.error ?? "Something went wrong reading that website."}
+        </p>
+        {scan?.errorId && (
+          <p className="mt-1 text-xs text-muted-foreground/70">Ref: {scan.errorId}</p>
+        )}
         <div className="mt-6 flex gap-3">
           <Button variant="outline" onClick={() => setStage("choice")}>
             Try again
@@ -291,7 +378,13 @@ export function StepBusiness({ onSaved }: { onSaved: (profile: BusinessProfile) 
     );
   }
 
-  return <ReviewForm initial={profile ?? { ...emptyBusinessProfile(), hours: defaultHours() }} hasExisting={hasExisting} onSaved={onSaved} />;
+  return (
+    <ReviewForm
+      initial={profile ?? { ...emptyBusinessProfile(), hours: defaultHours() }}
+      hasExisting={hasExisting}
+      onSaved={onSaved}
+    />
+  );
 }
 
 function ReviewForm({
@@ -315,7 +408,6 @@ function ReviewForm({
   const hours = useFieldArray({ control: form.control, name: "hours" });
 
   async function onSubmit(values: BusinessProfile) {
-
     setSaving(true);
     try {
       await callAuthed(saveBusinessFn, { data: values });
@@ -330,9 +422,13 @@ function ReviewForm({
   return (
     <div>
       <h1 className="font-display text-2xl font-semibold text-foreground">
-        {hasExisting || initial.business_name ? "Here's what we found" : "Tell us about your business"}
+        {hasExisting || initial.business_name
+          ? "Here's what we found"
+          : "Tell us about your business"}
       </h1>
-      <p className="mt-1 text-sm text-muted-foreground">Review and adjust anything before we build your receptionist.</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Review and adjust anything before we build your receptionist.
+      </p>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-6">
@@ -470,7 +566,12 @@ function ReviewForm({
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Textarea rows={3} placeholder="What does your business do?" {...field} value={field.value ?? ""} />
+                    <Textarea
+                      rows={3}
+                      placeholder="What does your business do?"
+                      {...field}
+                      value={field.value ?? ""}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -481,8 +582,13 @@ function ReviewForm({
             <h3 className="eyebrow">Hours</h3>
             <div className="space-y-2">
               {hours.fields.map((f, i) => (
-                <div key={f.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border px-3 py-2">
-                  <span className="w-24 text-sm font-medium text-foreground">{DAY_NAMES[form.watch(`hours.${i}.day_of_week`) ?? 0] ?? ""}</span>
+                <div
+                  key={f.id}
+                  className="flex flex-wrap items-center gap-3 rounded-lg border border-border px-3 py-2"
+                >
+                  <span className="w-24 text-sm font-medium text-foreground">
+                    {DAY_NAMES[form.watch(`hours.${i}.day_of_week`) ?? 0] ?? ""}
+                  </span>
                   <label className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Checkbox
                       checked={!form.watch(`hours.${i}.enabled`)}
@@ -492,9 +598,17 @@ function ReviewForm({
                   </label>
                   {form.watch(`hours.${i}.enabled`) && (
                     <div className="flex items-center gap-2">
-                      <Input type="time" className="w-32" {...form.register(`hours.${i}.open_time`)} />
+                      <Input
+                        type="time"
+                        className="w-32"
+                        {...form.register(`hours.${i}.open_time`)}
+                      />
                       <span className="text-muted-foreground">to</span>
-                      <Input type="time" className="w-32" {...form.register(`hours.${i}.close_time`)} />
+                      <Input
+                        type="time"
+                        className="w-32"
+                        {...form.register(`hours.${i}.close_time`)}
+                      />
                     </div>
                   )}
                 </div>
@@ -509,18 +623,40 @@ function ReviewForm({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => services.append({ name: "", price_note: "", duration_minutes: null, description: "" })}
+                onClick={() =>
+                  services.append({
+                    name: "",
+                    price_note: "",
+                    duration_minutes: null,
+                    description: "",
+                  })
+                }
               >
                 <Plus className="mr-1 h-3.5 w-3.5" /> Add service
               </Button>
             </div>
             <div className="space-y-3">
               {services.fields.map((f, i) => (
-                <div key={f.id} className="grid gap-2 rounded-lg border border-border p-3 sm:grid-cols-[1fr_1fr_100px_auto]">
+                <div
+                  key={f.id}
+                  className="grid gap-2 rounded-lg border border-border p-3 sm:grid-cols-[1fr_1fr_100px_auto]"
+                >
                   <Input placeholder="Service name" {...form.register(`services.${i}.name`)} />
-                  <Input placeholder="Price (e.g. $50)" {...form.register(`services.${i}.price_note`)} />
-                  <Input type="number" placeholder="Minutes" {...form.register(`services.${i}.duration_minutes`, { valueAsNumber: true })} />
-                  <Button type="button" variant="ghost" size="icon" onClick={() => services.remove(i)}>
+                  <Input
+                    placeholder="Price (e.g. $50)"
+                    {...form.register(`services.${i}.price_note`)}
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Minutes"
+                    {...form.register(`services.${i}.duration_minutes`, { valueAsNumber: true })}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => services.remove(i)}
+                  >
                     <Trash2 className="h-4 w-4 text-muted-foreground" />
                   </Button>
                   <Textarea
@@ -531,14 +667,21 @@ function ReviewForm({
                   />
                 </div>
               ))}
-              {services.fields.length === 0 && <p className="text-sm text-muted-foreground">No services added yet.</p>}
+              {services.fields.length === 0 && (
+                <p className="text-sm text-muted-foreground">No services added yet.</p>
+              )}
             </div>
           </section>
 
           <section className="card-elevated space-y-3 p-6">
             <div className="flex items-center justify-between">
               <h3 className="eyebrow">FAQs</h3>
-              <Button type="button" variant="outline" size="sm" onClick={() => faqs.append({ question: "", answer: "" })}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => faqs.append({ question: "", answer: "" })}
+              >
                 <Plus className="mr-1 h-3.5 w-3.5" /> Add FAQ
               </Button>
             </div>
@@ -547,27 +690,42 @@ function ReviewForm({
                 <div key={f.id} className="space-y-2 rounded-lg border border-border p-3">
                   <div className="flex items-center gap-2">
                     <Input placeholder="Question" {...form.register(`faqs.${i}.question`)} />
-                    <Button type="button" variant="ghost" size="icon" onClick={() => faqs.remove(i)}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => faqs.remove(i)}
+                    >
                       <Trash2 className="h-4 w-4 text-muted-foreground" />
                     </Button>
                   </div>
                   <Textarea placeholder="Answer" rows={2} {...form.register(`faqs.${i}.answer`)} />
                 </div>
               ))}
-              {faqs.fields.length === 0 && <p className="text-sm text-muted-foreground">No FAQs added yet.</p>}
+              {faqs.fields.length === 0 && (
+                <p className="text-sm text-muted-foreground">No FAQs added yet.</p>
+              )}
             </div>
           </section>
 
           <section className="card-elevated space-y-3 p-6">
             <div className="flex items-center justify-between">
               <h3 className="eyebrow">Staff</h3>
-              <Button type="button" variant="outline" size="sm" onClick={() => staff.append({ name: "", role: "", phone: "" })}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => staff.append({ name: "", role: "", phone: "" })}
+              >
                 <Plus className="mr-1 h-3.5 w-3.5" /> Add person
               </Button>
             </div>
             <div className="space-y-2">
               {staff.fields.map((f, i) => (
-                <div key={f.id} className="grid gap-2 rounded-lg border border-border p-3 sm:grid-cols-[1fr_1fr_1fr_auto]">
+                <div
+                  key={f.id}
+                  className="grid gap-2 rounded-lg border border-border p-3 sm:grid-cols-[1fr_1fr_1fr_auto]"
+                >
                   <Input placeholder="Name" {...form.register(`staff.${i}.name`)} />
                   <Input placeholder="Role" {...form.register(`staff.${i}.role`)} />
                   <Input placeholder="Phone" {...form.register(`staff.${i}.phone`)} />
@@ -576,7 +734,9 @@ function ReviewForm({
                   </Button>
                 </div>
               ))}
-              {staff.fields.length === 0 && <p className="text-sm text-muted-foreground">No staff added yet.</p>}
+              {staff.fields.length === 0 && (
+                <p className="text-sm text-muted-foreground">No staff added yet.</p>
+              )}
             </div>
           </section>
 
@@ -622,7 +782,11 @@ function ReviewForm({
 
           <div className="flex justify-end pb-4">
             <Button type="submit" size="lg" disabled={saving}>
-              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ArrowRight className="mr-2 h-4 w-4" />}
+              {saving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <ArrowRight className="mr-2 h-4 w-4" />
+              )}
               Looks good — continue
             </Button>
           </div>

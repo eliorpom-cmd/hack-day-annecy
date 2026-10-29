@@ -11,8 +11,8 @@ export function SiteFooter() {
           <div>
             <Logo />
             <p className="mt-3 max-w-xs text-sm text-muted-foreground">
-              An AI receptionist that answers every call, books appointments, and keeps
-              your business running — built for teams too busy to pick up the phone.
+              An AI receptionist that answers every call, books appointments, and keeps your
+              business running — built for teams too busy to pick up the phone.
             </p>
           </div>
 
@@ -20,17 +20,26 @@ export function SiteFooter() {
             <h3 className="eyebrow">Product</h3>
             <ul className="mt-4 space-y-2.5 text-sm">
               <li>
-                <Link to="/features" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link
+                  to="/features"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
                   Features
                 </Link>
               </li>
               <li>
-                <Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link
+                  to="/pricing"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
                   Pricing
                 </Link>
               </li>
               <li>
-                <Link to="/industries" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link
+                  to="/industries"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
                   Industries
                 </Link>
               </li>
@@ -41,15 +50,26 @@ export function SiteFooter() {
             <h3 className="eyebrow">Company</h3>
             <ul className="mt-4 space-y-2.5 text-sm">
               <li>
-                <a href="/auth" className="text-muted-foreground hover:text-foreground transition-colors">Sign in</a>
+                <a
+                  href="/auth"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Sign in
+                </a>
               </li>
               <li>
-                <Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link
+                  to="/privacy"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link
+                  to="/terms"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
                   Terms of Service
                 </Link>
               </li>

@@ -8,7 +8,8 @@ export function UsageMeter({ compact = false }: { compact?: boolean }) {
   const u = workspace.usage;
   if (!u || !u.paid || u.includedMinutes <= 0) return null;
   const pct = Math.min(100, u.percent);
-  const bar = u.level === "ok" ? "bg-primary" : u.level === "warning" ? "bg-accent" : "bg-destructive";
+  const bar =
+    u.level === "ok" ? "bg-primary" : u.level === "warning" ? "bg-accent" : "bg-destructive";
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-baseline justify-between text-xs">
@@ -25,7 +26,10 @@ export function UsageMeter({ compact = false }: { compact?: boolean }) {
         aria-valuemax={100}
         aria-label="Call minutes used"
       >
-        <div className={cn("h-full rounded-full transition-all", bar)} style={{ width: `${pct}%` }} />
+        <div
+          className={cn("h-full rounded-full transition-all", bar)}
+          style={{ width: `${pct}%` }}
+        />
       </div>
       {!compact && u.overageMinutes > 0 && (
         <p className="text-xs text-muted-foreground">
@@ -50,7 +54,9 @@ export function UsageBanner() {
     <div
       className={cn(
         "flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2 text-sm",
-        u.level === "warning" ? "bg-accent/10 text-foreground" : "bg-destructive/10 text-foreground",
+        u.level === "warning"
+          ? "bg-accent/10 text-foreground"
+          : "bg-destructive/10 text-foreground",
       )}
     >
       <span className="flex items-center gap-2">

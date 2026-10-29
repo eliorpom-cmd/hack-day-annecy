@@ -36,9 +36,14 @@ export async function authorizeAppUserOAuth(params: AppUserOAuthAuthorizeParams)
     }),
   });
   const text = await res.text();
-  if (!res.ok) throw new Error(`App User OAuth start failed (${res.status}): ${text || res.statusText}`);
-  const body = (text ? JSON.parse(text) : {}) as { authorization_url?: string; session_id?: string };
-  if (!body.authorization_url) throw new Error("App User OAuth start response missing authorization_url");
+  if (!res.ok)
+    throw new Error(`App User OAuth start failed (${res.status}): ${text || res.statusText}`);
+  const body = (text ? JSON.parse(text) : {}) as {
+    authorization_url?: string;
+    session_id?: string;
+  };
+  if (!body.authorization_url)
+    throw new Error("App User OAuth start response missing authorization_url");
   return { authorizationUrl: body.authorization_url, sessionId: body.session_id ?? "" };
 }
 
@@ -51,7 +56,14 @@ export interface CallAsAppUserParams {
   requiredScopes?: string[];
 }
 
-export async function callAsAppUser({ gatewayBaseUrl, connectionAPIKey, connectorId, path, init, requiredScopes }: CallAsAppUserParams) {
+export async function callAsAppUser({
+  gatewayBaseUrl,
+  connectionAPIKey,
+  connectorId,
+  path,
+  init,
+  requiredScopes,
+}: CallAsAppUserParams) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   const headers = new Headers(init?.headers);
   headers.set("Authorization", `Bearer ${requireApiKey()}`);
@@ -62,11 +74,22 @@ export async function callAsAppUser({ gatewayBaseUrl, connectionAPIKey, connecto
 
 export async function appUserReconnectRequired(res: Response): Promise<boolean> {
   if (res.status !== 401) return false;
-  const body = (await res.clone().json().catch(() => null)) as { type?: unknown } | null;
+  const body = (await res
+    .clone()
+    .json()
+    .catch(() => null)) as { type?: unknown } | null;
   return typeof body?.type === "string" && body.type.startsWith("credential_");
 }
 
-export async function disconnectAppUser({ gatewayBaseUrl, connectionAPIKey, connectorId }: { gatewayBaseUrl: string; connectionAPIKey: string; connectorId: string }) {
+export async function disconnectAppUser({
+  gatewayBaseUrl,
+  connectionAPIKey,
+  connectorId,
+}: {
+  gatewayBaseUrl: string;
+  connectionAPIKey: string;
+  connectorId: string;
+}) {
   const res = await fetch(`${gatewayBaseUrl}/api/v1/app-users/connection`, {
     method: "DELETE",
     headers: {
@@ -77,7 +100,8 @@ export async function disconnectAppUser({ gatewayBaseUrl, connectionAPIKey, conn
     body: JSON.stringify({ connector_id: connectorId }),
   });
   const text = await res.text();
-  if (!res.ok) throw new Error(`App User disconnect failed (${res.status}): ${text || res.statusText}`);
+  if (!res.ok)
+    throw new Error(`App User disconnect failed (${res.status}): ${text || res.statusText}`);
 }
 
 export async function exchangeAppUserOAuthCode(gatewayBaseUrl: string, code: string) {
@@ -87,8 +111,10 @@ export async function exchangeAppUserOAuthCode(gatewayBaseUrl: string, code: str
     body: JSON.stringify({ code }),
   });
   const text = await res.text();
-  if (!res.ok) throw new Error(`App User OAuth exchange failed (${res.status}): ${text || res.statusText}`);
+  if (!res.ok)
+    throw new Error(`App User OAuth exchange failed (${res.status}): ${text || res.statusText}`);
   const body = (text ? JSON.parse(text) : {}) as { api_key?: string; connector_id?: string };
-  if (!body.api_key || !body.connector_id) throw new Error("App User OAuth exchange response incomplete");
+  if (!body.api_key || !body.connector_id)
+    throw new Error("App User OAuth exchange response incomplete");
   return { connectionAPIKey: body.api_key, connectorId: body.connector_id };
 }

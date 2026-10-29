@@ -46,7 +46,10 @@ function groupPages(pages: CrawledPage[], groupBudget: number, totalBudget: numb
   return groups;
 }
 
-export async function extractBusinessProfile(pages: CrawledPage[], websiteUrl: string): Promise<BusinessProfile> {
+export async function extractBusinessProfile(
+  pages: CrawledPage[],
+  websiteUrl: string,
+): Promise<BusinessProfile> {
   // Read the whole site in parallel sections, then merge into one profile.
   const groups = groupPages(pages, 50000, 260000);
   const partials = (
@@ -72,24 +75,43 @@ export async function extractBusinessProfile(pages: CrawledPage[], websiteUrl: s
   // Normalize before validation
   const normalized: Record<string, unknown> = { ...raw };
   normalized.website = normalized.website || websiteUrl;
-  if (!normalized.business_name) normalized.business_name = new URL(websiteUrl).hostname.replace(/^www\./, "");
-  if (!Array.isArray(normalized.hours) || (normalized.hours as unknown[]).length === 0) normalized.hours = defaultHours();
-  for (const key of ["services", "faqs", "staff"]) if (!Array.isArray(normalized[key])) normalized[key] = [];
-  normalized.services = (normalized.services as Record<string, unknown>[]).map((s) => ({
-    ...s,
-    price: typeof s.price === "number" ? s.price : s.price ? Number(String(s.price).replace(/[^\d.]/g, "")) || null : null,
-    duration_minutes: typeof s.duration_minutes === "number" ? Math.round(s.duration_minutes) : null,
-    name: String(s.name ?? "").slice(0, 120),
-    description: typeof s.description === "string" ? s.description.slice(0, 1000) : null,
-    price_note: typeof s.price_note === "string" ? s.price_note.slice(0, 60) : null,
-  })).filter((s) => s.name).slice(0, 60);
+  if (!normalized.business_name)
+    normalized.business_name = new URL(websiteUrl).hostname.replace(/^www\./, "");
+  if (!Array.isArray(normalized.hours) || (normalized.hours as unknown[]).length === 0)
+    normalized.hours = defaultHours();
+  for (const key of ["services", "faqs", "staff"])
+    if (!Array.isArray(normalized[key])) normalized[key] = [];
+  normalized.services = (normalized.services as Record<string, unknown>[])
+    .map((s) => ({
+      ...s,
+      price:
+        typeof s.price === "number"
+          ? s.price
+          : s.price
+            ? Number(String(s.price).replace(/[^\d.]/g, "")) || null
+            : null,
+      duration_minutes:
+        typeof s.duration_minutes === "number" ? Math.round(s.duration_minutes) : null,
+      name: String(s.name ?? "").slice(0, 120),
+      description: typeof s.description === "string" ? s.description.slice(0, 1000) : null,
+      price_note: typeof s.price_note === "string" ? s.price_note.slice(0, 60) : null,
+    }))
+    .filter((s) => s.name)
+    .slice(0, 60);
   normalized.faqs = (normalized.faqs as Record<string, unknown>[])
     .filter((f) => f.question && f.answer)
-    .map((f) => ({ question: String(f.question).slice(0, 300), answer: String(f.answer).slice(0, 2000) }))
+    .map((f) => ({
+      question: String(f.question).slice(0, 300),
+      answer: String(f.answer).slice(0, 2000),
+    }))
     .slice(0, 60);
-  normalized.staff = (normalized.staff as Record<string, unknown>[]).filter((x) => x.name).slice(0, 40);
-  if (typeof normalized.policies === "string") normalized.policies = normalized.policies.slice(0, 3000);
-  if (typeof normalized.description === "string") normalized.description = normalized.description.slice(0, 2000);
+  normalized.staff = (normalized.staff as Record<string, unknown>[])
+    .filter((x) => x.name)
+    .slice(0, 40);
+  if (typeof normalized.policies === "string")
+    normalized.policies = normalized.policies.slice(0, 3000);
+  if (typeof normalized.description === "string")
+    normalized.description = normalized.description.slice(0, 2000);
   normalized.hours = (normalized.hours as Record<string, unknown>[])
     .filter((h) => typeof h.day_of_week === "number")
     .map((h) => ({
@@ -99,8 +121,12 @@ export async function extractBusinessProfile(pages: CrawledPage[], websiteUrl: s
       close_time: /^\d{2}:\d{2}$/.test(String(h.close_time)) ? h.close_time : "17:00",
     }));
   if ((normalized.hours as unknown[]).length < 7) {
-    const present = new Set((normalized.hours as { day_of_week: number }[]).map((h) => h.day_of_week));
-    for (const d of defaultHours()) if (!present.has(d.day_of_week)) (normalized.hours as unknown[]).push({ ...d, enabled: false });
+    const present = new Set(
+      (normalized.hours as { day_of_week: number }[]).map((h) => h.day_of_week),
+    );
+    for (const d of defaultHours())
+      if (!present.has(d.day_of_week))
+        (normalized.hours as unknown[]).push({ ...d, enabled: false });
   }
   const parsed = businessProfileSchema.safeParse(normalized);
   if (parsed.success) return parsed.data;
@@ -108,7 +134,8 @@ export async function extractBusinessProfile(pages: CrawledPage[], websiteUrl: s
   return businessProfileSchema.parse({
     business_name: String(normalized.business_name),
     website: websiteUrl,
-    description: typeof normalized.description === "string" ? normalized.description.slice(0, 2000) : null,
+    description:
+      typeof normalized.description === "string" ? normalized.description.slice(0, 2000) : null,
     hours: defaultHours(),
   });
 }
@@ -119,12 +146,15 @@ function mergeLocally(partials: Record<string, unknown>[]): Record<string, unkno
     const seen = new Map<string, Record<string, unknown>>();
     for (const p of partials) {
       for (const item of (Array.isArray(p[key]) ? p[key] : []) as Record<string, unknown>[]) {
-        const k = String(item.name ?? item.question ?? "").toLowerCase().trim();
+        const k = String(item.name ?? item.question ?? "")
+          .toLowerCase()
+          .trim();
         if (k && !seen.has(k)) seen.set(k, item);
       }
     }
     out[key] = [...seen.values()];
   }
-  for (const p of partials.slice(1)) for (const [k, v] of Object.entries(p)) if (out[k] == null && v != null) out[k] = v;
+  for (const p of partials.slice(1))
+    for (const [k, v] of Object.entries(p)) if (out[k] == null && v != null) out[k] = v;
   return out;
 }

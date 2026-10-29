@@ -7,7 +7,9 @@ const idSchema = z.object({ id: z.string().uuid() });
 
 const settingsPatchSchema = z
   .object({
-    answering_mode: z.enum(["receptionist_first", "human_first", "after_hours_only", "overflow_only"]).optional(),
+    answering_mode: z
+      .enum(["receptionist_first", "human_first", "after_hours_only", "overflow_only"])
+      .optional(),
     after_hours_enabled: z.boolean().optional(),
     appointment_booking_enabled: z.boolean().optional(),
     call_transfer_enabled: z.boolean().optional(),
@@ -36,7 +38,9 @@ export const listReceptionistsFn = createServerFn({ method: "GET" })
     const { org } = await requireOrg(context.supabase, context.userId);
     const { data } = await context.supabase
       .from("receptionists")
-      .select("id, name, status, status_message, language, greeting, elevenlabs_agent_id, created_at, voices(name, description)")
+      .select(
+        "id, name, status, status_message, language, greeting, elevenlabs_agent_id, created_at, voices(name, description)",
+      )
       .eq("organization_id", org.id)
       .order("created_at");
     return (data ?? []).map((r) => ({
@@ -64,11 +68,16 @@ export const createReceptionistFn = createServerFn({ method: "POST" })
     const { org } = await requireOrg(db, context.userId);
 
     const [{ count }, { data: plan }] = await Promise.all([
-      db.from("receptionists").select("id", { count: "exact", head: true }).eq("organization_id", org.id),
+      db
+        .from("receptionists")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", org.id),
       db.from("plans").select("max_receptionists").eq("id", org.plan_id).maybeSingle(),
     ]);
     if ((count ?? 0) >= (plan?.max_receptionists ?? 1)) {
-      throw new AppError("Your plan includes one receptionist. Upgrade to add more.", { status: 403 });
+      throw new AppError("Your plan includes one receptionist. Upgrade to add more.", {
+        status: 403,
+      });
     }
 
     const { data: rec, error } = await db
@@ -86,9 +95,15 @@ export const createReceptionistFn = createServerFn({ method: "POST" })
       })
       .select("id")
       .single();
-    if (error || !rec) throw new AppError("We couldn't create your receptionist.", { cause: error });
-    await db.from("receptionist_settings").insert({ receptionist_id: rec.id, organization_id: org.id });
-    await audit(db, org.id, context.userId, "receptionist.created", { type: "receptionist", id: rec.id });
+    if (error || !rec)
+      throw new AppError("We couldn't create your receptionist.", { cause: error });
+    await db
+      .from("receptionist_settings")
+      .insert({ receptionist_id: rec.id, organization_id: org.id });
+    await audit(db, org.id, context.userId, "receptionist.created", {
+      type: "receptionist",
+      id: rec.id,
+    });
 
     const result = await publishReceptionist(db, rec.id, { create: true });
     await db.from("organizations").update({ onboarding_step: "test" }).eq("id", org.id);
@@ -102,11 +117,15 @@ export const getReceptionistFn = createServerFn({ method: "GET" })
     const { AppError } = await import("@/lib/server/errors.server");
     const { data: rec, error } = await context.supabase
       .from("receptionists")
-      .select("*, voices(id, name, description, gender), receptionist_settings(*), organizations(name, slug, plan_id)")
+      .select(
+        "*, voices(id, name, description, gender), receptionist_settings(*), organizations(name, slug, plan_id)",
+      )
       .eq("id", data.id)
       .single();
     if (error || !rec) throw new AppError("Receptionist not found.", { status: 404, cause: error });
-    const settings = Array.isArray(rec.receptionist_settings) ? rec.receptionist_settings[0] : rec.receptionist_settings;
+    const settings = Array.isArray(rec.receptionist_settings)
+      ? rec.receptionist_settings[0]
+      : rec.receptionist_settings;
     return {
       id: rec.id,
       name: rec.name,
@@ -123,7 +142,12 @@ export const getReceptionistFn = createServerFn({ method: "GET" })
       config_version: rec.config_version,
       last_published_at: rec.last_published_at,
       created_at: rec.created_at,
-      voice: rec.voices as { id: string; name: string; description: string | null; gender: string | null } | null,
+      voice: rec.voices as {
+        id: string;
+        name: string;
+        description: string | null;
+        gender: string | null;
+      } | null,
       settings: settings ?? null,
       organization: rec.organizations as { name: string; slug: string; plan_id: string } | null,
     };
@@ -138,12 +162,20 @@ export const getReceptionistStatusFn = createServerFn({ method: "GET" })
       .select("status, status_message, elevenlabs_agent_id")
       .eq("id", data.id)
       .maybeSingle();
-    return rec ? { status: rec.status, status_message: rec.status_message, has_agent: !!rec.elevenlabs_agent_id } : null;
+    return rec
+      ? {
+          status: rec.status,
+          status_message: rec.status_message,
+          has_agent: !!rec.elevenlabs_agent_id,
+        }
+      : null;
   });
 
 const updateSchema = z.object({
   id: z.string().uuid(),
-  patch: receptionistInputSchema.partial().extend({ after_hours_greeting: z.string().max(400).nullable().optional() }),
+  patch: receptionistInputSchema
+    .partial()
+    .extend({ after_hours_greeting: z.string().max(400).nullable().optional() }),
   settings: settingsPatchSchema.optional(),
 });
 
@@ -160,7 +192,10 @@ export const updateReceptionistFn = createServerFn({ method: "POST" })
       if (error) throw new AppError("We couldn't save those changes.", { cause: error });
     }
     if (data.settings && Object.keys(data.settings).length) {
-      const { error } = await db.from("receptionist_settings").update(data.settings as never).eq("receptionist_id", data.id);
+      const { error } = await db
+        .from("receptionist_settings")
+        .update(data.settings as never)
+        .eq("receptionist_id", data.id);
       if (error) throw new AppError("We couldn't save those settings.", { cause: error });
     }
     const result = await publishReceptionist(db, data.id);
@@ -173,8 +208,14 @@ export const retryReceptionistFn = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => idSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { publishReceptionist } = await import("./receptionist.server");
-    const { data: rec } = await context.supabase.from("receptionists").select("elevenlabs_agent_id").eq("id", data.id).single();
-    const result = await publishReceptionist(context.supabase, data.id, { create: !rec?.elevenlabs_agent_id });
+    const { data: rec } = await context.supabase
+      .from("receptionists")
+      .select("elevenlabs_agent_id")
+      .eq("id", data.id)
+      .single();
+    const result = await publishReceptionist(context.supabase, data.id, {
+      create: !rec?.elevenlabs_agent_id,
+    });
     return { ok: true, status: result.status };
   });
 
@@ -190,12 +231,15 @@ export const getTestTokenFn = createServerFn({ method: "POST" })
       .select("elevenlabs_agent_id, status")
       .eq("id", data.id)
       .maybeSingle();
-    if (!rec?.elevenlabs_agent_id) throw new AppError("Your receptionist isn't ready to test yet.", { status: 400 });
+    if (!rec?.elevenlabs_agent_id)
+      throw new AppError("Your receptionist isn't ready to test yet.", { status: 400 });
     try {
       const res = await ElevenLabsService.getConversationToken(rec.elevenlabs_agent_id);
       return { token: res.token, mock: !!res.mock };
     } catch (e) {
-      throw new AppError("We couldn't start a test call right now. Please try again.", { cause: e });
+      throw new AppError("We couldn't start a test call right now. Please try again.", {
+        cause: e,
+      });
     }
   });
 
@@ -206,7 +250,11 @@ export const deleteReceptionistFn = createServerFn({ method: "POST" })
     const { ElevenLabsService } = await import("@/lib/elevenlabs/index.server");
     const { requireOrg, audit } = await import("@/lib/org/org.server");
     const { org } = await requireOrg(context.supabase, context.userId);
-    const { data: rec } = await context.supabase.from("receptionists").select("elevenlabs_agent_id").eq("id", data.id).single();
+    const { data: rec } = await context.supabase
+      .from("receptionists")
+      .select("elevenlabs_agent_id")
+      .eq("id", data.id)
+      .single();
     if (rec?.elevenlabs_agent_id) {
       try {
         await ElevenLabsService.deleteAgent(rec.elevenlabs_agent_id);
@@ -215,6 +263,9 @@ export const deleteReceptionistFn = createServerFn({ method: "POST" })
       }
     }
     await context.supabase.from("receptionists").delete().eq("id", data.id);
-    await audit(context.supabase, org.id, context.userId, "receptionist.deleted", { type: "receptionist", id: data.id });
+    await audit(context.supabase, org.id, context.userId, "receptionist.deleted", {
+      type: "receptionist",
+      id: data.id,
+    });
     return { ok: true };
   });

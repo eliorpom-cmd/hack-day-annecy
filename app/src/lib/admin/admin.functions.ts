@@ -13,23 +13,52 @@ export const getAdminOverviewFn = createServerFn({ method: "GET" })
     await assertAdmin(context);
     const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
     const { getUsage } = await import("@/lib/billing/usage.server");
-    const monthStart = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)).toISOString();
+    const monthStart = new Date(
+      Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1),
+    ).toISOString();
 
-    const [orgs, members, profiles, subs, recs, nums, plans, calls, logs, overage] = await Promise.all([
-      db.from("organizations").select("id, name, plan_id, created_at, trial_ends_at").order("created_at", { ascending: false }),
-      db.from("organization_members").select("organization_id, user_id, role").eq("role", "owner"),
-      db.from("profiles").select("id, email, name"),
-      db.from("subscriptions").select("organization_id, status, price_id, current_period_end, cancel_at_period_end").in("status", ["active", "trialing", "past_due"]),
-      db.from("receptionists").select("id, organization_id, name, status, status_message, updated_at"),
-      db.from("phone_numbers").select("id, organization_id, phone_number, status, status_message, updated_at"),
-      db.from("plans").select("id, name, monthly_price, annual_price"),
-      db.from("calls").select("organization_id, duration_secs, channel").gte("started_at", monthStart),
-      db.from("audit_logs").select("id, organization_id, action, resource_type, created_at").order("created_at", { ascending: false }).limit(30),
-      db.from("usage_overage_charges").select("organization_id, amount_cents, status, created_at").order("created_at", { ascending: false }).limit(50),
-    ]);
+    const [orgs, members, profiles, subs, recs, nums, plans, calls, logs, overage] =
+      await Promise.all([
+        db
+          .from("organizations")
+          .select("id, name, plan_id, created_at, trial_ends_at")
+          .order("created_at", { ascending: false }),
+        db
+          .from("organization_members")
+          .select("organization_id, user_id, role")
+          .eq("role", "owner"),
+        db.from("profiles").select("id, email, name"),
+        db
+          .from("subscriptions")
+          .select("organization_id, status, price_id, current_period_end, cancel_at_period_end")
+          .in("status", ["active", "trialing", "past_due"]),
+        db
+          .from("receptionists")
+          .select("id, organization_id, name, status, status_message, updated_at"),
+        db
+          .from("phone_numbers")
+          .select("id, organization_id, phone_number, status, status_message, updated_at"),
+        db.from("plans").select("id, name, monthly_price, annual_price"),
+        db
+          .from("calls")
+          .select("organization_id, duration_secs, channel")
+          .gte("started_at", monthStart),
+        db
+          .from("audit_logs")
+          .select("id, organization_id, action, resource_type, created_at")
+          .order("created_at", { ascending: false })
+          .limit(30),
+        db
+          .from("usage_overage_charges")
+          .select("organization_id, amount_cents, status, created_at")
+          .order("created_at", { ascending: false })
+          .limit(50),
+      ]);
 
     const emailById = new Map((profiles.data ?? []).map((p) => [p.id, p.email]));
-    const ownerByOrg = new Map((members.data ?? []).map((m) => [m.organization_id, emailById.get(m.user_id) ?? null]));
+    const ownerByOrg = new Map(
+      (members.data ?? []).map((m) => [m.organization_id, emailById.get(m.user_id) ?? null]),
+    );
     const subByOrg = new Map((subs.data ?? []).map((s) => [s.organization_id, s]));
     const planById = new Map((plans.data ?? []).map((p) => [p.id, p]));
 
@@ -71,10 +100,24 @@ export const getAdminOverviewFn = createServerFn({ method: "GET" })
     const failed = [
       ...(recs.data ?? [])
         .filter((r) => r.status === "error")
-        .map((r) => ({ kind: "receptionist" as const, id: r.id, org: orgName.get(r.organization_id) ?? "", label: r.name, message: r.status_message, at: r.updated_at })),
+        .map((r) => ({
+          kind: "receptionist" as const,
+          id: r.id,
+          org: orgName.get(r.organization_id) ?? "",
+          label: r.name,
+          message: r.status_message,
+          at: r.updated_at,
+        })),
       ...(nums.data ?? [])
         .filter((n) => n.status !== "live" && n.status !== "released")
-        .map((n) => ({ kind: "phone" as const, id: n.id, org: orgName.get(n.organization_id) ?? "", label: n.phone_number, message: n.status_message ?? n.status, at: n.updated_at })),
+        .map((n) => ({
+          kind: "phone" as const,
+          id: n.id,
+          org: orgName.get(n.organization_id) ?? "",
+          label: n.phone_number,
+          message: n.status_message ?? n.status,
+          at: n.updated_at,
+        })),
     ];
 
     return {
@@ -86,26 +129,50 @@ export const getAdminOverviewFn = createServerFn({ method: "GET" })
         liveNumbers: (nums.data ?? []).filter((n) => n.status === "live").length,
         callsThisMonth: (calls.data ?? []).filter((c) => c.channel === "phone").length,
         minutesThisMonth: phoneMinutes,
-        overageBilled: (overage.data ?? []).filter((c) => c.status === "billed").reduce((s, c) => s + c.amount_cents, 0) / 100,
+        overageBilled:
+          (overage.data ?? [])
+            .filter((c) => c.status === "billed")
+            .reduce((s, c) => s + c.amount_cents, 0) / 100,
       },
       customers,
       failed,
-      logs: (logs.data ?? []).map((l) => ({ ...l, org: l.organization_id ? orgName.get(l.organization_id) ?? null : null })),
+      logs: (logs.data ?? []).map((l) => ({
+        ...l,
+        org: l.organization_id ? (orgName.get(l.organization_id) ?? null) : null,
+      })),
     };
   });
 
 export const setOrgSuspendedFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ organizationId: z.string().uuid(), suspended: z.boolean() }).parse(d))
+  .inputValidator((d: unknown) =>
+    z.object({ organizationId: z.string().uuid(), suspended: z.boolean() }).parse(d),
+  )
   .handler(async ({ context, data }) => {
     await assertAdmin(context);
     const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
-    const { data: recs } = await db.from("receptionists").select("id, elevenlabs_agent_id").eq("organization_id", data.organizationId);
-    const { data: nums } = await db.from("phone_numbers").select("receptionist_id").eq("organization_id", data.organizationId).eq("status", "live");
+    const { data: recs } = await db
+      .from("receptionists")
+      .select("id, elevenlabs_agent_id")
+      .eq("organization_id", data.organizationId);
+    const { data: nums } = await db
+      .from("phone_numbers")
+      .select("receptionist_id")
+      .eq("organization_id", data.organizationId)
+      .eq("status", "live");
     const liveRecs = new Set((nums ?? []).map((n) => n.receptionist_id));
     for (const r of recs ?? []) {
-      const status = data.suspended ? "suspended" : liveRecs.has(r.id) ? "live" : r.elevenlabs_agent_id ? "agent_ready" : "draft";
-      await db.from("receptionists").update({ status, status_message: data.suspended ? "Account suspended" : null }).eq("id", r.id);
+      const status = data.suspended
+        ? "suspended"
+        : liveRecs.has(r.id)
+          ? "live"
+          : r.elevenlabs_agent_id
+            ? "agent_ready"
+            : "draft";
+      await db
+        .from("receptionists")
+        .update({ status, status_message: data.suspended ? "Account suspended" : null })
+        .eq("id", r.id);
     }
     await db.from("audit_logs").insert({
       organization_id: data.organizationId,
@@ -129,6 +196,9 @@ export const retryReceptionistFn = createServerFn({ method: "POST" })
       await publishReceptionist(db as never, data.receptionistId);
       return { ok: true as const };
     } catch (e) {
-      return { ok: false as const, error: (e as { userMessage?: string }).userMessage ?? "Retry failed" };
+      return {
+        ok: false as const,
+        error: (e as { userMessage?: string }).userMessage ?? "Retry failed",
+      };
     }
   });

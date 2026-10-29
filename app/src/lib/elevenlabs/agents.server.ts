@@ -78,7 +78,9 @@ export async function listAgents(): Promise<unknown> {
   return elRequest(`/v1/convai/agents?page_size=100`);
 }
 
-export async function getConversationToken(agentId: string): Promise<{ token: string; mock?: boolean }> {
+export async function getConversationToken(
+  agentId: string,
+): Promise<{ token: string; mock?: boolean }> {
   if (isDemoMode()) return { token: "", mock: true };
   const res = await elRequest<{ token: string }>(
     `/v1/convai/conversation/token?agent_id=${encodeURIComponent(agentId)}`,
@@ -87,7 +89,10 @@ export async function getConversationToken(agentId: string): Promise<{ token: st
   return { token: res.token };
 }
 
-export async function createKnowledgeText(name: string, text: string): Promise<{ id: string; name: string }> {
+export async function createKnowledgeText(
+  name: string,
+  text: string,
+): Promise<{ id: string; name: string }> {
   if (isDemoMode()) return { id: `mock_kb_${crypto.randomUUID().slice(0, 8)}`, name };
   const res = await elRequest<{ id: string; name: string }>("/v1/convai/knowledge-base/text", {
     method: "POST",

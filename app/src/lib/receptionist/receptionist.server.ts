@@ -8,7 +8,11 @@ import { generateSystemPrompt } from "./prompt.server";
  * Build the canonical config for a receptionist and push it to ElevenLabs.
  * Used for both creation and every subsequent update — one source of truth.
  */
-export async function publishReceptionist(db: Db, receptionistId: string, opts: { create?: boolean } = {}) {
+export async function publishReceptionist(
+  db: Db,
+  receptionistId: string,
+  opts: { create?: boolean } = {},
+) {
   const { ElevenLabsService } = await import("@/lib/elevenlabs/index.server");
   const { data: rec, error } = await db
     .from("receptionists")
@@ -18,10 +22,17 @@ export async function publishReceptionist(db: Db, receptionistId: string, opts: 
   if (error || !rec) throw new AppError("Receptionist not found.", { status: 404, cause: error });
 
   const business = await loadBusinessProfile(db, rec.organization_id);
-  if (!business) throw new AppError("Add your business details before creating a receptionist.", { status: 400 });
+  if (!business)
+    throw new AppError("Add your business details before creating a receptionist.", {
+      status: 400,
+    });
   const voice = rec.voices as { elevenlabs_voice_id: string; name: string } | null;
   if (!voice) throw new AppError("Choose a voice for your receptionist.", { status: 400 });
-  const settings = (Array.isArray(rec.receptionist_settings) ? rec.receptionist_settings[0] : rec.receptionist_settings) as {
+  const settings = (
+    Array.isArray(rec.receptionist_settings)
+      ? rec.receptionist_settings[0]
+      : rec.receptionist_settings
+  ) as {
     appointment_booking_enabled: boolean;
     call_transfer_enabled: boolean;
     transfer_destinations: unknown;
@@ -50,14 +61,18 @@ export async function publishReceptionist(db: Db, receptionistId: string, opts: 
   const agentInput = {
     name: `${business.business_name} — ${rec.name}`,
     voiceId: voice.elevenlabs_voice_id,
-    firstMessage: rec.greeting ?? `Hi! Thanks for calling ${business.business_name}. How can I help you today?`,
+    firstMessage:
+      rec.greeting ?? `Hi! Thanks for calling ${business.business_name}. How can I help you today?`,
     prompt,
     language: rec.language,
     maxDurationSeconds: settings?.max_call_duration ?? 600,
     tools: (settings?.appointment_booking_enabled ?? true) ? bookingTools(rec.id) : [],
   };
 
-  await db.from("receptionists").update({ status: "creating_agent", status_message: null, system_prompt: prompt }).eq("id", rec.id);
+  await db
+    .from("receptionists")
+    .update({ status: "creating_agent", status_message: null, system_prompt: prompt })
+    .eq("id", rec.id);
   try {
     let agentId = rec.elevenlabs_agent_id;
     if (!agentId || opts.create) {
@@ -77,14 +92,24 @@ export async function publishReceptionist(db: Db, receptionistId: string, opts: 
         last_published_at: new Date().toISOString(),
       })
       .eq("id", rec.id);
-    log("receptionist.published", { receptionist_id: rec.id, org_id: rec.organization_id, agent_id: agentId });
+    log("receptionist.published", {
+      receptionist_id: rec.id,
+      org_id: rec.organization_id,
+      agent_id: agentId,
+    });
     return { agentId, status: nextStatus };
   } catch (e) {
-    const err = new AppError("We couldn't finish creating your receptionist. Your details are saved — try again in a moment.", {
-      cause: e,
-      context: { receptionist_id: rec.id },
-    });
-    await db.from("receptionists").update({ status: "error", status_message: `${err.userMessage} (ref ${err.errorId})` }).eq("id", rec.id);
+    const err = new AppError(
+      "We couldn't finish creating your receptionist. Your details are saved — try again in a moment.",
+      {
+        cause: e,
+        context: { receptionist_id: rec.id },
+      },
+    );
+    await db
+      .from("receptionists")
+      .update({ status: "error", status_message: `${err.userMessage} (ref ${err.errorId})` })
+      .eq("id", rec.id);
     throw err;
   }
 }
@@ -96,7 +121,11 @@ function toolsBaseUrl() {
   try {
     const origin = new URL(getRequest().url).origin;
     const host = new URL(origin).hostname;
-    if (host === "localhost" || host.startsWith("id-preview--") || host.endsWith(".lovableproject.com")) {
+    if (
+      host === "localhost" ||
+      host.startsWith("id-preview--") ||
+      host.endsWith(".lovableproject.com")
+    ) {
       return `https://project--${PROJECT_ID}-dev.lovable.app`;
     }
     return origin;
@@ -113,15 +142,23 @@ function bookingTools(receptionistId: string) {
     {
       type: "webhook",
       name: "check_availability",
-      description: "Get today's date and the business's open appointment times. Call before offering any time.",
+      description:
+        "Get today's date and the business's open appointment times. Call before offering any time.",
       api_schema: {
         url: `${base}&action=availability`,
         method: "POST",
         request_body_schema: {
           type: "object",
           properties: {
-            date: { type: "string", description: "Day the caller wants, as YYYY-MM-DD. Leave empty for the next few days." },
-            duration_minutes: { type: "number", description: "Length of the appointment in minutes if known, otherwise 30." },
+            date: {
+              type: "string",
+              description:
+                "Day the caller wants, as YYYY-MM-DD. Leave empty for the next few days.",
+            },
+            duration_minutes: {
+              type: "number",
+              description: "Length of the appointment in minutes if known, otherwise 30.",
+            },
           },
           required: [],
         },
@@ -130,14 +167,18 @@ function bookingTools(receptionistId: string) {
     {
       type: "webhook",
       name: "book_appointment",
-      description: "Book an appointment at a start time returned by check_availability. Only confirm to the caller if the result has confirmed true.",
+      description:
+        "Book an appointment at a start time returned by check_availability. Only confirm to the caller if the result has confirmed true.",
       api_schema: {
         url: `${base}&action=book`,
         method: "POST",
         request_body_schema: {
           type: "object",
           properties: {
-            start: { type: "string", description: "Exact start value from check_availability (ISO time)." },
+            start: {
+              type: "string",
+              description: "Exact start value from check_availability (ISO time).",
+            },
             caller_name: { type: "string", description: "Caller's full name." },
             caller_phone: { type: "string", description: "Caller's phone number." },
             service: { type: "string", description: "Service the caller wants." },

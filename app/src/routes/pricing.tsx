@@ -29,7 +29,8 @@ export const Route = createFileRoute("/pricing")({
       { title: "Pricing — AI Phone Desk" },
       {
         name: "description",
-        content: "Simple, transparent pricing for AI receptionists. Pick a plan and go live in minutes.",
+        content:
+          "Simple, transparent pricing for AI receptionists. Pick a plan and go live in minutes.",
       },
     ],
   }),
@@ -69,7 +70,6 @@ function PricingPage() {
     [plans],
   );
 
-
   return (
     <MarketingLayout>
       <section className="surface-gradient border-b border-border">
@@ -81,7 +81,6 @@ function PricingPage() {
           <p className="mt-4 text-lg text-muted-foreground">
             Choose the plan that fits your call volume. Change or cancel anytime.
           </p>
-
 
           <div className="mt-8 inline-flex items-center gap-1 rounded-full border border-border bg-card p-1">
             <button
@@ -99,7 +98,9 @@ function PricingPage() {
               className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${annual ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
             >
               Annual
-              <span className={`rounded-full px-2 py-0.5 text-xs ${annual ? "bg-accent text-accent-foreground" : "bg-accent/15 text-accent"}`}>
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs ${annual ? "bg-accent text-accent-foreground" : "bg-accent/15 text-accent"}`}
+              >
                 Save {maxSavingsPct}%
               </span>
             </button>
@@ -153,16 +154,19 @@ function PricingPage() {
                       {annual && savingsPct > 0 && (
                         <>
                           <Badge className="mt-2 bg-accent text-accent-foreground">
-                            Save {savingsPct}% — {money(plan.monthly_price * 12 - plan.annual_price)}/yr off
+                            Save {savingsPct}% —{" "}
+                            {money(plan.monthly_price * 12 - plan.annual_price)}/yr off
                           </Badge>
                           <p className="mt-1.5 text-xs text-muted-foreground">
-                            Billed {money(plan.annual_price)}/yr instead of {money(plan.monthly_price * 12)}
+                            Billed {money(plan.annual_price)}/yr instead of{" "}
+                            {money(plan.monthly_price * 12)}
                           </p>
                         </>
                       )}
                       {!annual && plan.monthly_price > 0 && (
                         <p className="mt-2 text-xs text-muted-foreground">
-                          Switch to annual and save {Math.round((1 - plan.annual_price / 12 / plan.monthly_price) * 100)}%
+                          Switch to annual and save{" "}
+                          {Math.round((1 - plan.annual_price / 12 / plan.monthly_price) * 100)}%
                         </p>
                       )}
                     </>
@@ -225,7 +229,12 @@ function PricingPage() {
             <Button asChild size="lg" variant="secondary" className="shadow-glow">
               <a href="/auth?mode=signup">Create your receptionist</a>
             </Button>
-            <Button asChild size="lg" variant="outline" className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10"
+            >
               <Link to="/">Talk to the demo</Link>
             </Button>
           </div>

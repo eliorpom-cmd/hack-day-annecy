@@ -14,7 +14,9 @@ export async function authHeaders(): Promise<Record<string, string>> {
  * Call a protected server function with the current session attached.
  * Usage: `await callAuthed(getWorkspaceFn)` or `await callAuthed(saveBusinessFn, { data })`.
  */
-export async function callAuthed<TResult>(fn: (opts: { headers: Record<string, string> }) => Promise<TResult>): Promise<TResult>;
+export async function callAuthed<TResult>(
+  fn: (opts: { headers: Record<string, string> }) => Promise<TResult>,
+): Promise<TResult>;
 export async function callAuthed<TData, TResult>(
   fn: (opts: { data: TData; headers: Record<string, string> }) => Promise<TResult>,
   opts: { data: TData },

@@ -10,7 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { VoiceSession } from "@/components/voice/VoiceSession";
 import { AccentFlag, VoicePreviewButton } from "@/components/voice/VoicePreviewButton";
 import { callAuthed } from "@/lib/auth/client";
@@ -28,9 +34,17 @@ export const Route = createFileRoute("/app/receptionists/$id")({
   head: () => ({
     meta: [
       { title: "Receptionist settings · AI Phone Desk" },
-      { name: "description", content: "Edit your receptionist's voice, greeting and instructions, then test it in your browser." },
+      {
+        name: "description",
+        content:
+          "Edit your receptionist's voice, greeting and instructions, then test it in your browser.",
+      },
       { property: "og:title", content: "Receptionist settings · AI Phone Desk" },
-      { property: "og:description", content: "Edit your receptionist's voice, greeting and instructions, then test it in your browser." },
+      {
+        property: "og:description",
+        content:
+          "Edit your receptionist's voice, greeting and instructions, then test it in your browser.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -48,7 +62,12 @@ function ReceptionistDetailPage() {
   });
   const voices = useQuery({ queryKey: ["voices"], queryFn: () => getVoicesFn() });
 
-  const [draft, setDraft] = useState<{ name: string; greeting: string; custom_instructions: string; voice_id: string } | null>(null);
+  const [draft, setDraft] = useState<{
+    name: string;
+    greeting: string;
+    custom_instructions: string;
+    voice_id: string;
+  } | null>(null);
   const rec = detail.data;
   const value =
     draft ??
@@ -113,7 +132,10 @@ function ReceptionistDetailPage() {
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
-      <Link to="/app/receptionists" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+      <Link
+        to="/app/receptionists"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+      >
         <ArrowLeft className="h-4 w-4" /> All receptionists
       </Link>
 
@@ -128,7 +150,12 @@ function ReceptionistDetailPage() {
                 <RefreshCw className="mr-1.5 h-4 w-4" /> Retry
               </Button>
             )}
-            <Button variant="ghost" onClick={() => remove.mutate()} disabled={remove.isPending} aria-label="Delete receptionist">
+            <Button
+              variant="ghost"
+              onClick={() => remove.mutate()}
+              disabled={remove.isPending}
+              aria-label="Delete receptionist"
+            >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
@@ -139,13 +166,20 @@ function ReceptionistDetailPage() {
         <section className="card-elevated space-y-4 p-6">
           <div className="space-y-1.5">
             <Label htmlFor="r-name">Name</Label>
-            <Input id="r-name" value={value.name} onChange={(e) => setDraft({ ...value, name: e.target.value })} />
+            <Input
+              id="r-name"
+              value={value.name}
+              onChange={(e) => setDraft({ ...value, name: e.target.value })}
+            />
           </div>
 
           <div className="space-y-1.5">
             <Label htmlFor="r-voice">Voice</Label>
             <div className="flex items-center gap-2">
-              <Select value={value.voice_id} onValueChange={(v) => setDraft({ ...value, voice_id: v })}>
+              <Select
+                value={value.voice_id}
+                onValueChange={(v) => setDraft({ ...value, voice_id: v })}
+              >
                 <SelectTrigger id="r-voice" className="flex-1">
                   <SelectValue placeholder="Choose a voice" />
                 </SelectTrigger>
@@ -162,15 +196,24 @@ function ReceptionistDetailPage() {
               </Select>
               <VoicePreviewButton
                 previewUrl={(voices.data ?? []).find((v) => v.id === value.voice_id)?.preview_url}
-                voiceName={(voices.data ?? []).find((v) => v.id === value.voice_id)?.name ?? "voice"}
+                voiceName={
+                  (voices.data ?? []).find((v) => v.id === value.voice_id)?.name ?? "voice"
+                }
               />
             </div>
-            <p className="text-xs text-muted-foreground">Pick a voice, then press play to hear it.</p>
+            <p className="text-xs text-muted-foreground">
+              Pick a voice, then press play to hear it.
+            </p>
           </div>
 
           <div className="space-y-1.5">
             <Label htmlFor="r-greeting">Greeting</Label>
-            <Textarea id="r-greeting" rows={2} value={value.greeting} onChange={(e) => setDraft({ ...value, greeting: e.target.value })} />
+            <Textarea
+              id="r-greeting"
+              rows={2}
+              value={value.greeting}
+              onChange={(e) => setDraft({ ...value, greeting: e.target.value })}
+            />
           </div>
 
           <div className="space-y-1.5">

@@ -25,12 +25,15 @@ export interface ConversationDetail {
 }
 
 export async function listConversations(agentId: string, cursor?: string) {
-  if (isDemoMode()) return { conversations: [] as ConversationSummary[], has_more: false, next_cursor: null };
+  if (isDemoMode())
+    return { conversations: [] as ConversationSummary[], has_more: false, next_cursor: null };
   const q = new URLSearchParams({ agent_id: agentId, page_size: "50" });
   if (cursor) q.set("cursor", cursor);
-  return elRequest<{ conversations: ConversationSummary[]; has_more: boolean; next_cursor: string | null }>(
-    `/v1/convai/conversations?${q.toString()}`,
-  );
+  return elRequest<{
+    conversations: ConversationSummary[];
+    has_more: boolean;
+    next_cursor: string | null;
+  }>(`/v1/convai/conversations?${q.toString()}`);
 }
 
 export async function getConversation(conversationId: string) {
@@ -45,5 +48,8 @@ export async function getConversationSummary(conversationId: string) {
 
 export async function getConversationAudio(conversationId: string): Promise<Response | null> {
   if (isDemoMode()) return null;
-  return elRequest<Response>(`/v1/convai/conversations/${conversationId}/audio`, { raw: true, timeoutMs: 30000 });
+  return elRequest<Response>(`/v1/convai/conversations/${conversationId}/audio`, {
+    raw: true,
+    timeoutMs: 30000,
+  });
 }

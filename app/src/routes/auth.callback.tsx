@@ -27,7 +27,9 @@ function AuthCallback() {
         if (!session) {
           const url = new URL(window.location.href);
           if (url.searchParams.get("code")) {
-            const { data: exchanged, error: exErr } = await supabase.auth.exchangeCodeForSession(window.location.href);
+            const { data: exchanged, error: exErr } = await supabase.auth.exchangeCodeForSession(
+              window.location.href,
+            );
             if (exErr) throw exErr;
             session = exchanged.session;
           }
@@ -63,7 +65,9 @@ function AuthCallback() {
         {error ? (
           <div className="card-elevated p-8 animate-fade-up">
             <AlertTriangle className="mx-auto h-8 w-8 text-destructive" />
-            <h1 className="mt-4 font-display text-lg font-semibold text-foreground">Sign-in didn't work</h1>
+            <h1 className="mt-4 font-display text-lg font-semibold text-foreground">
+              Sign-in didn't work
+            </h1>
             <p className="mt-2 text-sm text-muted-foreground">{error}</p>
             <Button className="mt-6 w-full" onClick={() => navigate({ to: "/auth" })}>
               Back to sign in

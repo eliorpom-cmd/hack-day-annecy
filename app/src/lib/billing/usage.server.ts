@@ -28,10 +28,18 @@ function startOfMonthUtc() {
 }
 
 export async function getUsage(db: AnyDb, orgId: string): Promise<UsageSummary> {
-  const { data: org } = await db.from("organizations").select("plan_id").eq("id", orgId).maybeSingle();
+  const { data: org } = await db
+    .from("organizations")
+    .select("plan_id")
+    .eq("id", orgId)
+    .maybeSingle();
   const planId = org?.plan_id ?? "free";
   const [{ data: plan }, { data: sub }] = await Promise.all([
-    db.from("plans").select("included_minutes, overage_price_per_minute").eq("id", planId).maybeSingle(),
+    db
+      .from("plans")
+      .select("included_minutes, overage_price_per_minute")
+      .eq("id", planId)
+      .maybeSingle(),
     db
       .from("subscriptions")
       .select("current_period_start, current_period_end, status")
@@ -140,12 +148,30 @@ export async function chargeOverage(orgId: string) {
       },
       { idempotencyKey: `overage-${claim.id}` },
     );
-    await db.from("usage_overage_charges").update({ status: "billed", stripe_invoice_item_id: item.id }).eq("id", claim.id);
-    console.log(JSON.stringify({ level: "info", event: "usage.overage_billed", org_id: orgId, minutes, amount_cents: amountCents }));
+    await db
+      .from("usage_overage_charges")
+      .update({ status: "billed", stripe_invoice_item_id: item.id })
+      .eq("id", claim.id);
+    console.log(
+      JSON.stringify({
+        level: "info",
+        event: "usage.overage_billed",
+        org_id: orgId,
+        minutes,
+        amount_cents: amountCents,
+      }),
+    );
     return { charged: minutes };
   } catch (e) {
     await db.from("usage_overage_charges").update({ status: "failed" }).eq("id", claim.id);
-    console.error(JSON.stringify({ level: "error", event: "usage.overage_failed", org_id: orgId, error: String(e) }));
+    console.error(
+      JSON.stringify({
+        level: "error",
+        event: "usage.overage_failed",
+        org_id: orgId,
+        error: String(e),
+      }),
+    );
     return { charged: 0 };
   }
 }

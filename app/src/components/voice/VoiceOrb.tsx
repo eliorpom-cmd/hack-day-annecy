@@ -21,7 +21,9 @@ export function VoiceOrb({
           <span className="absolute inset-0 rounded-full bg-accent/15 animate-pulse-ring [animation-delay:0.8s]" />
         </>
       )}
-      {state === "connecting" && <span className="absolute inset-[-6px] rounded-full border-2 border-dashed border-accent/50 animate-spin [animation-duration:3s]" />}
+      {state === "connecting" && (
+        <span className="absolute inset-[-6px] rounded-full border-2 border-dashed border-accent/50 animate-spin [animation-duration:3s]" />
+      )}
       <div
         className={cn(
           "orb relative h-full w-full rounded-full transition-transform duration-500",
@@ -37,7 +39,11 @@ export function VoiceOrb({
               <span
                 key={i}
                 className="w-1 rounded-full bg-primary-foreground/80 animate-pulse"
-                style={{ height: `${18 + ((i * 7) % 20)}%`, animationDelay: `${i * 120}ms`, animationDuration: "700ms" }}
+                style={{
+                  height: `${18 + ((i * 7) % 20)}%`,
+                  animationDelay: `${i * 120}ms`,
+                  animationDuration: "700ms",
+                }}
               />
             ))}
           </div>

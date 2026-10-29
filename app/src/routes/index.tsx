@@ -51,18 +51,54 @@ export const Route = createFileRoute("/")({
 
 const FEATURES = [
   { icon: PhoneCall, title: "Answers 24/7", body: "Every call gets picked up, day or night." },
-  { icon: CalendarCheck, title: "Books appointments", body: "Requests go straight into your calendar." },
-  { icon: RouteIcon, title: "Transfers to the right person", body: "Urgent calls reach a real person, with context." },
-  { icon: FileText, title: "Call summaries and transcripts", body: "Know who called and why, without listening back." },
-  { icon: BrainCircuit, title: "Knows your business", body: "Trained from your website — accurate, on-brand answers." },
-  { icon: Smartphone, title: "One number, phone and browser", body: "A dedicated number and a website widget, same AI." },
+  {
+    icon: CalendarCheck,
+    title: "Books appointments",
+    body: "Requests go straight into your calendar.",
+  },
+  {
+    icon: RouteIcon,
+    title: "Transfers to the right person",
+    body: "Urgent calls reach a real person, with context.",
+  },
+  {
+    icon: FileText,
+    title: "Call summaries and transcripts",
+    body: "Know who called and why, without listening back.",
+  },
+  {
+    icon: BrainCircuit,
+    title: "Knows your business",
+    body: "Trained from your website — accurate, on-brand answers.",
+  },
+  {
+    icon: Smartphone,
+    title: "One number, phone and browser",
+    body: "A dedicated number and a website widget, same AI.",
+  },
 ];
 
 const HOW_IT_WORKS = [
-  { icon: Globe, title: "Scan your website", body: "We read your site to learn your services, hours, and policies." },
-  { icon: ClipboardList, title: "Review what we found", body: "Check and edit the business profile before it goes live." },
-  { icon: Mic, title: "Pick a voice and test it", body: "Choose a voice and talk to your receptionist in your browser." },
-  { icon: PhoneOutgoing, title: "Get a number and go live", body: "Connect a phone number and start taking real calls." },
+  {
+    icon: Globe,
+    title: "Scan your website",
+    body: "We read your site to learn your services, hours, and policies.",
+  },
+  {
+    icon: ClipboardList,
+    title: "Review what we found",
+    body: "Check and edit the business profile before it goes live.",
+  },
+  {
+    icon: Mic,
+    title: "Pick a voice and test it",
+    body: "Choose a voice and talk to your receptionist in your browser.",
+  },
+  {
+    icon: PhoneOutgoing,
+    title: "Get a number and go live",
+    body: "Connect a phone number and start taking real calls.",
+  },
 ];
 
 const FAQS = [
@@ -294,13 +330,16 @@ function PricingTeaser({ plans }: { plans: PlanSummary[] }) {
                 key={plan.id}
                 className={`card-elevated flex flex-col p-6 ${plan.is_popular ? "ring-2 ring-accent" : ""}`}
               >
-                <h3 className="font-display text-base font-semibold text-foreground">{plan.name}</h3>
+                <h3 className="font-display text-base font-semibold text-foreground">
+                  {plan.name}
+                </h3>
                 <p className="mt-3 font-display text-2xl font-semibold text-foreground">
                   {plan.is_custom ? "Custom" : `$${plan.monthly_price}/mo`}
                 </p>
                 {!plan.is_custom && plan.monthly_price > 0 && plan.annual_price > 0 && (
                   <p className="mt-1 text-xs text-accent">
-                    Save {Math.round((1 - plan.annual_price / 12 / plan.monthly_price) * 100)}% paid yearly
+                    Save {Math.round((1 - plan.annual_price / 12 / plan.monthly_price) * 100)}% paid
+                    yearly
                   </p>
                 )}
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -362,7 +401,12 @@ function FinalCta() {
           <Button asChild size="lg" variant="secondary" className="shadow-glow">
             <a href="/auth?mode=signup">Create your receptionist</a>
           </Button>
-          <Button asChild size="lg" variant="outline" className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10">
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10"
+          >
             <a href="#demo">Talk to the AI</a>
           </Button>
         </div>

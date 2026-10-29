@@ -59,7 +59,8 @@ export function normalizeUrl(raw: string): string {
   const url = new URL(u);
   url.hash = "";
   url.search = "";
-  if (url.pathname.length > 1 && url.pathname.endsWith("/")) url.pathname = url.pathname.slice(0, -1);
+  if (url.pathname.length > 1 && url.pathname.endsWith("/"))
+    url.pathname = url.pathname.slice(0, -1);
   return url.toString();
 }
 
@@ -70,7 +71,9 @@ export function initCrawl(startUrl: string): CrawlState {
 }
 
 async function loadSitemap(state: CrawlState, sitemapUrls: string[]) {
-  const candidates = sitemapUrls.length ? sitemapUrls : [`${state.origin}/sitemap.xml`, `${state.origin}/sitemap_index.xml`];
+  const candidates = sitemapUrls.length
+    ? sitemapUrls
+    : [`${state.origin}/sitemap.xml`, `${state.origin}/sitemap_index.xml`];
   const found: string[] = [];
   for (const sm of candidates.slice(0, 3)) {
     try {
@@ -83,12 +86,21 @@ async function loadSitemap(state: CrawlState, sitemapUrls: string[]) {
       for (const child of children) {
         try {
           const r = await withTimeout(fetch(child, { redirect: "follow" }), 5000, "sitemap");
-          if (r.ok) found.push(...[...(await r.text()).slice(0, 400000).matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/gi)].map((m) => m[1]!));
-        } catch { /* skip */ }
+          if (r.ok)
+            found.push(
+              ...[
+                ...(await r.text()).slice(0, 400000).matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/gi),
+              ].map((m) => m[1]!),
+            );
+        } catch {
+          /* skip */
+        }
       }
       found.push(...locs.filter((l) => !/\.xml(\?|$)/i.test(l)));
       if (found.length) break;
-    } catch { /* skip */ }
+    } catch {
+      /* skip */
+    }
   }
   for (const raw of found) {
     try {
@@ -96,7 +108,9 @@ async function loadSitemap(state: CrawlState, sitemapUrls: string[]) {
       if (new URL(abs).origin !== state.origin) continue;
       if (state.queue.includes(abs) || scoreUrl(abs) < -20) continue;
       if (state.queue.length < 150 && canQueue(state, abs)) state.queue.push(abs);
-    } catch { /* skip */ }
+    } catch {
+      /* skip */
+    }
   }
 }
 
@@ -104,7 +118,11 @@ async function loadRobots(state: CrawlState) {
   state.robotsLoaded = true;
   const sitemaps: string[] = [];
   try {
-    const res = await withTimeout(fetch(`${state.origin}/robots.txt`, { redirect: "follow" }), 4000, "robots");
+    const res = await withTimeout(
+      fetch(`${state.origin}/robots.txt`, { redirect: "follow" }),
+      4000,
+      "robots",
+    );
     if (!res.ok) return;
     const text = await res.text();
     let applies = false;
@@ -154,9 +172,14 @@ export function htmlToText(html: string): { title: string; text: string; links: 
     .replace(/<!--[\s\S]*?-->/g, " ")
     // strip navigation noise & cookie banners
     .replace(/<(nav|aside)[\s\S]*?<\/\1>/gi, " ")
-    .replace(/<[^>]+(cookie|consent|gdpr|banner|popup|modal)[^>]*>[\s\S]*?<\/(div|section)>/gi, " ");
+    .replace(
+      /<[^>]+(cookie|consent|gdpr|banner|popup|modal)[^>]*>[\s\S]*?<\/(div|section)>/gi,
+      " ",
+    );
 
-  const jsonLd = [...html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)]
+  const jsonLd = [
+    ...html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi),
+  ]
     .map((x) => (x[1] ?? "").trim())
     .filter(Boolean)
     .join("\n");
@@ -173,9 +196,14 @@ export function htmlToText(html: string): { title: string; text: string; links: 
     .trim();
 
   const metaDesc = decodeEntities(
-    html.match(/<meta[^>]+(?:name|property)=["'](?:description|og:description)["'][^>]*content=["']([^"']*)["']/i)?.[1] ?? "",
+    html.match(
+      /<meta[^>]+(?:name|property)=["'](?:description|og:description)["'][^>]*content=["']([^"']*)["']/i,
+    )?.[1] ?? "",
   ).trim();
-  const combined = (metaDesc ? `SUMMARY: ${metaDesc}\n` : "") + (jsonLd ? `STRUCTURED DATA:\n${jsonLd.slice(0, 3000)}\n\n` : "") + text;
+  const combined =
+    (metaDesc ? `SUMMARY: ${metaDesc}\n` : "") +
+    (jsonLd ? `STRUCTURED DATA:\n${jsonLd.slice(0, 3000)}\n\n` : "") +
+    text;
   return { title, text: combined.slice(0, MAX_CONTENT_PER_PAGE), links };
 }
 
@@ -199,7 +227,11 @@ export async function crawlStep(state: CrawlState, batch = 6): Promise<boolean> 
   const kindCount = new Map<string, number>();
   for (const v of state.visited) kindCount.set(pageKind(v), (kindCount.get(pageKind(v)) ?? 0) + 1);
   const deferred: string[] = [];
-  while (state.queue.length && picked.length < batch && state.pages.length + picked.length < MAX_PAGES) {
+  while (
+    state.queue.length &&
+    picked.length < batch &&
+    state.pages.length + picked.length < MAX_PAGES
+  ) {
     const url = state.queue.shift()!;
     if (state.visited.includes(url)) continue;
     const kind = pageKind(url);
@@ -237,7 +269,10 @@ async function fetchPage(state: CrawlState, url: string) {
       const res = await withTimeout(
         fetch(url, {
           redirect: "follow",
-          headers: { "User-Agent": "AIPhoneDeskBot/1.0 (+https://aiphonedesk.com/bot)", Accept: "text/html" },
+          headers: {
+            "User-Agent": "AIPhoneDeskBot/1.0 (+https://aiphonedesk.com/bot)",
+            Accept: "text/html",
+          },
         }),
         PAGE_TIMEOUT_MS,
         `fetch ${url}`,

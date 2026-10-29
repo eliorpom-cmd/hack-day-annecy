@@ -24,9 +24,15 @@ export const Route = createFileRoute("/app/calendar")({
   head: () => ({
     meta: [
       { title: "Calendar — AI Phone Desk" },
-      { name: "description", content: "Connect your calendar so your receptionist books into real open times." },
+      {
+        name: "description",
+        content: "Connect your calendar so your receptionist books into real open times.",
+      },
       { property: "og:title", content: "Calendar — AI Phone Desk" },
-      { property: "og:description", content: "Connect your calendar so your receptionist books into real open times." },
+      {
+        property: "og:description",
+        content: "Connect your calendar so your receptionist books into real open times.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -42,10 +48,16 @@ function waitForOAuth(popup: Window) {
     };
     const onMessage = (e: MessageEvent) => {
       const t = e.data?.type;
-      if (e.origin !== window.location.origin || e.source !== popup || e.data?.connectorId !== "google_calendar") return;
+      if (
+        e.origin !== window.location.origin ||
+        e.source !== popup ||
+        e.data?.connectorId !== "google_calendar"
+      )
+        return;
       if (t !== "appUserConnectorOAuthComplete" && t !== "appUserConnectorOAuthFailed") return;
       cleanup();
-      if (t === "appUserConnectorOAuthComplete") resolve(typeof e.data.code === "string" ? e.data.code : null);
+      if (t === "appUserConnectorOAuthComplete")
+        resolve(typeof e.data.code === "string" ? e.data.code : null);
       else reject(new Error("Google Calendar was not connected."));
     };
     window.addEventListener("message", onMessage);
@@ -59,7 +71,13 @@ function waitForOAuth(popup: Window) {
 }
 
 function fmtTime(iso: string) {
-  return new Date(iso).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  return new Date(iso).toLocaleString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 function CalendarPage() {
@@ -104,7 +122,9 @@ function CalendarPage() {
   async function book() {
     if (!picked || !name.trim()) return;
     setBusy(true);
-    const r = await callAuthed(bookManualAppointmentFn, { data: { start: picked, name, phone: phone || undefined } } as never);
+    const r = await callAuthed(bookManualAppointmentFn, {
+      data: { start: picked, name, phone: phone || undefined },
+    } as never);
     setBusy(false);
     if (r.confirmed) {
       toast.success("Appointment confirmed");
@@ -126,7 +146,10 @@ function CalendarPage() {
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
-      <PageHeader title="Calendar" description="Your receptionist checks these open times and books callers straight in." />
+      <PageHeader
+        title="Calendar"
+        description="Your receptionist checks these open times and books callers straight in."
+      />
 
       <div className="card-elevated flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -135,14 +158,20 @@ function CalendarPage() {
             <Skeleton className="mt-2 h-5 w-48" />
           ) : d?.google ? (
             <p className="mt-1 flex items-center gap-2 font-medium text-foreground">
-              <CheckCircle2 className="h-4 w-4 text-accent" /> Google Calendar{d.google.email ? ` · ${d.google.email}` : ""}
+              <CheckCircle2 className="h-4 w-4 text-accent" /> Google Calendar
+              {d.google.email ? ` · ${d.google.email}` : ""}
             </p>
           ) : (
             <p className="mt-1 text-sm text-muted-foreground">
-              Using the built-in calendar, based on your business hours. Connect Google Calendar so busy times block bookings and new appointments show up there.
+              Using the built-in calendar, based on your business hours. Connect Google Calendar so
+              busy times block bookings and new appointments show up there.
             </p>
           )}
-          {d?.google?.reconnectRequired && <p className="mt-1 text-sm text-destructive">Your Google Calendar access needs to be renewed.</p>}
+          {d?.google?.reconnectRequired && (
+            <p className="mt-1 text-sm text-destructive">
+              Your Google Calendar access needs to be renewed.
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
           {d?.google ? (
@@ -152,7 +181,9 @@ function CalendarPage() {
                   <RefreshCw className="mr-2 h-4 w-4" /> Reconnect Google Calendar
                 </Button>
               )}
-              <Button variant="outline" onClick={disconnect} disabled={busy}>Disconnect</Button>
+              <Button variant="outline" onClick={disconnect} disabled={busy}>
+                Disconnect
+              </Button>
             </>
           ) : (
             <Button onClick={() => connect(false)} disabled={busy || q.isLoading}>
@@ -165,23 +196,41 @@ function CalendarPage() {
       {d?.google && !d.google.reconnectRequired && <GoogleWeekCalendar />}
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-display text-lg font-semibold text-foreground">Upcoming appointments</h2>
+        <h2 className="font-display text-lg font-semibold text-foreground">
+          Upcoming appointments
+        </h2>
         {q.isLoading ? (
           <Skeleton className="h-24 w-full" />
         ) : upcoming.length === 0 ? (
-          <EmptyState icon={CalendarIcon} title="No appointments yet" description="When your receptionist books a caller, it appears here. It only confirms after the calendar has confirmed it." />
+          <EmptyState
+            icon={CalendarIcon}
+            title="No appointments yet"
+            description="When your receptionist books a caller, it appears here. It only confirms after the calendar has confirmed it."
+          />
         ) : (
           <div className="card-elevated divide-y">
             {upcoming.map((a) => (
               <div key={a.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
                 <div>
-                  <p className="font-medium text-foreground">{a.caller_name}{a.service ? ` · ${a.service}` : ""}</p>
-                  <p className="text-sm text-muted-foreground">{fmtTime(a.starts_at)}{a.caller_phone ? ` · ${a.caller_phone}` : ""}</p>
+                  <p className="font-medium text-foreground">
+                    {a.caller_name}
+                    {a.service ? ` · ${a.service}` : ""}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {fmtTime(a.starts_at)}
+                    {a.caller_phone ? ` · ${a.caller_phone}` : ""}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary">{a.source === "receptionist" ? "Booked by receptionist" : "Added by you"}</Badge>
-                  {a.calendar_provider === "google" && <Badge variant="outline">In Google Calendar</Badge>}
-                  <Button size="sm" variant="ghost" onClick={() => cancel(a.id)}>Cancel</Button>
+                  <Badge variant="secondary">
+                    {a.source === "receptionist" ? "Booked by receptionist" : "Added by you"}
+                  </Badge>
+                  {a.calendar_provider === "google" && (
+                    <Badge variant="outline">In Google Calendar</Badge>
+                  )}
+                  <Button size="sm" variant="ghost" onClick={() => cancel(a.id)}>
+                    Cancel
+                  </Button>
                 </div>
               </div>
             ))}
@@ -191,7 +240,10 @@ function CalendarPage() {
 
       <section className="flex flex-col gap-3">
         <h2 className="font-display text-lg font-semibold text-foreground">Open times this week</h2>
-        <p className="text-sm text-muted-foreground">This is exactly what your receptionist offers callers. Click a time to add an appointment yourself.</p>
+        <p className="text-sm text-muted-foreground">
+          This is exactly what your receptionist offers callers. Click a time to add an appointment
+          yourself.
+        </p>
         {q.isLoading ? (
           <Skeleton className="h-40 w-full" />
         ) : d?.availabilityError ? (
@@ -201,14 +253,24 @@ function CalendarPage() {
             {d?.availability?.days.map((day) => (
               <div key={day.date} className="card-elevated p-4">
                 <p className="font-medium text-foreground">
-                  {new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: "UTC" })}
+                  {new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en-US", {
+                    weekday: "long",
+                    month: "short",
+                    day: "numeric",
+                    timeZone: "UTC",
+                  })}
                 </p>
                 {day.slots.length === 0 ? (
                   <p className="mt-2 text-sm text-muted-foreground">Closed or fully booked</p>
                 ) : (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {day.slots.map((s) => (
-                      <Button key={s.start} size="sm" variant={picked === s.start ? "default" : "outline"} onClick={() => setPicked(s.start)}>
+                      <Button
+                        key={s.start}
+                        size="sm"
+                        variant={picked === s.start ? "default" : "outline"}
+                        onClick={() => setPicked(s.start)}
+                      >
                         {s.label.split(" at ").pop()}
                       </Button>
                     ))}
@@ -222,11 +284,24 @@ function CalendarPage() {
           <div className="card-elevated flex flex-col gap-3 p-4 sm:flex-row sm:items-end">
             <div className="flex-1">
               <p className="mb-1 text-sm text-muted-foreground">Book {fmtTime(picked)}</p>
-              <Input placeholder="Customer name" value={name} onChange={(e) => setName(e.target.value)} />
+              <Input
+                placeholder="Customer name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
             </div>
-            <Input className="sm:w-48" placeholder="Phone (optional)" value={phone} onChange={(e) => setPhone(e.target.value)} />
-            <Button onClick={book} disabled={busy || !name.trim()}>Book</Button>
-            <Button variant="ghost" onClick={() => setPicked(null)}>Cancel</Button>
+            <Input
+              className="sm:w-48"
+              placeholder="Phone (optional)"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+            <Button onClick={book} disabled={busy || !name.trim()}>
+              Book
+            </Button>
+            <Button variant="ghost" onClick={() => setPicked(null)}>
+              Cancel
+            </Button>
           </div>
         )}
       </section>

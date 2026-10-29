@@ -7,7 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { callAuthed } from "@/lib/auth/client";
 import {
   assignNumberFn,
@@ -18,7 +24,12 @@ import {
 } from "@/lib/telephony/phone.functions";
 import { US_STATES } from "@/lib/telephony/us-states";
 
-type Available = { phoneNumber: string; friendlyName: string; locality: string | null; region: string | null };
+type Available = {
+  phoneNumber: string;
+  friendlyName: string;
+  locality: string | null;
+  region: string | null;
+};
 
 const STATUS_LABEL: Record<string, string> = {
   provisioning: "Reserving number",
@@ -31,7 +42,10 @@ const ANY_STATE = "any";
 
 export function PhoneNumbersPanel({ onClaimed }: { onClaimed?: () => void }) {
   const qc = useQueryClient();
-  const overview = useQuery({ queryKey: ["phone-overview"], queryFn: () => callAuthed(getPhoneOverviewFn) });
+  const overview = useQuery({
+    queryKey: ["phone-overview"],
+    queryFn: () => callAuthed(getPhoneOverviewFn),
+  });
   const [areaCode, setAreaCode] = useState("");
   const [state, setState] = useState<string>(ANY_STATE);
   const [type, setType] = useState<"local" | "toll_free">("local");
@@ -57,9 +71,12 @@ export function PhoneNumbersPanel({ onClaimed }: { onClaimed?: () => void }) {
     return (
       <div className="card-elevated flex flex-col gap-3 p-6">
         <Phone className="h-5 w-5 text-accent" />
-        <h3 className="font-display text-base font-semibold text-foreground">Get a number your customers can call</h3>
+        <h3 className="font-display text-base font-semibold text-foreground">
+          Get a number your customers can call
+        </h3>
         <p className="text-sm text-muted-foreground">
-          Phone numbers are included on Basic and Pro. You're on {planName} — you can keep testing in the browser.
+          Phone numbers are included on Basic and Pro. You're on {planName} — you can keep testing
+          in the browser.
         </p>
         <Button asChild className="self-start">
           <Link to="/app/billing">Choose a plan</Link>
@@ -92,7 +109,9 @@ export function PhoneNumbersPanel({ onClaimed }: { onClaimed?: () => void }) {
   async function assign(numberId: string, recId: string) {
     setAssigning(numberId);
     try {
-      const res = await callAuthed(assignNumberFn, { data: { id: numberId, receptionistId: recId } });
+      const res = await callAuthed(assignNumberFn, {
+        data: { id: numberId, receptionistId: recId },
+      });
       if (res.error) toast.error(res.error);
       else toast.success("Number connected to that receptionist.");
       await qc.invalidateQueries({ queryKey: ["phone-overview"] });
@@ -109,7 +128,9 @@ export function PhoneNumbersPanel({ onClaimed }: { onClaimed?: () => void }) {
     }
     setClaiming(n.phoneNumber);
     try {
-      const res = await callAuthed(claimNumberFn, { data: { phoneNumber: n.phoneNumber, receptionistId: selectedRec } });
+      const res = await callAuthed(claimNumberFn, {
+        data: { phoneNumber: n.phoneNumber, receptionistId: selectedRec },
+      });
       if (res.error) toast.error(res.error);
       else {
         toast.success(`${n.friendlyName} is live. Give it a call!`);
@@ -124,7 +145,12 @@ export function PhoneNumbersPanel({ onClaimed }: { onClaimed?: () => void }) {
   }
 
   async function release(id: string) {
-    if (!confirm("Release this number? Callers will no longer reach your receptionist on it, and you may not get it back.")) return;
+    if (
+      !confirm(
+        "Release this number? Callers will no longer reach your receptionist on it, and you may not get it back.",
+      )
+    )
+      return;
     const res = await callAuthed(releaseNumberFn, { data: { id } });
     if (res.error) toast.error(res.error);
     else toast.success("Number released.");
@@ -138,7 +164,10 @@ export function PhoneNumbersPanel({ onClaimed }: { onClaimed?: () => void }) {
       {numbers.length > 0 && (
         <div className="space-y-3">
           {numbers.map((n) => (
-            <div key={n.id} className="card-elevated flex flex-wrap items-center justify-between gap-4 p-5">
+            <div
+              key={n.id}
+              className="card-elevated flex flex-wrap items-center justify-between gap-4 p-5"
+            >
               <div className="flex items-center gap-3">
                 {n.status === "live" ? (
                   <CheckCircle2 className="h-5 w-5 text-accent" />
@@ -154,7 +183,9 @@ export function PhoneNumbersPanel({ onClaimed }: { onClaimed?: () => void }) {
                   <div className="text-xs text-muted-foreground">
                     {[n.locality, n.region].filter(Boolean).join(", ") || "United States"}
                   </div>
-                  {n.status_message && <div className="mt-1 text-xs text-destructive">{n.status_message}</div>}
+                  {n.status_message && (
+                    <div className="mt-1 text-xs text-destructive">{n.status_message}</div>
+                  )}
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-3">
@@ -166,16 +197,22 @@ export function PhoneNumbersPanel({ onClaimed }: { onClaimed?: () => void }) {
                     onValueChange={(v) => assign(n.id, v)}
                   >
                     <SelectTrigger className="w-44">
-                      <SelectValue placeholder={ready.length ? "Choose receptionist" : "No receptionist ready"} />
+                      <SelectValue
+                        placeholder={ready.length ? "Choose receptionist" : "No receptionist ready"}
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {ready.map((r) => (
-                        <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                        <SelectItem key={r.id} value={r.id}>
+                          {r.name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <Badge variant={n.status === "live" ? "default" : "secondary"}>{STATUS_LABEL[n.status] ?? n.status}</Badge>
+                <Badge variant={n.status === "live" ? "default" : "secondary"}>
+                  {STATUS_LABEL[n.status] ?? n.status}
+                </Badge>
                 {n.status === "live" && (
                   <Button asChild variant="outline" size="sm">
                     <a href={`tel:${n.phone_number}`}>Call it</a>
@@ -193,19 +230,25 @@ export function PhoneNumbersPanel({ onClaimed }: { onClaimed?: () => void }) {
       {!atLimit && (
         <div className="card-elevated space-y-4 p-6">
           <div>
-            <h3 className="font-display text-base font-semibold text-foreground">Pick your number</h3>
+            <h3 className="font-display text-base font-semibold text-foreground">
+              Pick your number
+            </h3>
             <p className="text-sm text-muted-foreground">
-              US numbers only for now. Anyone in the United States can call it — pick the state or area code your
-              customers recognise. Your {planName} plan includes {allowed} number.
+              US numbers only for now. Anyone in the United States can call it — pick the state or
+              area code your customers recognise. Your {planName} plan includes {allowed} number.
             </p>
           </div>
           {ready.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Finish setting up your receptionist first, then come back here.</p>
+            <p className="text-sm text-muted-foreground">
+              Finish setting up your receptionist first, then come back here.
+            </p>
           ) : (
             <>
               <div className="flex flex-wrap gap-2">
                 <Select value={type} onValueChange={(v) => setType(v as "local" | "toll_free")}>
-                  <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-36">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="local">Local</SelectItem>
                     <SelectItem value="toll_free">Toll-free</SelectItem>
@@ -214,11 +257,15 @@ export function PhoneNumbersPanel({ onClaimed }: { onClaimed?: () => void }) {
                 {type === "local" && (
                   <>
                     <Select value={state} onValueChange={setState}>
-                      <SelectTrigger className="w-48"><SelectValue placeholder="Any state" /></SelectTrigger>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Any state" />
+                      </SelectTrigger>
                       <SelectContent className="max-h-72">
                         <SelectItem value={ANY_STATE}>Any state</SelectItem>
                         {US_STATES.map((s) => (
-                          <SelectItem key={s.code} value={s.code}>{s.name}</SelectItem>
+                          <SelectItem key={s.code} value={s.code}>
+                            {s.name}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -235,10 +282,14 @@ export function PhoneNumbersPanel({ onClaimed }: { onClaimed?: () => void }) {
                 )}
                 {ready.length > 1 && (
                   <Select value={selectedRec} onValueChange={setReceptionistId}>
-                    <SelectTrigger className="w-48"><SelectValue placeholder="Receptionist" /></SelectTrigger>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Receptionist" />
+                    </SelectTrigger>
                     <SelectContent>
                       {ready.map((r) => (
-                        <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                        <SelectItem key={r.id} value={r.id}>
+                          {r.name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -251,16 +302,23 @@ export function PhoneNumbersPanel({ onClaimed }: { onClaimed?: () => void }) {
 
               {searching && (
                 <div className="grid gap-2 sm:grid-cols-2">
-                  {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="h-16 rounded-xl" />
+                  ))}
                 </div>
               )}
               {!searching && results && results.length === 0 && (
-                <p className="text-sm text-muted-foreground">No numbers found there. Try a nearby area code.</p>
+                <p className="text-sm text-muted-foreground">
+                  No numbers found there. Try a nearby area code.
+                </p>
               )}
               {!searching && results && results.length > 0 && (
                 <div className="grid gap-2 sm:grid-cols-2">
                   {results.map((n) => (
-                    <div key={n.phoneNumber} className="flex items-center justify-between rounded-xl border border-border p-3">
+                    <div
+                      key={n.phoneNumber}
+                      className="flex items-center justify-between rounded-xl border border-border p-3"
+                    >
                       <div>
                         <div className="font-medium text-foreground">{n.friendlyName}</div>
                         <div className="text-xs text-muted-foreground">
