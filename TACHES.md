@@ -19,8 +19,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - scénario demande de devis : un appelle, un joue l'artisan
 - 14 · Slides du pitch (~5 min) (Maxime)
   - deck web exportable PDF/PPTX
-- 05 · Refaire l'onboarding (mode simple) (Claude)
-  - scan du site ou saisie, voix, numéro, dashboard ; voir PROJET.md « Onboarding » ; référence reception.ai
 
 ## Fait
 
@@ -56,3 +54,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 - 16 · Rappel automatique + question au retour (Claude)
   - appui sur Rappeler = appel lancé (tel:) et rappel noté ; au retour dans l'app, fenêtre bloquante « Avez-vous eu Mme X ? » Oui / Non, pas répondu. Oui → statut Rappelé ; Non → reste à rappeler. Le bouton « Marquer comme rappelé » reste sur la fiche (le client a pu rappeler lui-même)
   - Fait : web/src/pages/a/[token]/ : page publique de l'appel (lien du message), « Rappeler » note l'appel, fenêtre bloquante au retour, « Marquer comme rappelé » ; migrations 0005, 0006
+- 05 · Refaire l'onboarding (mode simple) (Claude)
+  - scan du site ou saisie, voix, numéro, dashboard ; voir PROJET.md « Onboarding » ; référence reception.ai
+  - Fait : web/src/pages/onboarding.astro + components/setup/ : 4 étapes, lecture du site testée (plombier-annecy.fr), erreurs claires sans clés
