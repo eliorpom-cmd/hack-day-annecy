@@ -23,11 +23,16 @@ Specs à jour (source de vérité, écrite par l'équipe) : https://docs.google.
 
 ## Stack
 
-- Front :
-- Back :
-- IA (modèle, fournisseur ; clé dans `.env`) : agent vocal ElevenLabs (celui de Mathieu)
-- Données :
-- Hébergement :
+Code : `app/`, copié le 29/10 du MVP Lovable de Mathieu (dépôt `Matthieu1203/your-virtual-agent`). On ne resynchronise pas avec Lovable : on code ici avec nos agents.
+
+- Front : TanStack Start (React 19), Tailwind 4, shadcn/ui
+- Back : fonctions serveur TanStack (`app/src/lib/**/*.server.ts`), routes publiques dans `app/src/routes/api/public/` (webhooks Twilio, receptionist, paiements)
+- IA : agents vocaux ElevenLabs (`app/src/lib/elevenlabs/`), prompt de l'agent dans `app/src/lib/receptionist/prompt.server.ts`, scan du site dans `app/src/lib/crawler/`
+- Téléphonie : Twilio (`app/src/lib/telephony/`) ; pour l'instant numéros américains seulement
+- Agenda : Google Calendar (`app/src/lib/calendar/`)
+- Paiement : Stripe
+- Données : Supabase via Lovable Cloud (`app/supabase/migrations/`) ; clés dans `app/.env`, jamais commité (à récupérer auprès d'Elior ou Mathieu)
+- Hébergement : build Cloudflare (nitro / wrangler)
 
 ## Contrat d'API
 
@@ -47,6 +52,6 @@ Intégrateur (relit et merge les PR, répare `main`) :
 
 ## Commandes
 
-- Dev :
-- Lint / build / test :
+- Dev : `cd app && npm install && npm run dev`
+- Lint / build / test : `npm run lint` (0 erreur, 28 avertissements), `npm run build` ; pas encore de `npm test`
 - URL de démo :
