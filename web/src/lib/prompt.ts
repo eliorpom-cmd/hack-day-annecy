@@ -121,8 +121,8 @@ export function buildAgentPayload(opts: {
   business: PromptBusiness; prompt: string; voiceId: string | null;
   dataCollection: Record<string, DataCollectionField>; platformExtras?: Record<string, unknown>;
 }) {
-  // Eleven v4 Turbo: chosen by Mathieu in the MVP (expressive French, low latency)
-  const tts: Record<string, unknown> = { model_id: "eleven_v4_turbo" };
+  // ElevenLabs rejects (400) a non-English agent whose TTS model is not a v2.5 turbo/flash: same choice as the MVP
+  const tts: Record<string, unknown> = { model_id: "eleven_flash_v2_5" };
   if (opts.voiceId) tts.voice_id = opts.voiceId;
   return {
     name: `Assistant – ${businessDisplayName(opts.business) || "Artisan"}`.slice(0, 100),
