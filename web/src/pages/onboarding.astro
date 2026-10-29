@@ -7,6 +7,8 @@ import Field from "../components/setup/Field.astro";
 import Progress from "../components/setup/Progress.astro";
 import { STEPS } from "../components/setup/steps";
 import { db } from "../lib/db";
+import { demoSetup, isDemoSetupEmail } from "../lib/demo-setup";
+import { secret } from "../lib/env";
 
 const b = Astro.locals.business;
 if (!b) return Astro.redirect("/login");
@@ -33,9 +35,13 @@ const init = {
   hours: hours.results,
   faqs: faqs.results,
   number: numbers.results[0]?.e164 ?? null,
+  demo: null as ReturnType<typeof demoSetup> | null,
 };
+// Demo setup (« Essayer la configuration »): Plomberie Martin pre-filled, no AI call, nothing bought (lib/demo-setup.ts)
+const demo = isDemoSetupEmail(Astro.locals.user?.email) ? demoSetup({ origin: Astro.url.origin, mobile: secret("DEMO_MOBILE") }) : null;
 // Filled once: a company name, or the name of a self-employed artisan
 const filled = !!(b.name || b.last_name);
+init.demo = demo;
 ---
 <Base title="Configuration">
   <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col">
@@ -54,7 +60,7 @@ const filled = !!(b.name || b.last_name);
         </div>
 
         <form data-phase="site" class="flex flex-col gap-[14px]" novalidate hidden={filled}>
-          <Field id="website" label="Adresse de votre site" help="Exemple : plomberie-martin.fr" inputmode="url" autocomplete="url" value={b.website} />
+          <Field id="website" label="Adresse de votre site" help="Exemple : plomberie-martin.fr" inputmode="url" autocomplete="url" value={b.website ?? demo?.website} />
           <div data-scanning class="flex flex-col gap-2" hidden>
             <p class="font-bold" role="status">Lecture de votre site…</p>
             <div class="scan-bar"><span></span></div>
@@ -277,6 +283,7 @@ const filled = !!(b.name || b.last_name);
     import { businessDisplayName, defaultGreeting, isDefaultGreeting, type GreetingVoice } from "../lib/greeting";
     import { forwardingCodes, forwardingDelay } from "../lib/forwarding";
     import { CLONE_LIMITS, CLONE_SENTENCES, CLONED_VOICE_NAME, encodeWav } from "../lib/voice-clone";
+    import { pickDemoVoice, type DemoSetup } from "../lib/demo-setup";
 
     // ---------- Types and initial state (rendered by the server) ----------
     type Hour = { weekday: number; opens: string; closes: string };
@@ -288,10 +295,12 @@ const filled = !!(b.name || b.last_name);
         ring_seconds: number; greeting: string; voice_id: string | null; voice_name: string | null;
         first_name: string; last_name: string; voice_gender: "female" | "male" | null; forwarding_mode: "renvoi" | "numero" | null };
       hours: Hour[]; faqs: (Faq & { id: string })[]; number: string | null;
+      demo: DemoSetup | null; // « Essayer la configuration »: pre-filled with Plomberie Martin
     };
     const init = JSON.parse(document.getElementById("setup-init")!.textContent!) as Init;
     const STEPS = JSON.parse(document.getElementById("setup-steps")!.textContent!) as string[];
     const biz = init.business;
+    const demo = init.demo;
 
     const $ = <T extends Element = HTMLElement>(sel: string, root: Document | HTMLElement = document) => root.querySelector(sel) as T;
     const $$ = <T extends Element = HTMLElement>(sel: string, root: Document | HTMLElement = document) => [...root.querySelectorAll(sel)] as T[];
@@ -438,7 +447,12 @@ const filled = !!(b.name || b.last_name);
       fieldHelp("website", null);
       scanning.hidden = false;
       busy(true);
-      const r = await api<{ business: Partial<Init["business"]>; hours: Hour[]; faqs: Faq[]; source?: { ai_model?: string | null } }>("POST", "/api/onboarding/scan", { url });
+      type Scan = { business: Partial<Init["business"]>; hours: Hour[]; faqs: Faq[]; source?: { ai_model?: string | null } };
+      // Demo: the same screen for ~2 s, then the fixed values of the fake site (no AI call, nothing can fail)
+      const r: ApiResult<Scan> = demo
+        ? await new Promise((done) => setTimeout(() => done({ ok: true, status: 200, data: {
+          business: { ...demo.scan.business, website: url }, hours: demo.scan.hours, faqs: demo.scan.faqs, source: { ai_model: "demo" } } }), demo.scanMs))
+        : await api<Scan>("POST", "/api/onboarding/scan", { url });
       scanning.hidden = true;
       busy(false);
       if (!r.ok) {
@@ -451,11 +465,13 @@ const filled = !!(b.name || b.last_name);
       const found = r.data.business ?? {};
       scannedUrl = found.website ?? url;
       const map: [string, string | null | undefined][] = [
-        ["name", found.name], ["trade", found.trade], ["city", found.city], ["description", found.description], ["phone1", /^\+33[67]/.test(found.artisan_phone ?? "") ? frPhone(found.artisan_phone) : null],
+        ["name", found.name], ["first_name", found.first_name], ["last_name", found.last_name], ["trade", found.trade], ["city", found.city], ["description", found.description], ["phone1", /^\+33[67]/.test(found.artisan_phone ?? "") ? frPhone(found.artisan_phone) : null],
       ];
       for (const [id, v] of map) {
         if (v && v.trim()) { input(id).value = v.trim(); fieldHelp(id, "Trouvé sur votre site. Corrigez si besoin."); }
       }
+      // Demo: the artisan's mobile comes from DEMO_MOBILE (server side), not from the site
+      if (demo?.mobile) input("phone1").value = frPhone(demo.mobile);
       if (r.data.hours?.length) hours = r.data.hours.map((h) => ({ ...h }));
       else if (!hours.length) hours = defaultHours();
       noFixedHours = false;
@@ -624,13 +640,14 @@ const filled = !!(b.name || b.last_name);
     // ---------- Step 1 · Interview: « Le répondeur aimerait savoir : … » ----------
     // Asked as soon as the form is shown (after the scan or « Je n’ai pas de site »), answered after « Continuer ».
     // Each answer becomes a FAQ (POST /api/faqs). The API falls back to a fixed list when the AI is unavailable.
-    type Question = { question: string; kind: "info" | "price" };
+    type Question = { question: string; kind: "info" | "price"; answer?: string };
     let questionsReq: Promise<Question[]> | null = null;
     let interviewDone = false;
     let questions: Question[] = [];
     let qIndex = 0;
     function prepareQuestions() {
       if (interviewDone) return;
+      if (demo) { questionsReq = Promise.resolve(demo.interview.map((q) => ({ ...q }))); return; }
       questionsReq = api<{ questions: Question[] }>("POST", "/api/onboarding/questions", {
         business: { name: input("name").value, trade: input("trade").value, city: input("city").value, description: input("description").value },
         faqs: faqs.filter((f) => f.question.trim()).map((f) => ({ question: f.question, answer: f.answer })),
@@ -660,7 +677,7 @@ const filled = !!(b.name || b.last_name);
       $("[data-interview-question]").textContent = q.question;
       $("[data-interview-icon]").replaceChildren(...icon(q.kind === "price" ? "euro-sm" : "help-sm").childNodes);
       const a = input("interview-answer");
-      a.value = "";
+      a.value = q.answer ?? ""; // demo: Marc's answer already typed
       const help = $("#interview-answer-help");
       help.dataset.default = q.kind === "price" ? "Un prix ou une fourchette. Exemple : 40 € TTC." : "En une phrase, comme vous le diriez au téléphone.";
       fieldHelp("interview-answer", null);
@@ -668,7 +685,8 @@ const filled = !!(b.name || b.last_name);
       bar("Suivant", null, "Passer");
       onPrimary = answerQuestion;
       onSecondary = nextQuestion;
-      a.focus();
+      // Demo on a phone: no keyboard over the pre-filled answer
+      if (!demo) a.focus();
     }
     async function answerQuestion() {
       const q = questions[qIndex];
@@ -744,7 +762,7 @@ const filled = !!(b.name || b.last_name);
       ownVoice = r.data.voices.find((v) => v.category === "cloned" && v.id === biz.voice_id) ?? null;
       voices = r.data.voices.filter((v) => v.category !== "cloned");
       if (ownVoice && chosenVoice === ownVoice.id) useOwn = true;
-      if (!useOwn && (!chosenVoice || !voices.some((v) => v.id === chosenVoice))) chosenVoice = voices[0]?.id ?? null;
+      if (!useOwn && (!chosenVoice || !voices.some((v) => v.id === chosenVoice))) chosenVoice = demo ? pickDemoVoice(voices) : voices[0]?.id ?? null;
       status.hidden = true;
       $("[data-voices-wrap]").hidden = false;
       voicesBox.replaceChildren(...voices.map((v) => {
@@ -1007,7 +1025,8 @@ const filled = !!(b.name || b.last_name);
       for (const n of mine.ok ? mine.data.numbers : []) add(n.e164, "Votre numéro actuel");
       if (search.ok) {
         for (const n of search.data.owned ?? []) add(n.e164, "Disponible tout de suite");
-        for (const n of search.data.details ?? []) add(n.e164, [n.type === "mobile" ? "Portable" : "Fixe", n.locality].filter(Boolean).join(" · "));
+        // Demo: only numbers the account already owns, so nothing is ever bought
+        if (!demo) for (const n of search.data.details ?? []) add(n.e164, [n.type === "mobile" ? "Portable" : "Fixe", n.locality].filter(Boolean).join(" · "));
       }
       status.hidden = true;
       if (!list.length) {
