@@ -8,6 +8,7 @@ export type Business = {
   voice_id: string | null; voice_name: string | null; first_name: string; last_name: string; voice_gender: "female" | "male" | null; elevenlabs_agent_id: string | null;
   onboarding_step: "business" | "voice" | "number" | "done"; advanced_mode: number; created_at: number;
   forwarding_mode: "renvoi" | "numero" | null;
+  forwarding_done_at: number | null; social_links: string | null; google_profile: "connected" | "none" | null;
 };
 
 export type User = { id: string; email: string };

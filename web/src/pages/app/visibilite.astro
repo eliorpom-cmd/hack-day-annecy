@@ -1,10 +1,11 @@
 ---
-// « Visibilité »: what brings clients to the artisan's number. Site web works; the rest is announced.
+// « Site web » (hub « Visibilité »): the artisan's one-page site, a live preview, its headline to rewrite,
+// then the other channels (Fiche Google, Réseaux sociaux, Publicités).
 // Layout: DESIGN.md (blocs, lignes, pastilles), texts: COPY.md.
 import AppShell from "../../layouts/AppShell.astro";
 import HubIcon from "../../components/hub/HubIcon.astro";
 import SiteCard from "../../components/hub/SiteCard.astro";
-import SoonRow from "../../components/hub/SoonRow.astro";
+import HubLink from "../../components/hub/HubLink.astro";
 import { appUrl } from "../../lib/env";
 import type { SiteRow } from "../../lib/site-run";
 
@@ -13,20 +14,32 @@ if (!business) return Astro.redirect("/onboarding");
 const slug = business.site_slug;
 const url = slug ? `${appUrl()}/site/${slug}` : null;
 ---
-<AppShell title="Visibilité" active="visibilite">
-  <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-[14px] px-4 pt-4 pb-6 lg:pt-10">
-    <a href="/app" class="flex items-center gap-1 font-bold text-ink lg:hidden" style="min-height:48px"><HubIcon name="chevron-left" />Appels</a>
-    <div>
-      <h1 class="text-title font-bold">Visibilité</h1>
-      <p class="mt-2 text-muted">Ce qui fait venir les clients. Leurs appels arrivent sur votre répondeur.</p>
+<AppShell title="Site web" active="visibilite">
+  <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-[14px] px-4 pt-4 pb-6 lg:grid lg:min-h-0 lg:max-w-[1040px] lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)] lg:items-start lg:gap-x-10 lg:px-10 lg:pt-10">
+    <div class="flex flex-col gap-[14px]">
+      <a href="/app" class="flex items-center gap-1 font-bold text-ink lg:hidden" style="min-height:48px"><HubIcon name="chevron-left" />Appels</a>
+      <div>
+        <h1 class="text-title font-bold">Site web</h1>
+        <p class="mt-2 text-muted">Une page avec vos services, vos prix et votre numéro. Les clients vous appellent.</p>
+      </div>
+
+      <SiteCard slug={slug} published={!!business.site_published} url={url} headline={business.site_headline} />
+
+      <h2 class="mt-2 px-[14px] text-small font-bold text-muted">Faire venir des clients</h2>
+      <ul class="panel -mt-2">
+        <HubLink href="/app/google" icon="store" label="Fiche Google" line="Vos avis, vos horaires et votre numéro sur Google Maps." />
+        <HubLink href="/app/reseaux" icon="share" label="Réseaux sociaux" line="Une publication par semaine sur vos pages." />
+        <HubLink href="/app/publicites" icon="megaphone" label="Publicités" line="Des annonces dans votre ville, écrites à partir de votre site." />
+      </ul>
     </div>
 
-    <SiteCard slug={slug} published={!!business.site_published} url={url} headline={business.site_headline} />
-
-    <ul class="panel">
-      <SoonRow icon="store" label="Fiche Google" line="Vos horaires et votre numéro à jour sur Google Maps." />
-      <SoonRow icon="share" label="Réseaux sociaux" line="Vos chantiers publiés sur Facebook et Instagram." />
-      <SoonRow icon="megaphone" label="Publicités" line="Des annonces Google dans votre ville, avec votre numéro." />
-    </ul>
+    {url && business.site_published ? (
+      <section class="flex flex-col gap-2" aria-label="Aperçu du site">
+        <h2 class="px-[14px] text-small font-bold text-muted">Aperçu</h2>
+        <div class="site-frame panel overflow-hidden">
+          <iframe src={url} title="Aperçu de votre site" loading="lazy" class="block h-[640px] w-full border-0" data-site-preview></iframe>
+        </div>
+      </section>
+    ) : null}
   </main>
 </AppShell>

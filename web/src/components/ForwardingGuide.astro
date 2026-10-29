@@ -1,0 +1,210 @@
+---
+// « Activez le renvoi d'appel »: full screen over the app until the artisan confirms forwarding works
+// (businesses.forwarding_done_at). No close button, except when reopened from Réglages (`closable`).
+// One screen at a time: iPhone or Android, the 3 codes, the test call. Texts: lib/forwarding-guide.ts, COPY.md.
+import Icon from "./Icon.astro";
+import { frPhone, guideSteps, STOP_LINE, type Platform } from "../lib/forwarding-guide";
+
+interface Props { answering: string; mobile: string | null; seconds: number; closable?: boolean }
+const { answering, mobile, seconds, closable = false } = Astro.props;
+const platforms: Platform[] = ["iphone", "android"];
+const total = 5; // phone choice + 3 codes + test
+---
+<div id="fwd-guide" class="fixed inset-0 z-50 overflow-y-auto bg-page" role="dialog" aria-modal="true" aria-labelledby="fwd-title-0" data-closable={closable ? "true" : undefined}>
+  <div class="mx-auto flex min-h-dvh max-w-[480px] flex-col">
+    <div class="flex flex-1 flex-col gap-[14px] px-4 pt-6 pb-4">
+      <div class="flex flex-col gap-2">
+        <div class="flex gap-1" aria-hidden="true">
+          {Array.from({ length: total }, () => <span data-fwd-seg class="h-[6px] flex-1 rounded-[3px] bg-line" />)}
+        </div>
+        <p class="text-small"><span class="font-bold" data-fwd-n>1</span> sur {total} · Renvoi d’appel</p>
+      </div>
+
+      <!-- 0 · Phone choice -->
+      <section data-fwd-screen="choose" class="flex flex-col gap-[14px]">
+        <div>
+          <h1 id="fwd-title-0" class="text-title font-bold">Activez le renvoi d’appel</h1>
+          <p class="mt-2 text-muted">Vous gardez votre numéro. Les appels que vous ne prenez pas passent au répondeur.</p>
+        </div>
+        <div class="panel">
+          <div class="row"><span class="icon-tile"><Icon name="smartphone" size={18} /></span><div><p class="text-small text-muted">Votre portable</p><p class="font-bold">{frPhone(mobile) || "Votre numéro habituel"}</p></div></div>
+          <div class="row"><span class="icon-tile"><Icon name="forward" size={18} /></span><div><p class="text-small text-muted">Renvoyé vers le répondeur</p><p class="font-bold">{frPhone(answering)}</p></div></div>
+        </div>
+        <h2 class="mt-2 text-small font-bold text-muted">Quel téléphone avez-vous ?</h2>
+        <div class="panel" role="radiogroup" aria-label="Votre téléphone">
+          {platforms.map((p) => (
+            <label class="row cursor-pointer">
+              <input type="radio" name="fwd-platform" value={p} class="fwd-radio" />
+              <span class="flex flex-1 flex-col"><span class="font-bold">{p === "iphone" ? "iPhone" : "Android"}</span><span class="text-small text-muted">{p === "iphone" ? "Apple" : "Samsung, Xiaomi, Google Pixel, Oppo…"}</span></span>
+            </label>
+          ))}
+        </div>
+        <p class="mx-4 text-small text-muted">Cela prend 2 minutes. Gardez cette page ouverte.</p>
+      </section>
+
+      {platforms.map((p) => guideSteps({ platform: p, answering, mobile, seconds }).map((s, i) => (
+        <section data-fwd-screen={`${p}-${i}`} data-platform={p} data-kind={s.kind} data-code={s.kind === "code" ? s.code : undefined} data-href={s.kind === "code" ? s.href : undefined} class="flex flex-col gap-[14px]" hidden>
+          <div>
+            <h1 class="text-title font-bold">{s.title}</h1>
+            {s.kind === "code" && <p class="mt-2 text-muted">{s.why}</p>}
+          </div>
+          {s.kind === "code" && (
+            <div class="panel flex flex-col items-center gap-1 px-[14px] py-4 text-center">
+              <span class="text-small text-muted">Code {i + 1} sur 3</span>
+              <span class="text-title font-bold break-all">{s.code}</span>
+            </div>
+          )}
+          <ol class="panel">
+            {s.lines.map((line, n) => (
+              <li class="row items-start">
+                <span class="icon-tile font-bold">{n + 1}</span>
+                <p class="pt-[3px]">{line}</p>
+              </li>
+            ))}
+          </ol>
+          {s.kind === "code" && <p class="mx-4 text-small text-muted" data-fwd-hint hidden>Pas de message ? Recommencez ce code. Le code doit être tapé en entier, avec les étoiles et le dièse.</p>}
+          {s.kind === "test" && <p class="mx-4 text-small text-muted">{STOP_LINE}</p>}
+        </section>
+      )))}
+
+      <!-- Test failed: what to check, then start again -->
+      <section data-fwd-screen="help" class="flex flex-col gap-[14px]" hidden>
+        <div>
+          <h1 class="text-title font-bold">Le répondeur n’a pas répondu</h1>
+          <p class="mt-2 text-muted">Le renvoi n’est pas encore actif. Vérifiez ces points.</p>
+        </div>
+        <ol class="panel">
+          <li class="row items-start"><span class="icon-tile font-bold">1</span><p class="pt-[3px]">Chaque code a affiché « Renvoi activé » ou « Enregistrement réussi ».</p></li>
+          <li class="row items-start"><span class="icon-tile font-bold">2</span><p class="pt-[3px]">Vous avez appelé depuis un autre téléphone que votre portable.</p></li>
+          <li class="row items-start"><span class="icon-tile font-bold">3</span><p class="pt-[3px]">Vous avez laissé sonner sans décrocher ni refuser l’appel.</p></li>
+        </ol>
+        <p class="mx-4 text-small text-muted">Toujours rien ? Appelez votre opérateur et demandez le « renvoi d’appel sur non-réponse ».</p>
+      </section>
+    </div>
+
+    <div class="sticky bottom-0 flex flex-col gap-2 bg-page px-4 pt-3 pb-6">
+      <p data-fwd-error class="mx-4 text-small font-bold" role="alert" hidden></p>
+      <a data-fwd-primary-link class="btn btn-primary w-full" hidden><Icon name="phone" /><span>Composer le code</span></a>
+      <button type="button" data-fwd-primary class="btn btn-primary w-full"><span data-fwd-primary-label>Continuer</span></button>
+      <button type="button" data-fwd-secondary class="btn btn-secondary w-full" hidden></button>
+      {closable && <button type="button" data-fwd-close class="min-h-12 text-small font-bold text-muted underline underline-offset-2">Fermer</button>}
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  .fwd-radio { appearance: none; width: 22px; height: 22px; flex: none; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--color-muted); }
+  .fwd-radio:checked { box-shadow: inset 0 0 0 2px var(--color-ink), inset 0 0 0 6px var(--color-surface), inset 0 0 0 11px var(--color-ink); }
+  .fwd-radio:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+  html:has(#fwd-guide:not([hidden])) { overflow: hidden; }
+</style>
+
+<script>
+  // Screens: choose → <platform>-0..2 (codes) → <platform>-3 (test) → done. Back = secondary button.
+  const root = document.getElementById("fwd-guide");
+  if (root) {
+    const $ = <T extends HTMLElement = HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
+    const primary = $<HTMLButtonElement>("[data-fwd-primary]");
+    const primaryLabel = $("[data-fwd-primary-label]");
+    const dial = $<HTMLAnchorElement>("[data-fwd-primary-link]");
+    const secondary = $<HTMLButtonElement>("[data-fwd-secondary]");
+    const errorLine = $("[data-fwd-error]");
+    let platform: "iphone" | "android" | null = null;
+    let index = -1; // -1 = phone choice, 0-2 = codes, 3 = test, 4 = help
+    let acted = false; // the code of this screen was dialled or copied
+
+    const screens = [...root.querySelectorAll<HTMLElement>("[data-fwd-screen]")];
+    const current = () => (index < 0 ? "choose" : index === 4 ? "help" : `${platform}-${index}`);
+    const showError = (msg: string | null) => { errorLine.hidden = !msg; errorLine.textContent = msg ?? ""; };
+
+    function render() {
+      const id = current();
+      screens.forEach((s) => (s.hidden = s.dataset.fwdScreen !== id));
+      const screen = screens.find((s) => s.dataset.fwdScreen === id)!;
+      const step = index < 0 ? 1 : Math.min(index, 3) + 2;
+      root!.querySelectorAll<HTMLElement>("[data-fwd-seg]").forEach((seg, i) => seg.classList.toggle("bg-ink", i < step));
+      root!.querySelectorAll<HTMLElement>("[data-fwd-seg]").forEach((seg, i) => seg.classList.toggle("bg-line", i >= step));
+      $("[data-fwd-n]").textContent = String(step);
+      showError(null);
+      dial.hidden = true; primary.hidden = false; secondary.hidden = index < 0;
+      secondary.textContent = "Retour";
+      if (screen.dataset.kind === "code") {
+        const hint = screen.querySelector<HTMLElement>("[data-fwd-hint]");
+        if (hint) hint.hidden = !acted;
+        if (!acted) {
+          // First the code: Android dials it (tel: link), iPhone copies it
+          if (platform === "android") { dial.hidden = false; dial.href = screen.dataset.href!; primary.hidden = true; }
+          else primaryLabel.textContent = "Copier le code";
+        } else {
+          primaryLabel.textContent = "C’est fait";
+          secondary.textContent = platform === "android" ? "Composer à nouveau" : "Copier à nouveau";
+        }
+      } else if (screen.dataset.kind === "test") {
+        primaryLabel.textContent = "Le répondeur a répondu";
+        secondary.textContent = "Ça ne marche pas";
+      } else if (id === "help") {
+        primaryLabel.textContent = "Recommencer";
+        secondary.textContent = "Retour à l’essai";
+      } else {
+        primaryLabel.textContent = "Continuer";
+      }
+      root!.scrollTop = 0;
+    }
+
+    async function copyCode() {
+      const code = screens.find((s) => s.dataset.fwdScreen === current())!.dataset.code ?? "";
+      try { await navigator.clipboard.writeText(code); }
+      catch { showError(`Copie impossible. Tapez le code à la main : ${code}`); }
+    }
+
+    function go(next: number) { index = next; acted = false; render(); }
+
+    async function finish() {
+      primary.disabled = true; primaryLabel.textContent = "Enregistrement…";
+      try {
+        const r = await fetch("/api/business/forwarding", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ done: true }) });
+        if (!r.ok) throw new Error();
+        root!.hidden = true;
+        if (location.search.includes("renvoi=")) history.replaceState(null, "", location.pathname);
+      } catch {
+        showError("Enregistrement impossible. Vérifiez votre réseau et réessayez.");
+        primaryLabel.textContent = "Le répondeur a répondu";
+      } finally { primary.disabled = false; }
+    }
+
+    dial.addEventListener("click", () => { acted = true; setTimeout(render, 300); });
+    primary.addEventListener("click", async () => {
+      if (index < 0) {
+        const picked = root!.querySelector<HTMLInputElement>("input[name=fwd-platform]:checked")?.value;
+        if (picked !== "iphone" && picked !== "android") return showError("Choisissez iPhone ou Android.");
+        platform = picked;
+        try { localStorage.setItem("fwd-platform", picked); } catch {}
+        return go(0);
+      }
+      if (index === 4) return go(0);
+      if (index === 3) return finish();
+      if (!acted) { await copyCode(); acted = true; return render(); }
+      go(index + 1);
+    });
+    secondary.addEventListener("click", async () => {
+      if (index === 4) return go(3);
+      if (index === 3) return go(4);
+      if (acted) { if (platform === "android") location.href = dial.href; else await copyCode(); return; }
+      go(index - 1);
+    });
+    root.querySelector("[data-fwd-close]")?.addEventListener("click", () => {
+      root.hidden = true;
+      history.replaceState(null, "", location.pathname);
+    });
+
+    // A phone chosen before is preselected
+    try {
+      const saved = localStorage.getItem("fwd-platform");
+      const radio = root.querySelector<HTMLInputElement>(`input[name=fwd-platform][value="${saved}"]`);
+      if (radio) radio.checked = true;
+      else if (/iPhone|iPad/.test(navigator.userAgent)) root.querySelector<HTMLInputElement>('input[value="iphone"]')!.checked = true;
+      else if (/Android/.test(navigator.userAgent)) root.querySelector<HTMLInputElement>('input[value="android"]')!.checked = true;
+    } catch {}
+    render();
+  }
+</script>

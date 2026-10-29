@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   anonymiseSubject, buildPostPrompt, buildTopics, clampText, composerUrl, dropInventedClaims, finalizePost,
-  initials, isRateLimited, normaliseHashtag, parsePostRequest, scrubContact, seasonOf, serviceLabel,
+  initials, isRateLimited, normaliseHashtag, normalizePageUrl, pageLabel, parsePostRequest, parseSocialLinks, scrubContact, seasonOf, serviceLabel, tradeTopics,
 } from "../src/lib/social.ts";
 
 const biz = { name: "Plomberie Démo", trade: "plombier", city: "Annecy", description: "Plombier à Annecy.", first_name: "Marc" };
@@ -28,7 +28,7 @@ test("topics: up to 3 anonymised jobs, season, services, before/after", () => {
   ];
   const faqs = [{ question: "Combien coûte un débouchage d'évier ?", kind: "price" }, { question: "Intervenez-vous le samedi ?", kind: "info" }, { question: "Proposez-vous l'entretien de chaudière ?", kind: "info" }];
   const t = buildTopics({ leads, faqs, date: new Date("2026-10-29"), trade: "plombier" });
-  assert.deepEqual(t.map((x) => x.label), ["Fuite d'eau", "Chauffe-eau à remplacer", "Robinet de cuisine qui goutte", "Conseil d’automne", "Débouchage d'évier", "Entretien de chaudière", "Avant / après"]);
+  assert.deepEqual(t.map((x) => x.label), ["Fuite d'eau", "Chauffe-eau à remplacer", "Robinet de cuisine qui goutte", "Conseil d’automne", "Débouchage d'évier", "Entretien de chaudière", "Réflexes en cas de fuite", "Me présenter", "Avant / après"]);
   assert.ok(t.every((x) => !/Martin|Claire|Royale/.test(x.prompt)));
 });
 
@@ -102,4 +102,22 @@ test("post age", async () => {
   assert.equal(postAge(1000, 1000 + 720), "Il y a 12 min");
   assert.equal(postAge(1000, 1000 + 3 * 3600), "Il y a 3 h");
   assert.equal(postAge(Date.UTC(2026, 9, 27) / 1000, Date.UTC(2026, 9, 29) / 1000), "Le 27/10");
+});
+
+test("trade topics: a tip of the trade, then introducing oneself", () => {
+  assert.deepEqual(tradeTopics("électricien").map((t) => t.label), ["Sécurité électrique", "Me présenter"]);
+  assert.deepEqual(tradeTopics("ramoneur").map((t) => t.label), ["Une astuce de métier", "Me présenter"]);
+  assert.match(tradeTopics("ramoneur")[1]!.prompt, /ramoneur/);
+});
+
+test("page links: only the network's own addresses", () => {
+  assert.equal(normalizePageUrl("facebook", "facebook.com/plomberie.martin/"), "https://www.facebook.com/plomberie.martin");
+  assert.equal(normalizePageUrl("facebook", "https://m.facebook.com/profile.php?id=123"), "https://www.facebook.com/profile.php?id=123");
+  assert.equal(normalizePageUrl("instagram", "@plomberie.martin"), "https://www.instagram.com/plomberie.martin");
+  assert.equal(normalizePageUrl("instagram", "facebook.com/plomberie"), null);
+  assert.equal(normalizePageUrl("linkedin", "https://www.linkedin.com/"), null);
+  assert.equal(normalizePageUrl("facebook", "pas une adresse"), null);
+  assert.deepEqual(parseSocialLinks('{"facebook":"facebook.com/pm","instagram":"evil.com/x"}'), { facebook: "https://www.facebook.com/pm" });
+  assert.deepEqual(parseSocialLinks("oops"), {});
+  assert.equal(pageLabel("https://www.facebook.com/pm"), "facebook.com/pm");
 });

@@ -9,7 +9,7 @@ import {
 import { siteData } from "./site-run";
 import { appUrl } from "./env";
 
-export type AdsBusiness = AdBusiness & { id: string; artisan_phone: string | null; site_slug?: string | null; site_published?: number };
+export type AdsBusiness = AdBusiness & { id: string; artisan_phone: string | null; site_slug?: string | null; site_published?: number; site_headline?: string | null };
 
 // Latest successful draft of each channel
 export async function latestDrafts(businessId: string): Promise<{ google: GoogleDraft | null; meta: MetaDraft | null }> {
@@ -45,10 +45,13 @@ const FIELDS = {
   meta: { primary_text: LIMITS.metaPrimary, headline: LIMITS.metaHeadline },
 } as const;
 
-// Writes one draft: a first answer, a second one if some texts were too long, then fallbacks
-export async function generateDraft(b: AdsBusiness, channel: AdChannel): Promise<GoogleDraft | MetaDraft> {
-  const slot = await reserveSlot(b.id, channel);
-  const { faqs } = await siteData(b.id);
+// Writes one draft from what the site shows (headline, description, documentation): a first answer, a second one
+// if some texts were too long. If the model fails, the draft is built from the fallbacks: the button always works.
+export async function generateDraft(business: AdsBusiness, channel: AdChannel): Promise<GoogleDraft | MetaDraft> {
+  const slot = await reserveSlot(business.id, channel);
+  const { faqs } = await siteData(business.id);
+  const headline = business.site_published ? business.site_headline?.trim() : "";
+  const b = headline && !business.description.includes(headline) ? { ...business, description: `${headline} ${business.description}`.trim() } : business;
   const f = faqs as AdFaq[];
   const system = channel === "google" ? GOOGLE_SYSTEM : META_SYSTEM;
   const build = (raw: Record<string, unknown> | null) => (channel === "google" ? buildGoogleDraft(raw, b) : buildMetaDraft(raw, b, f));
@@ -59,10 +62,7 @@ export async function generateDraft(b: AdsBusiness, channel: AdChannel): Promise
     const second = await askJson(system, adPrompt(b, f, tooLongTexts(raw, FIELDS[channel])), { maxTokens: 900, temperature: 0.4 });
     raw = mergeRaw(raw, second.data);
   }
-  if (!raw) {
-    console.log(JSON.stringify({ event: "ads.ai_error", channel, error: String(first.error).slice(0, 200) }));
-    throw new HttpError(502, "ai_failed", "L’annonce n’a pas pu être écrite. Réessayez dans un instant.");
-  }
+  if (!raw) console.log(JSON.stringify({ event: "ads.ai_error", channel, error: String(first.error).slice(0, 200) }));
   const { draft } = build(raw);
   await db().prepare("UPDATE ad_drafts SET data = ? WHERE id = ?").bind(JSON.stringify(draft), slot).run();
   return draft;

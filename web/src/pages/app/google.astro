@@ -1,74 +1,191 @@
 ---
-// « Fiche Google »: texts ready to paste on the artisan's Google profile (description, review
-// replies, seasonal posts). Direct publishing is announced only. Layout: DESIGN.md, texts: COPY.md.
+// « Fiche Google »: first « J'ai une fiche » / « Je n'ai pas de fiche » (businesses.google_profile).
+// Connected: the profile kept in line with the répondeur, its figures and its reviews to answer, plus the text
+// generators (description, post ideas). Until the Google API is plugged in, profile, figures and reviews are test
+// data (lib/google-profile.ts). No profile: a step-by-step creation guide. Layout: DESIGN.md, texts: COPY.md.
 import AppShell from "../../layouts/AppShell.astro";
-import HubIcon from "../../components/hub/HubIcon.astro";
-import SoonRow from "../../components/hub/SoonRow.astro";
+import Icon from "../../components/Icon.astro";
 import GIcon from "../../components/google/GIcon.astro";
 import ToolCard from "../../components/google/ToolCard.astro";
 import CopyButton from "../../components/google/CopyButton.astro";
-import { DESCRIPTION_MAX, REVIEW_MAX } from "../../lib/google.ts";
+import { DESCRIPTION_MAX } from "../../lib/google.ts";
+import { averageStars, creationSteps, frRating, reviewAge, testReviews, testStats } from "../../lib/google-profile";
+import { hoursSummary, type SettingsHour } from "../../lib/settings";
+import { frPhone } from "../../lib/forwarding-guide";
+import { db } from "../../lib/db";
+import { appUrl } from "../../lib/env";
 
 const b = Astro.locals.business;
 if (!b) return Astro.redirect("/onboarding");
-const signer = b.first_name?.trim() || "";
+const state = b.google_profile ?? null;
+const site = b as unknown as { site_slug: string | null; site_published: number | null };
+const siteUrl = site.site_published && site.site_slug ? `${appUrl()}/site/${site.site_slug}` : null;
+
+const [hours, number, replied] = await Promise.all([
+  db().prepare("SELECT weekday, opens, closes FROM business_hours WHERE business_id = ? ORDER BY weekday, opens").bind(b.id).all<SettingsHour>(),
+  db().prepare("SELECT e164 FROM phone_numbers WHERE business_id = ? AND status = 'live' LIMIT 1").bind(b.id).first<{ e164: string }>(),
+  db().prepare("SELECT review_id, reply FROM google_review_replies WHERE business_id = ?").bind(b.id).all<{ review_id: string; reply: string }>(),
+]);
+// The number clients see on Google: his own when calls are forwarded, else the répondeur number
+const shownPhone = frPhone(b.forwarding_mode === "renvoi" ? b.artisan_phone : number?.e164 ?? b.artisan_phone);
+const name = b.name.trim() || [b.first_name, b.last_name].map((s) => (s ?? "").trim()).filter(Boolean).join(" ") || "Votre entreprise";
+const trade = b.trade.trim() ? b.trade.trim().charAt(0).toUpperCase() + b.trade.trim().slice(1) : "Artisan";
+
+const reviews = testReviews(b).map((r) => ({ ...r, published: replied.results.find((x) => x.review_id === r.id)?.reply ?? null }));
+const rating = averageStars(reviews);
+const waiting = reviews.filter((r) => !r.published).length;
+const stats = testStats(b.id);
+const steps = creationSteps({ name: b.name, trade: b.trade, city: b.city, first_name: b.first_name, last_name: b.last_name, phone: frPhone(b.artisan_phone) || null, siteUrl });
 const area = "w-full resize-none rounded-block bg-page px-3 py-2 text-body outline-none shadow-[inset_0_0_0_1px_var(--color-line)] focus:shadow-[inset_0_0_0_2px_var(--color-ink)]";
+const nb = " ";
 ---
 <AppShell title="Fiche Google" active="google">
   <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-[14px] px-4 pt-4 pb-6 lg:max-w-[1040px] lg:px-8 lg:pt-10">
-    <a href="/app" class="flex items-center gap-1 self-start font-bold text-ink lg:hidden" style="min-height:48px"><HubIcon name="chevron-left" />Appels</a>
+    <a href="/app" class="flex items-center gap-1 self-start font-bold text-ink lg:hidden" style="min-height:48px"><Icon name="chevron-left" />Appels</a>
     <div>
       <h1 class="text-title font-bold">Fiche Google</h1>
-      <p class="mt-2 text-muted">Des textes prêts à coller sur votre fiche Google.</p>
+      <p class="mt-2 text-muted">{state === "none" ? "Créez votre fiche pas à pas. Vos réponses sont prêtes à copier." : "Vos clients vous trouvent sur Google Maps, puis vous appellent."}</p>
     </div>
 
-    <div class="grid gap-[14px] lg:grid-cols-2 lg:items-start">
-      <ToolCard id="g-desc" icon="pen" title="Votre description" line={`Le texte de présentation de votre fiche. ${DESCRIPTION_MAX} caractères au plus.`}>
-        <div data-result hidden class="flex flex-col gap-2">
-          <label for="g-desc-text" class="sr-only">Description</label>
-          <textarea id="g-desc-text" rows="9" maxlength={DESCRIPTION_MAX} class={area} data-text></textarea>
-          <p class="self-end text-small text-muted" aria-live="polite"><span data-count class="font-bold">0</span> sur {DESCRIPTION_MAX} caractères</p>
-          <div class="flex gap-2">
-            <CopyButton target="#g-desc-text" />
-            <button type="button" class="shortcut" data-run data-again><GIcon name="rotate" class="text-action-ink" /><span data-label>Régénérer</span></button>
-          </div>
+    {state === null && (
+      <section class="flex flex-col gap-[14px] lg:max-w-[480px]">
+        <h2 class="mt-2 text-small font-bold text-muted">Avez-vous une fiche Google{nb}?</h2>
+        <div class="panel">
+          <button type="button" class="row w-full text-left" data-profile="connected">
+            <span class="icon-tile"><Icon name="store" size={18} /></span>
+            <span class="flex flex-1 flex-col"><span class="font-bold">J’ai une fiche Google</span><span class="text-small text-muted">Connectez-la : avis, horaires et numéro au même endroit.</span></span>
+            <Icon name="chevron-right" class="flex-none text-muted" />
+          </button>
+          <button type="button" class="row w-full text-left" data-profile="none">
+            <span class="icon-tile"><Icon name="plus" size={18} /></span>
+            <span class="flex flex-1 flex-col"><span class="font-bold">Je n’ai pas de fiche</span><span class="text-small text-muted">On vous guide pour la créer, écran par écran.</span></span>
+            <Icon name="chevron-right" class="flex-none text-muted" />
+          </button>
         </div>
-        <button type="button" class="btn btn-secondary w-full" data-run data-first><GIcon name="pen" /><span data-label>Écrire ma description</span></button>
-      </ToolCard>
+        <p class="hidden px-4 text-small font-bold" data-profile-error role="alert"></p>
+      </section>
+    )}
 
-      <ToolCard id="g-review" icon="reply" title="Répondre à un avis" line={`Collez l’avis d’un client. La réponse est signée ${signer || "de votre prénom"}.`}>
-        <fieldset>
-          <legend class="pb-1 text-small font-bold text-muted">Note du client</legend>
-          <div class="flex gap-1" data-stars>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <label class="star grid size-12 cursor-pointer place-items-center rounded-call text-line">
-                <input type="radio" name="stars" value={n} class="sr-only" />
-                <GIcon name="star" size={28} />
-                <span class="sr-only">{n} étoile{n > 1 ? "s" : ""}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <label class="field field-area">
-          <textarea class="field-input" placeholder=" " rows="4" maxlength={REVIEW_MAX} data-review></textarea>
-          <span class="field-label">Avis du client</span>
-        </label>
-        <button type="button" class="btn btn-secondary w-full" data-run><GIcon name="reply" /><span data-label>Écrire la réponse</span></button>
-        <div data-result hidden class="flex flex-col gap-2">
-          <p id="g-reply-text" class="whitespace-pre-line rounded-block bg-page px-3 py-2" data-text></p>
-          <div class="flex gap-2"><CopyButton target="#g-reply-text" label="Copier la réponse" /></div>
+    {state === "none" && (
+      <section class="flex flex-col gap-[14px] lg:max-w-[480px]" id="g-guide">
+        <div class="flex flex-col gap-2">
+          <div class="flex gap-1" aria-hidden="true">{steps.map(() => <span data-guide-seg class="h-[6px] flex-1 rounded-[3px] bg-line" />)}</div>
+          <p class="text-small"><span class="font-bold" data-guide-n>1</span> sur {steps.length} · Créer ma fiche</p>
         </div>
-      </ToolCard>
+        {steps.map((s, i) => (
+          <div class="flex flex-col gap-[14px]" data-guide-step={i} hidden={i > 0}>
+            <h2 class="text-[22px] font-bold leading-tight">{s.title}</h2>
+            <ol class="panel">
+              {s.lines.map((line, n) => (
+                <li class="row items-start"><span class="icon-tile font-bold">{n + 1}</span><p class="pt-[3px]">{line}</p></li>
+              ))}
+            </ol>
+            {s.copy && (
+              <div class="panel row">
+                <div class="min-w-0 flex-1"><p class="text-small text-muted">{s.copy.label}</p><p class="font-bold break-all" id={`g-copy-${i}`}>{s.copy.value}</p></div>
+                <button type="button" class="shortcut max-w-[96px] flex-none" data-copy-target={`#g-copy-${i}`}><GIcon name="copy" class="text-action-ink" /><span data-copy-label>Copier</span></button>
+              </div>
+            )}
+            {s.link && <a href={s.link.href} target="_blank" rel="noopener" class="btn btn-secondary w-full"><Icon name="external" />{s.link.label}</a>}
+          </div>
+        ))}
+        <div class="flex flex-col gap-2 pt-2">
+          <button type="button" class="btn btn-primary w-full" data-guide-next><span data-guide-next-label>Suivant</span></button>
+          <button type="button" class="btn btn-secondary w-full" data-guide-back hidden>Retour</button>
+        </div>
+        <button type="button" class="min-h-12 self-center text-small font-bold text-muted underline underline-offset-2" data-profile="connected">J’ai déjà une fiche</button>
+        <p class="hidden px-4 text-small font-bold" data-profile-error role="alert"></p>
+      </section>
+    )}
 
-      <ToolCard id="g-posts" icon="news" title="Idées de publications Google" line="3 actualités de saison pour votre métier, prêtes à publier." class="lg:col-span-2">
-        <ol data-result hidden class="grid gap-2 lg:grid-cols-3" data-list></ol>
-        <button type="button" class="btn btn-secondary w-full lg:max-w-[360px]" data-run><GIcon name="news" /><span data-label>Proposer 3 idées</span></button>
-      </ToolCard>
+    {state === "connected" && (
+      <div class="grid gap-[14px] lg:grid-cols-2 lg:items-start">
+        <div class="flex flex-col gap-[14px]">
+          <section class="panel" aria-label="Votre fiche">
+            <div class="row items-start">
+              <span class="icon-tile"><Icon name="store" size={18} /></span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-2"><h2 class="font-bold">{name}</h2><span class="chip chip-on">Connectée</span></div>
+                <p class="text-small text-muted">{trade}{b.city.trim() ? ` · ${b.city.trim()}` : ""}</p>
+                <p class="mt-1 flex items-center gap-1 text-small"><b>{frRating(rating)}</b><Icon name="star" size={14} class="star-on" /><span class="text-muted">· {reviews.length} avis</span></p>
+              </div>
+            </div>
+            <div class="row"><span class="icon-tile"><Icon name="phone" size={18} /></span><div class="min-w-0 flex-1"><p class="text-small text-muted">Numéro sur Google</p><p>{shownPhone || "Pas encore indiqué"}</p></div><span class="sync-ok" data-sync-ok><Icon name="check" size={18} /></span></div>
+            <div class="row"><span class="icon-tile"><Icon name="clock" size={18} /></span><div class="min-w-0 flex-1"><p class="text-small text-muted">Horaires sur Google</p><p>{hoursSummary(hours.results)}</p></div><span class="sync-ok" data-sync-ok><Icon name="check" size={18} /></span></div>
+            <div class="row"><span class="icon-tile"><Icon name="globe" size={18} /></span><div class="min-w-0 flex-1"><p class="text-small text-muted">Site sur Google</p><p class="break-all">{siteUrl ? siteUrl.replace(/^https?:\/\//, "") : <>Pas de site. <a href="/app/visibilite" class="font-bold underline">Créer mon site</a></>}</p></div></div>
+            <div class="flex flex-col gap-1 px-[14px] pt-1 pb-3">
+              <button type="button" class="btn btn-secondary w-full" data-sync><Icon name="rotate" /><span data-sync-label>Mettre à jour sur Google</span></button>
+              <p class="text-center text-small text-muted" data-sync-note>Numéro et horaires repris de votre répondeur.</p>
+            </div>
+          </section>
 
-      <ul class="panel lg:col-span-2">
-        <SoonRow icon="store" label="Publier directement sur Google" line="Connexion à votre fiche Google, pour publier sans copier-coller." />
-      </ul>
-    </div>
+          <section aria-labelledby="g-stats">
+            <h2 id="g-stats" class="px-[14px] pb-2 text-small font-bold text-muted">30 derniers jours</h2>
+            <div class="grid grid-cols-3 gap-2">
+              <div class="panel px-3 py-3"><Icon name="eye" size={18} class="text-action-ink" /><p class="mt-1 text-[22px] font-bold leading-tight">{stats.views.toLocaleString("fr-FR")}</p><p class="text-small text-muted">vues</p></div>
+              <div class="panel px-3 py-3"><Icon name="phone" size={18} class="text-action-ink" /><p class="mt-1 text-[22px] font-bold leading-tight">{stats.calls}</p><p class="text-small text-muted">appels</p></div>
+              <div class="panel px-3 py-3"><Icon name="navigation" size={18} class="text-action-ink" /><p class="mt-1 text-[22px] font-bold leading-tight">{stats.directions}</p><p class="text-small text-muted">itinéraires</p></div>
+            </div>
+          </section>
+
+          <ToolCard id="g-desc" icon="pen" title="Votre description" line={`Le texte de présentation de votre fiche. ${DESCRIPTION_MAX} caractères au plus.`}>
+            <div data-result hidden class="flex flex-col gap-2">
+              <label for="g-desc-text" class="sr-only">Description</label>
+              <textarea id="g-desc-text" rows="9" maxlength={DESCRIPTION_MAX} class={area} data-text></textarea>
+              <p class="self-end text-small text-muted" aria-live="polite"><span data-count class="font-bold">0</span> sur {DESCRIPTION_MAX} caractères</p>
+              <div class="flex gap-2">
+                <CopyButton target="#g-desc-text" />
+                <button type="button" class="shortcut" data-run data-again><GIcon name="rotate" class="text-action-ink" /><span data-label>Régénérer</span></button>
+              </div>
+            </div>
+            <button type="button" class="btn btn-secondary w-full" data-run data-first><GIcon name="pen" /><span data-label>Écrire ma description</span></button>
+          </ToolCard>
+        </div>
+
+        <div class="flex flex-col gap-[14px]">
+          <section aria-labelledby="g-reviews" class="flex flex-col gap-2">
+            <div class="flex items-end justify-between px-[14px]">
+              <h2 id="g-reviews" class="text-small font-bold text-muted">Avis</h2>
+              <p class="text-small text-muted" data-waiting-line>{waiting ? <><b class="text-ink" data-waiting>{waiting}</b> sans réponse</> : "Tous ont une réponse"}</p>
+            </div>
+            <ul class="panel">
+              {reviews.map((r) => (
+                <li class="row flex-col items-stretch gap-2" data-review={r.id} data-stars={r.stars} data-text={r.text} data-fallback={r.reply}>
+                  <div class="flex items-center gap-2">
+                    <span class="grid size-[30px] flex-none place-items-center rounded-full bg-neutral-bg text-small font-bold shadow-[inset_0_0_0_1px_var(--color-neutral-line)]">{r.author.charAt(0)}</span>
+                    <div class="min-w-0 flex-1"><p class="font-bold">{r.author}</p><p class="flex items-center gap-1 text-small text-muted"><span class="flex" aria-label={`${r.stars} étoile${r.stars > 1 ? "s" : ""} sur 5`}>{[1, 2, 3, 4, 5].map((n) => <Icon name="star" size={14} class={n <= r.stars ? "star-on" : "star-off"} />)}</span>· {reviewAge(r.daysAgo)}</p></div>
+                  </div>
+                  <p>{r.text}</p>
+                  <div class="rounded-block bg-page px-3 py-2" data-published hidden={!r.published}>
+                    <p class="text-small font-bold">Votre réponse</p>
+                    <p class="whitespace-pre-line" data-published-text>{r.published}</p>
+                  </div>
+                  <div class="flex flex-col gap-2" data-reply-box hidden>
+                    <label class="sr-only" for={`reply-${r.id}`}>Votre réponse</label>
+                    <textarea id={`reply-${r.id}`} rows="4" class={area} data-reply-text></textarea>
+                    <div class="flex gap-2">
+                      <button type="button" class="btn btn-secondary flex-1" data-publish>Publier</button>
+                      <button type="button" class="min-h-12 px-3 text-small font-bold text-muted" data-cancel>Annuler</button>
+                    </div>
+                  </div>
+                  {!r.published && <button type="button" class="shortcut flex-row justify-center gap-2 self-start px-4" data-reply><GIcon name="reply" class="text-action-ink" /><span data-reply-label>Répondre</span></button>}
+                  <p class="hidden text-small font-bold" data-review-error role="alert"></p>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <ToolCard id="g-posts" icon="news" title="Idées de publications Google" line="3 actualités de saison pour votre métier, prêtes à publier.">
+            <ol data-result hidden class="grid gap-2" data-list></ol>
+            <button type="button" class="btn btn-secondary w-full" data-run><GIcon name="news" /><span data-label>Proposer 3 idées</span></button>
+          </ToolCard>
+
+          <p class="px-4 text-small text-muted">Fiche, chiffres et avis d’exemple : la connexion directe à Google arrive bientôt.</p>
+          <button type="button" class="min-h-12 self-start px-4 text-small font-bold text-muted underline underline-offset-2" data-profile="">Déconnecter la fiche</button>
+          <p class="hidden px-4 text-small font-bold" data-profile-error role="alert"></p>
+        </div>
+      </div>
+    )}
   </main>
 
   <template id="g-post-tpl">
@@ -81,39 +198,121 @@ const area = "w-full resize-none rounded-block bg-page px-3 py-2 text-body outli
 </AppShell>
 
 <style>
-  .star:has(input:focus-visible) { outline: 2px solid var(--color-ink); outline-offset: 2px; }
-  .star.on { color: var(--color-ink); }
-  .star.on :global(svg) { fill: var(--color-ink); }
-  .field-area { height: auto; }
-  .field-area .field-input { position: relative; display: block; width: 100%; min-height: 128px; padding-top: 28px; resize: vertical; }
-  .field-area .field-label { top: 18px; transform: none; }
+  .chip-on { color: var(--color-action-ink); background: var(--color-tint); box-shadow: inset 0 0 0 1px var(--color-tint-line); }
+  .sync-ok { color: var(--color-action-ink); }
+  :global(.star-on) { color: var(--color-ink); fill: var(--color-ink); }
+  :global(.star-off) { color: var(--color-line); }
 </style>
 
 <script>
   type Res = { ok: boolean; data: Record<string, unknown> & { hint?: string } };
   const FAILED = "Le texte n’a pas pu être écrit. Réessayez dans un instant.";
+  const OFFLINE = "Pas de connexion. Vérifiez votre réseau et réessayez.";
 
-  async function post(url: string, body: unknown): Promise<Res> {
+  async function send(method: string, url: string, body: unknown): Promise<Res> {
     try {
-      const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const r = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       return { ok: r.ok, data: (await r.json().catch(() => ({}))) as Res["data"] };
     } catch {
-      return { ok: false, data: { hint: "Pas de connexion. Vérifiez votre réseau et réessayez." } };
+      return { ok: false, data: { hint: OFFLINE } };
     }
   }
+  const post = (url: string, body: unknown) => send("POST", url, body);
+
+  // « J'ai une fiche » / « Je n'ai pas de fiche » / « Déconnecter la fiche »
+  document.querySelectorAll<HTMLButtonElement>("[data-profile]").forEach((btn) => btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    const state = btn.dataset.profile || null;
+    const res = await send("PUT", "/api/google/profile", { state });
+    if (res.ok) { try { localStorage.removeItem("g-guide-step"); } catch {} return location.reload(); }
+    btn.disabled = false;
+    const err = btn.parentElement?.closest("section, div")?.querySelector<HTMLElement>("[data-profile-error]") ?? document.querySelector<HTMLElement>("[data-profile-error]");
+    if (err) { err.textContent = res.data.hint ?? "Enregistrement impossible. Réessayez."; err.classList.remove("hidden"); }
+  }));
+
+  // Creation guide: one step at a time, the step is kept if the artisan leaves for Google and comes back
+  const guide = document.getElementById("g-guide");
+  if (guide) {
+    const stepsEls = [...guide.querySelectorAll<HTMLElement>("[data-guide-step]")];
+    const segs = [...guide.querySelectorAll<HTMLElement>("[data-guide-seg]")];
+    const next = guide.querySelector<HTMLButtonElement>("[data-guide-next]")!;
+    const back = guide.querySelector<HTMLButtonElement>("[data-guide-back]")!;
+    let i = 0;
+    try { i = Math.min(stepsEls.length - 1, Math.max(0, Number(localStorage.getItem("g-guide-step")) || 0)); } catch {}
+    const render = () => {
+      stepsEls.forEach((s, n) => (s.hidden = n !== i));
+      segs.forEach((s, n) => { s.classList.toggle("bg-ink", n <= i); s.classList.toggle("bg-line", n > i); });
+      guide.querySelector("[data-guide-n]")!.textContent = String(i + 1);
+      guide.querySelector("[data-guide-next-label]")!.textContent = i === stepsEls.length - 1 ? "Ma fiche est créée" : "Suivant";
+      back.hidden = i === 0;
+      try { localStorage.setItem("g-guide-step", String(i)); } catch {}
+    };
+    next.addEventListener("click", async () => {
+      if (i < stepsEls.length - 1) { i++; render(); guide.scrollIntoView({ block: "start" }); return; }
+      next.disabled = true;
+      const res = await send("PUT", "/api/google/profile", { state: "connected" });
+      if (res.ok) { try { localStorage.removeItem("g-guide-step"); } catch {} return location.reload(); }
+      next.disabled = false;
+    });
+    back.addEventListener("click", () => { i = Math.max(0, i - 1); render(); });
+    render();
+  }
+
+  // « Mettre à jour sur Google »: number and hours taken from the répondeur
+  const sync = document.querySelector<HTMLButtonElement>("[data-sync]");
+  sync?.addEventListener("click", () => {
+    const label = sync.querySelector("[data-sync-label]")!;
+    sync.disabled = true; label.textContent = "Mise à jour…";
+    setTimeout(() => {
+      label.textContent = "À jour sur Google";
+      document.querySelector("[data-sync-note]")!.textContent = "Numéro et horaires identiques à votre répondeur.";
+      setTimeout(() => { sync.disabled = false; label.textContent = "Mettre à jour sur Google"; }, 2500);
+    }, 1200);
+  });
+
+  // Reviews: « Répondre » writes a reply (prepared one if the writing fails), the artisan edits it, then publishes
+  document.querySelectorAll<HTMLElement>("[data-review]").forEach((li) => {
+    const replyBtn = li.querySelector<HTMLButtonElement>("[data-reply]");
+    const box = li.querySelector<HTMLElement>("[data-reply-box]")!;
+    const text = li.querySelector<HTMLTextAreaElement>("[data-reply-text]")!;
+    const err = li.querySelector<HTMLElement>("[data-review-error]")!;
+    const showErr = (m: string | null) => { err.textContent = m ?? ""; err.classList.toggle("hidden", !m); };
+    replyBtn?.addEventListener("click", async () => {
+      showErr(null);
+      const label = replyBtn.querySelector("[data-reply-label]")!;
+      replyBtn.disabled = true; label.textContent = "Écriture de la réponse…";
+      const res = await post("/api/google/review", { text: li.dataset.text, stars: Number(li.dataset.stars) });
+      text.value = res.ok && typeof res.data.reply === "string" ? res.data.reply : li.dataset.fallback ?? "";
+      replyBtn.disabled = false; label.textContent = "Répondre";
+      replyBtn.hidden = true; box.hidden = false;
+      text.style.height = "auto"; text.style.height = `${text.scrollHeight + 2}px`;
+      text.focus();
+    });
+    li.querySelector("[data-cancel]")?.addEventListener("click", () => { box.hidden = true; if (replyBtn) replyBtn.hidden = false; showErr(null); });
+    li.querySelector<HTMLButtonElement>("[data-publish]")?.addEventListener("click", async (e) => {
+      const btn = e.currentTarget as HTMLButtonElement;
+      btn.disabled = true; btn.textContent = "Publication…";
+      const res = await post("/api/google/replies", { review_id: li.dataset.review, reply: text.value });
+      btn.disabled = false; btn.textContent = "Publier";
+      if (!res.ok) return showErr(res.data.hint ?? "La réponse n’a pas pu être publiée. Réessayez.");
+      li.querySelector("[data-published-text]")!.textContent = String(res.data.reply ?? text.value);
+      li.querySelector<HTMLElement>("[data-published]")!.hidden = false;
+      box.hidden = true; replyBtn?.remove();
+      const left = document.querySelectorAll("[data-review] [data-reply]").length;
+      document.querySelector("[data-waiting-line]")!.innerHTML = left ? `<b class="text-ink">${left}</b> sans réponse` : "Tous ont une réponse";
+    });
+  });
 
   // Runs one generator: busy labels, error line, then `show` with the answer
-  function wire(card: HTMLElement, url: string, body: () => unknown | string, show: (d: Record<string, unknown>) => void, busy: string, done: string) {
+  function wire(card: HTMLElement, url: string, body: () => unknown, show: (d: Record<string, unknown>) => void, busy: string, done: string) {
     const err = card.querySelector<HTMLElement>("[data-error]")!;
     const buttons = [...card.querySelectorAll<HTMLButtonElement>("[data-run]")];
     const labels = new Map(buttons.map((b) => [b, b.querySelector("[data-label]")!.textContent!]));
     buttons.forEach((btn) => btn.addEventListener("click", async () => {
-      const payload = body();
-      if (typeof payload === "string") { err.textContent = payload; err.hidden = false; return; }
       err.hidden = true;
       buttons.forEach((b) => { b.disabled = true; });
       btn.querySelector("[data-label]")!.textContent = busy;
-      const res = await post(url, payload);
+      const res = await post(url, body());
       buttons.forEach((b) => { b.disabled = false; b.querySelector("[data-label]")!.textContent = labels.get(b)!; });
       if (!res.ok) { err.textContent = (typeof res.data.hint === "string" && res.data.hint) || FAILED; err.hidden = false; return; }
       card.querySelector<HTMLElement>("[data-result]")!.hidden = false;
@@ -124,52 +323,40 @@ const area = "w-full resize-none rounded-block bg-page px-3 py-2 text-body outli
     }));
   }
 
-  // Description: editable, live character count
-  const desc = document.getElementById("g-desc")!;
-  const descText = desc.querySelector<HTMLTextAreaElement>("[data-text]")!;
-  // Grows the text box with its content, so the whole description shows
-  const count = () => {
-    desc.querySelector("[data-count]")!.textContent = String(descText.value.length);
-    descText.style.height = "auto";
-    descText.style.height = `${descText.scrollHeight + 2}px`;
-  };
-  descText.addEventListener("input", count);
-  wire(desc, "/api/google/description", () => ({ previous: descText.value }), (d) => { descText.value = String(d.description ?? ""); count(); }, "Écriture…", "Régénérer");
+  const desc = document.getElementById("g-desc");
+  if (desc) {
+    const descText = desc.querySelector<HTMLTextAreaElement>("[data-text]")!;
+    const count = () => {
+      desc.querySelector("[data-count]")!.textContent = String(descText.value.length);
+      descText.style.height = "auto";
+      descText.style.height = `${descText.scrollHeight + 2}px`;
+    };
+    descText.addEventListener("input", count);
+    wire(desc, "/api/google/description", () => ({ previous: descText.value }), (d) => { descText.value = String(d.description ?? ""); count(); }, "Écriture…", "Régénérer");
+  }
 
-  // Review: stars + pasted text
-  const review = document.getElementById("g-review")!;
-  const stars = [...review.querySelectorAll<HTMLLabelElement>(".star")];
-  const picked = () => Number(review.querySelector<HTMLInputElement>("input[name=stars]:checked")?.value ?? 0);
-  review.querySelector("[data-stars]")!.addEventListener("change", () => stars.forEach((s, i) => s.classList.toggle("on", i < picked())));
-  wire(review, "/api/google/review", () => {
-    const text = review.querySelector<HTMLTextAreaElement>("[data-review]")!.value.trim();
-    if (!picked()) return "Choisissez la note du client, de 1 à 5 étoiles.";
-    if (!text) return "Collez l’avis du client avant de demander une réponse.";
-    return { text, stars: picked() };
-  }, (d) => { review.querySelector("[data-text]")!.textContent = String(d.reply ?? ""); }, "Écriture…", "Écrire une autre réponse");
-
-  // Seasonal post ideas
-  const posts = document.getElementById("g-posts")!;
-  const tpl = document.getElementById("g-post-tpl") as HTMLTemplateElement;
-  wire(posts, "/api/google/posts", () => ({}), (d) => {
-    const list = posts.querySelector("[data-list]")!;
-    list.replaceChildren(...((d.ideas as { title: string; text: string }[]) ?? []).map((idea) => {
-      const li = tpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
-      li.querySelector("[data-title]")!.textContent = idea.title;
-      li.querySelector("[data-body]")!.textContent = idea.text;
-      return li;
-    }));
-  }, "Recherche d’idées…", "Proposer d’autres idées");
+  const posts = document.getElementById("g-posts");
+  if (posts) {
+    const tpl = document.getElementById("g-post-tpl") as HTMLTemplateElement;
+    wire(posts, "/api/google/posts", () => ({}), (d) => {
+      posts.querySelector("[data-list]")!.replaceChildren(...((d.ideas as { title: string; text: string }[]) ?? []).map((idea) => {
+        const li = tpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
+        li.querySelector("[data-title]")!.textContent = idea.title;
+        li.querySelector("[data-body]")!.textContent = idea.text;
+        return li;
+      }));
+    }, "Recherche d’idées…", "Proposer d’autres idées");
+  }
 
   // Every « Copier »: the target's text (textarea value or element text), short confirmation
   document.addEventListener("click", async (e) => {
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-copy-target],[data-copy-own]");
     if (!btn) return;
     const el = btn.dataset.copyTarget ? document.querySelector<HTMLElement>(btn.dataset.copyTarget) : btn.closest("li")?.querySelector<HTMLElement>("[data-body]");
-    const text = el instanceof HTMLTextAreaElement ? el.value : (el?.textContent ?? "");
+    const value = el instanceof HTMLTextAreaElement ? el.value : (el?.textContent ?? "");
     const label = btn.querySelector("[data-copy-label]")!;
     const initial = btn.dataset.copyDefault ?? "Copier";
-    try { await navigator.clipboard.writeText(text); label.textContent = "Copié"; }
+    try { await navigator.clipboard.writeText(value); label.textContent = "Copié"; }
     catch { label.textContent = "Copie impossible"; }
     setTimeout(() => (label.textContent = initial), 2000);
   });
