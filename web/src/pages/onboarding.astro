@@ -40,7 +40,7 @@ const init = {
   // The répondeur number already owned on the Twilio account: the only number offered on step 3
   demo_number: normalizeE164(secret("TWILIO_SMS_FROM") ?? ""),
   demo: null as ReturnType<typeof demoSetup> | null,
-  // Demo accounts: the team's voice, cloned beforehand on ElevenLabs (« Quentin »), already selected
+  // Demo accounts: the team's voice, cloned beforehand on ElevenLabs (« Elior »), already selected
   demo_voice: null as DemoVoice | null,
 };
 if (isDemoAccount(Astro.locals.user)) init.demo_voice = await demoVoice();
