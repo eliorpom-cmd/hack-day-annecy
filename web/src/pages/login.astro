@@ -1,35 +1,52 @@
 ---
+// Sign-in: e-mail magic link, or the demo account. Values: DESIGN.md, texts: COPY.md.
 import Base from "../layouts/Base.astro";
 if (Astro.locals.user) return Astro.redirect("/app");
 const expired = Astro.url.searchParams.has("expired");
 ---
 <Base title="Connexion">
-  <main class="mx-auto max-w-sm px-4 py-24">
-    <h1 class="text-2xl font-semibold">Connexion</h1>
-    {expired && <p class="mt-2 text-sm text-red-600">Ce lien a expiré. Demandez-en un nouveau.</p>}
-    <form id="magic" class="mt-6 flex flex-col gap-3">
-      <input name="email" type="email" required placeholder="vous@exemple.fr" class="rounded-lg border px-3 py-2" />
-      <button class="rounded-lg bg-neutral-900 px-3 py-2 text-white">Recevoir un lien de connexion</button>
-      <p id="magic-result" class="text-sm text-neutral-600"></p>
-    </form>
-    <form method="post" action="/api/auth/demo" class="mt-8">
-      <button class="w-full rounded-lg border px-3 py-2">Voir la démo</button>
+  <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col px-4">
+    <div class="flex flex-1 flex-col justify-center gap-6 py-10">
+      <div>
+        <h1 class="text-title font-bold">Connexion</h1>
+        <p class="mt-2 text-muted">Recevez un lien par e-mail pour ouvrir votre compte.</p>
+      </div>
+
+      {expired && (
+        <p class="panel px-[14px] py-3 text-small">
+          <span class="font-bold">Ce lien a expiré.</span> Demandez-en un nouveau.
+        </p>
+      )}
+
+      <form id="magic" class="flex flex-col gap-4" novalidate>
+        <div>
+          <label class="field">
+            <span class="field-label">Votre e-mail</span>
+            <input name="email" type="email" required autocomplete="email" inputmode="email" placeholder=" " class="field-input" />
+          </label>
+          <p id="magic-help" class="mx-4 mt-1 text-small text-muted">Exemple : marc@plomberie-martin.fr</p>
+        </div>
+        <button class="btn btn-primary">Recevoir le lien</button>
+      </form>
+    </div>
+
+    <form method="post" action="/api/auth/demo" class="pb-6">
+      <button class="btn btn-secondary w-full">Voir la démo</button>
     </form>
   </main>
+
   <script>
     const form = document.getElementById("magic") as HTMLFormElement;
-    const out = document.getElementById("magic-result")!;
+    const help = document.getElementById("magic-help")!;
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const res = await fetch("/api/auth/magic", { method: "POST", body: new FormData(form) });
       const data = (await res.json()) as { sent?: boolean; link?: string };
-      if (!res.ok) { out.textContent = "Adresse e-mail invalide."; return; }
-      if (data.sent) { out.textContent = "Lien envoyé. Regardez vos e-mails."; return; }
-      // No e-mail provider configured (dev/demo): show the link directly
-      out.innerHTML = "";
-      const a = document.createElement("a");
-      a.href = data.link ?? "#"; a.textContent = "Ouvrir le lien de connexion"; a.className = "underline";
-      out.appendChild(a);
+      if (!res.ok) { help.textContent = "Entrez une adresse e-mail valide."; help.classList.add("text-urgence"); return; }
+      help.classList.remove("text-urgence");
+      if (data.sent) { help.textContent = "Lien envoyé. Ouvrez vos e-mails."; return; }
+      // No e-mail provider configured (local, demo): open the link directly
+      if (data.link) location.href = data.link;
     });
   </script>
 </Base>
