@@ -25,8 +25,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - scénario demande de devis : un appelle, un joue l'artisan
 - 14 · Slides du pitch (~5 min) (Maxime)
   - deck web exportable PDF/PPTX
-- 26 · Garder son numéro : renvoi d'appel vers le répondeur (Claude)
-  - étape Votre numéro : code de renvoi sur non-réponse / refus à composer (**61*, **67*) vers le numéro du répondeur ; l'artisan ne change rien sur Google ; un appel renvoyé va direct au répondeur
 
 ## Fait
 
@@ -90,4 +88,7 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - Fait : Commit 96d4f45 (config v2) : migrations 0010-0011, lib/forwarding.ts, lib/interview*.ts, lib/telephony/routing.ts, /api/onboarding/questions
 - 25 · Documentation par questions : le répondeur interviewe l'artisan (Claude)
   - après la lecture du site, l'IA propose les questions qui manquent (prix du déplacement, week-end, zone…) ; l'artisan répond ; remplace « Ajouter une question » vide
+  - Fait : Commit 96d4f45 (config v2) : migrations 0010-0011, lib/forwarding.ts, lib/interview*.ts, lib/telephony/routing.ts, /api/onboarding/questions
+- 26 · Garder son numéro : renvoi d'appel vers le répondeur (Claude)
+  - étape Votre numéro : code de renvoi sur non-réponse / refus à composer (**61*, **67*) vers le numéro du répondeur ; l'artisan ne change rien sur Google ; un appel renvoyé va direct au répondeur
   - Fait : Commit 96d4f45 (config v2) : migrations 0010-0011, lib/forwarding.ts, lib/interview*.ts, lib/telephony/routing.ts, /api/onboarding/questions
