@@ -43,7 +43,7 @@
  :root{--ink:#0b2545;--surf:#f1f4f8;--tint:#e6eef6;--primary:#0a8fd6;--onprimary:#fff}
  body{background:#dfe3e8}
  .btn{background:var(--primary)!important;color:var(--onprimary)!important}
- .nav{color:var(--accentText)!important} .h1,.name{color:var(--ink)} .act svg{color:var(--accentText)} .line .ic svg{color:var(--ink)}
+ .nav{color:var(--ink)!important} .h1,.name{color:var(--ink)} .act svg{color:var(--accentText)} .line .ic svg{color:var(--ink)}
  .phone{background:var(--surf)!important} .bar{background:var(--surf)!important} .line .ic{background:var(--tint)!important}
  .seg .on{color:var(--ink)} .act{color:var(--ink)}
  .wrap{display:flex;gap:32px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
@@ -137,5 +137,6 @@ $('acc').onchange=render;
 $('gen').onclick=()=>{let H;do{H=Math.random()*360}while(H>=10&&H<=80);state={H,C:0.11+Math.random()*0.1,L:0.5+Math.random()*0.2};render();remember()};
 $('copy').onclick=()=>{navigator.clipboard.writeText(window._vals);$('copy').textContent='Copié'};
 try{const s=JSON.parse(localStorage.getItem('palette'));if(s)state=s}catch(e){}
+if(!localStorage.getItem('palette')){const [L,C,H]=rgb2oklch(...fromHex('#4ee494'));state={L,C,H}}
 render();remember();
 </script></body></html>
