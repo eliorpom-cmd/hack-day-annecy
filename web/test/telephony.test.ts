@@ -120,7 +120,7 @@ test("call message: urgence", () => {
 
 test("call message: urgent", () => {
   const msg = buildCallMessage({ ...base, urgency: "urgent", urgencyReason: "À traiter dans la semaine.", address: "3 rue du Lac, Annecy" });
-  assert.equal(msg.split("\n")[0], "🟠 Urgent");
+  assert.equal(msg.split("\n")[0], "🟠 Prioritaire");
   assert.ok(msg.endsWith("Jean Dupont – +33611111111 – 3 rue du Lac, Annecy\nÀ rappeler vite."));
 });
 
@@ -135,7 +135,7 @@ test("call message: missing fields fall back", () => {
   const msg = buildCallMessage({ urgency: "normal", urgencyReason: null, name: null, phone: null, address: null, need: null, summary: "Question sur les tarifs." });
   assert.equal(msg, "🟢 Normal\nDemande : Question sur les tarifs.\nClient – numéro inconnu");
   const bare = buildCallMessage({ urgency: "urgent", urgencyReason: "", name: null, phone: null, address: null, need: null, summary: null });
-  assert.match(bare, /^🟠 Urgent\nDemande : besoin non précisé\nClient – numéro inconnu\nÀ rappeler vite\.$/);
+  assert.match(bare, /^🟠 Prioritaire\nDemande : besoin non précisé\nClient – numéro inconnu\nÀ rappeler vite\.$/);
 });
 
 test("call message: length cap holds with long fields", () => {

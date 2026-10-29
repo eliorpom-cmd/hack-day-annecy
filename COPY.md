@@ -42,7 +42,7 @@ Lecteur : artisan de 30-40 ans en reconversion, au début de son activité, sur 
 - **Quotes and apostrophes** : ’ et « » avec espaces insécables
 - **Typographie** : espace insécable avant : ; ? ! et dans « »
 - **Numbers** : en chiffres ; téléphones au format 06 12 34 56 78 ; heures « 14 h 30 »
-- **Emoji** : uniquement le point de priorité en tête du message (🔴 Urgence, 🟠 Urgent, 🟢 Normal, ⚪ Sans message) ; aucun ailleurs
+- **Emoji** : uniquement le point de priorité en tête du message (🔴 Urgence, 🟠 Prioritaire, 🟢 Normal, ⚪ Sans message) ; aucun ailleurs
 
 ## Lengths
 
@@ -72,7 +72,7 @@ Lecteur : artisan de 30-40 ans en reconversion, au début de son activité, sur 
 | statut | (pas de libellé : la pastille suffit) |
 
 Statuts d'un client : Nouveau, Rappelé, Devis envoyé, Gagné, Perdu.
-Priorités : Urgence, Urgent, Normal.
+Priorités : Urgence, Prioritaire, Normal (valeurs en base : urgence, urgent, normal).
 
 ## Patterns
 
@@ -90,7 +90,7 @@ Détails : https://…/a/x7k2
 ```
 
 - Ligne 1 : point + priorité + objet (2-4 mots) + client. Si le nom manque : « un client ».
-- « Pourquoi » seulement pour Urgence et Urgent.
+- « Pourquoi » seulement pour Urgence et Prioritaire.
 - Le numéro seul sur sa ligne : WhatsApp et SMS le rendent cliquable, c'est le bouton « appeler ».
 - Appel sans message : « ⚪ Appel sans message, 06 12 34 56 78 · Rappeler : 06 12 34 56 78 ».
 

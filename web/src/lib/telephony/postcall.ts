@@ -73,7 +73,7 @@ export const MESSAGE_MAX = 600;
 
 const PRIORITY_LABEL = {
   urgence: "🔴 URGENCE",
-  urgent: "🟠 Urgent",
+  urgent: "🟠 Prioritaire",
   normal: "🟢 Normal",
 } as const;
 
