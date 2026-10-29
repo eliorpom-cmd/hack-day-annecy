@@ -1,0 +1,33 @@
+{
+  "name": "web",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro build && wrangler dev",
+    "astro": "astro",
+    "generate-types": "wrangler types",
+    "deploy": "astro build && wrangler d1 migrations apply hack-day-annecy --remote && wrangler deploy",
+    "db:local": "wrangler d1 migrations apply hack-day-annecy --local",
+    "types": "wrangler types",
+    "lint": "astro check",
+    "test": "node --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^14.4.3",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.4.4",
+    "gsap": "^3.15.0",
+    "tailwindcss": "^4.3.3",
+    "wrangler": "^4.155.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@types/node": "^26.6.6",
+    "typescript": "^5.9.3"
+  }
+}

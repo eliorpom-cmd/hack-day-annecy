@@ -1,0 +1,15 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "hack-day-annecy",
+	"compatibility_date": "2026-10-23",
+	"compatibility_flags": ["global_fetch_strictly_public"],
+	// Our own entry: Astro's fetch handler + the weekly recap cron
+	"main": "./src/worker.ts",
+	"assets": { "directory": "./dist", "binding": "ASSETS" },
+	// database_id is filled in by wrangler on first deploy (auto-provisioning)
+	"d1_databases": [{ "binding": "DB", "database_name": "hack-day-annecy", "migrations_dir": "migrations" }],
+	// Monday 08:00 Paris (07:00 UTC in winter): weekly recap e-mail
+	"triggers": { "crons": ["0 7 * * 1"] },
+	"vars": { "APP_URL": "http://localhost:4321" },
+	"observability": { "enabled": true }
+}

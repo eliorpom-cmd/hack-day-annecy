@@ -1,0 +1,13 @@
+---
+import Base from "../../layouts/Base.astro";
+const { user, business } = Astro.locals;
+if (business && business.onboarding_step !== "done") return Astro.redirect("/onboarding");
+---
+<Base title="Tableau de bord">
+  <main class="mx-auto max-w-4xl px-4 py-12">
+    <h1 class="text-2xl font-semibold">{business?.name || "Mon entreprise"}</h1>
+    <p class="text-neutral-600">{user?.email}</p>
+    <p class="mt-8 text-neutral-500">Tableau de bord à venir (tâche 06) : appels, leads, mode avancé.</p>
+    <form method="post" action="/api/auth/logout" class="mt-8"><button class="underline">Se déconnecter</button></form>
+  </main>
+</Base>
