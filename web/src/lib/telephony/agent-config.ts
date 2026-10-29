@@ -11,7 +11,10 @@ export type DataCollectionField = {
 };
 
 // Shape of ElevenLabs `platform_settings.data_collection` (key = data_collection_id)
-export const DATA_COLLECTION: Record<"name" | "phone" | "address" | "need" | "urgency", DataCollectionField> = {
+export const DATA_COLLECTION: Record<
+  "name" | "phone" | "address" | "need" | "urgency" | "urgency_reason",
+  DataCollectionField
+> = {
   name: { type: "string", description: "Nom et prénom de l'appelant, tels qu'il les donne." },
   phone: {
     type: "string",
@@ -24,6 +27,11 @@ export const DATA_COLLECTION: Record<"name" | "phone" | "address" | "need" | "ur
     enum: URGENCY_VALUES,
     description:
       "« urgence » si danger ou dégât en cours (fuite importante, plus de chauffage en hiver, panne totale) ; « urgent » à traiter dans les 48 h ; « normal » sinon.",
+  },
+  urgency_reason: {
+    type: "string",
+    description:
+      "Une phrase courte, en français, qui dit pourquoi l'appel est urgent ou pas (ex. : « Fuite d'eau en cours, risque de dégât. »). Vide si rien à dire.",
   },
 };
 

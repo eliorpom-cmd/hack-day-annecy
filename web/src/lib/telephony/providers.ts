@@ -16,22 +16,65 @@ export async function registerElevenLabsCall(
   return res.text();
 }
 
-export type TwilioCreds = { accountSid?: string; authToken?: string; smsFrom?: string };
+export type TwilioCreds = { accountSid?: string; authToken?: string; smsFrom?: string; whatsappFrom?: string };
 
-export async function sendTwilioSms(creds: TwilioCreds, to: string, body: string): Promise<string> {
-  const { accountSid, authToken, smsFrom } = creds;
-  if (!accountSid || !authToken || !smsFrom) throw new Error("Twilio SMS credentials missing");
+// Sends one message through the Twilio Messages API and returns its sid; throws on failure
+async function sendTwilioMessage(
+  creds: TwilioCreds,
+  from: string | undefined,
+  to: string,
+  body: string,
+  channel: "SMS" | "WhatsApp",
+): Promise<string> {
+  const { accountSid, authToken } = creds;
+  if (!accountSid || !authToken || !from) throw new Error(`Twilio ${channel} credentials missing`);
   const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`, {
     method: "POST",
     headers: {
       Authorization: `Basic ${btoa(`${accountSid}:${authToken}`)}`,
       "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: new URLSearchParams({ To: to, From: smsFrom, Body: body }),
+    body: new URLSearchParams({ To: to, From: from, Body: body }),
     signal: AbortSignal.timeout(10000),
   });
-  if (!res.ok) throw new Error(`Twilio SMS ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  if (!res.ok) throw new Error(`Twilio ${channel} ${res.status}: ${(await res.text()).slice(0, 300)}`);
   return ((await res.json()) as { sid: string }).sid;
+}
+
+export async function sendTwilioSms(creds: TwilioCreds, to: string, body: string): Promise<string> {
+  return sendTwilioMessage(creds, creds.smsFrom, to, body, "SMS");
+}
+
+// WhatsApp goes through the same Messages API, with the `whatsapp:` prefix on both numbers
+export async function sendWhatsApp(creds: TwilioCreds, to: string, body: string): Promise<string> {
+  const from = creds.whatsappFrom ? `whatsapp:${creds.whatsappFrom}` : undefined;
+  return sendTwilioMessage(creds, from, `whatsapp:${to}`, body, "WhatsApp");
+}
+
+// Notifies the artisan: WhatsApp when TWILIO_WHATSAPP_FROM is set, SMS otherwise or as fallback.
+// Never throws: the outcome is logged and returned so the caller can record it.
+export async function sendCallNotification(
+  creds: TwilioCreds,
+  to: string,
+  body: string,
+): Promise<{ channel: "whatsapp" | "sms" | "failed"; sid?: string }> {
+  if (creds.whatsappFrom) {
+    try {
+      const sid = await sendWhatsApp(creds, to, body);
+      logEvent("info", "twilio.call_notification_sent", { channel: "whatsapp", sid });
+      return { channel: "whatsapp", sid };
+    } catch (e) {
+      logEvent("warn", "twilio.whatsapp_failed_fallback_sms", { error: String(e) });
+    }
+  }
+  try {
+    const sid = await sendTwilioSms(creds, to, body);
+    logEvent("info", "twilio.call_notification_sent", { channel: "sms", sid });
+    return { channel: "sms", sid };
+  } catch (e) {
+    logEvent("error", "twilio.call_notification_failed", { error: String(e) });
+    return { channel: "failed" };
+  }
 }
 
 export function logEvent(level: "info" | "warn" | "error", event: string, data: Record<string, unknown> = {}) {

@@ -1,4 +1,4 @@
-// Pure parsing of the ElevenLabs post-call webhook and SMS text.
+// Pure parsing of the ElevenLabs post-call webhook and the call notification text.
 import { URGENCY_VALUES, type Urgency } from "./agent-config.ts";
 
 export type ParsedPostCall = {
@@ -9,7 +9,14 @@ export type ParsedPostCall = {
   durationS: number | null;
   callerNumber: string | null;
   callSid: string | null;
-  lead: { name: string | null; phone: string | null; address: string | null; need: string | null; urgency: Urgency };
+  lead: {
+    name: string | null;
+    phone: string | null;
+    address: string | null;
+    need: string | null;
+    urgency: Urgency;
+    urgencyReason: string | null;
+  };
 };
 
 type Obj = Record<string, unknown>;
@@ -56,19 +63,53 @@ export function parsePostCall(payload: unknown): ParsedPostCall | null {
       address: field("address"),
       need: field("need"),
       urgency: normalizeUrgency(field("urgency")),
+      urgencyReason: field("urgency_reason"),
     },
   };
 }
 
-export const SMS_MAX = 300;
+// Hard cap for the whole notification, sized for one WhatsApp or SMS body
+export const MESSAGE_MAX = 600;
 
-// Short French alert for the artisan, never longer than SMS_MAX characters
-export function buildUrgentSms(lead: { name: string | null; phone: string | null; need: string | null }): string {
-  const head = `URGENCE – ${lead.name ?? "Client"} (${lead.phone ?? "numéro inconnu"}) : `;
-  const tail = ". Rappelez vite.";
-  let need = (lead.need ?? "besoin non précisé").replace(/\s+/g, " ").replace(/[.\s]+$/, "");
-  const room = SMS_MAX - head.length - tail.length;
-  if (room <= 1) return (head + need).slice(0, SMS_MAX - 1) + "…";
-  if (need.length > room) need = need.slice(0, room - 1) + "…";
-  return head + need + tail;
+const PRIORITY_LABEL = {
+  urgence: "🔴 URGENCE",
+  urgent: "🟠 Urgent",
+  normal: "🟢 Normal",
+} as const;
+
+// Collapses whitespace and cuts a field to `max` characters with an ellipsis
+const clip = (s: string | null | undefined, max: number): string => {
+  const t = (s ?? "").replace(/\s+/g, " ").trim();
+  return t.length > max ? t.slice(0, max - 1) + "…" : t;
+};
+
+// Short French notification for the artisan, sent after every call.
+// Line 1 gives the priority, then the reason, the request, the caller and an action for urgent calls.
+export function buildCallMessage(input: {
+  urgency: Urgency;
+  urgencyReason: string | null;
+  name: string | null;
+  phone: string | null;
+  address: string | null;
+  need: string | null;
+  summary: string | null;
+}): string {
+  const lines: string[] = [PRIORITY_LABEL[input.urgency]];
+
+  const reason = clip(input.urgencyReason, 140);
+  if (reason) lines.push(`Pourquoi : ${reason}`);
+
+  // Fall back to the call summary when the agent did not fill the request field
+  const demand = clip(input.need, 200) || clip(input.summary, 200) || "besoin non précisé";
+  lines.push(`Demande : ${demand}`);
+
+  const who = [clip(input.name, 60) || "Client", clip(input.phone, 25) || "numéro inconnu"];
+  const address = clip(input.address, 100);
+  if (address) who.push(address);
+  lines.push(who.join(" – "));
+
+  if (input.urgency !== "normal") lines.push("À rappeler vite.");
+
+  const message = lines.join("\n");
+  return message.length > MESSAGE_MAX ? message.slice(0, MESSAGE_MAX - 1) + "…" : message;
 }

@@ -2,17 +2,20 @@
 import type { APIRoute } from "astro";
 import { db, type Business } from "../../../lib/db";
 import { newId } from "../../../lib/tokens";
-import { telEnv } from "../../../lib/telephony/env";
+import { telEnv, type TelephonyEnv } from "../../../lib/telephony/env";
 import { verifyElevenLabsSignature } from "../../../lib/telephony/signature";
-import { buildUrgentSms, parsePostCall } from "../../../lib/telephony/postcall";
-import { logEvent, sendTwilioSms } from "../../../lib/telephony/providers";
+import { buildCallMessage, parsePostCall } from "../../../lib/telephony/postcall";
+import { logEvent, sendCallNotification } from "../../../lib/telephony/providers";
+
+// TWILIO_WHATSAPP_FROM is read here until it is declared in TelephonyEnv (env.ts)
+type PostCallEnv = TelephonyEnv & { TWILIO_WHATSAPP_FROM?: string };
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
 export const POST: APIRoute = async ({ request }) => {
   const raw = await request.text();
-  const env = telEnv();
+  const env = telEnv() as PostCallEnv;
   if (!(await verifyElevenLabsSignature(request.headers.get("ElevenLabs-Signature"), raw, env.ELEVENLABS_WEBHOOK_SECRET))) {
     logEvent("warn", "elevenlabs.bad_signature", { configured: !!env.ELEVENLABS_WEBHOOK_SECRET });
     return json({ error: "invalid signature" }, 401);
@@ -61,21 +64,23 @@ export const POST: APIRoute = async ({ request }) => {
     ).bind(leadId, business.id, callId, name, phone, address, need ?? call.summary, urgency).run();
   }
 
-  let sms: "sent" | "failed" | "skipped" = "skipped";
-  if (!hadLead && call.lead.urgency === "urgence" && business.artisan_phone) {
-    try {
-      const sid = await sendTwilioSms(
-        { accountSid: env.TWILIO_ACCOUNT_SID, authToken: env.TWILIO_AUTH_TOKEN, smsFrom: env.TWILIO_SMS_FROM },
-        business.artisan_phone, buildUrgentSms(call.lead),
-      );
-      sms = "sent";
-      logEvent("info", "twilio.urgent_sms_sent", { call: callId, sid });
-    } catch (e) {
-      sms = "failed";
-      logEvent("error", "twilio.urgent_sms_failed", { call: callId, error: String(e) });
-    }
+  // One notification per call: a retried webhook (hadLead) does not notify twice
+  let notification: "whatsapp" | "sms" | "failed" | "skipped" = "skipped";
+  if (!hadLead && business.artisan_phone) {
+    const message = buildCallMessage({ ...call.lead, summary: call.summary });
+    const result = await sendCallNotification(
+      {
+        accountSid: env.TWILIO_ACCOUNT_SID,
+        authToken: env.TWILIO_AUTH_TOKEN,
+        smsFrom: env.TWILIO_SMS_FROM,
+        whatsappFrom: env.TWILIO_WHATSAPP_FROM,
+      },
+      business.artisan_phone,
+      message,
+    );
+    notification = result.channel;
   }
 
-  logEvent("info", "elevenlabs.post_call_saved", { business: business.id, call: callId, lead: leadId, sms });
-  return json({ ok: true, call_id: callId, lead_id: leadId, sms });
+  logEvent("info", "elevenlabs.post_call_saved", { business: business.id, call: callId, lead: leadId, notification });
+  return json({ ok: true, call_id: callId, lead_id: leadId, notification });
 };
