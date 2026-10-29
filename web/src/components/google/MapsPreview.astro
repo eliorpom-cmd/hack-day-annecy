@@ -4,9 +4,9 @@
 // it imitates the platform on purpose and stays outside DESIGN.md. Nothing in it is clickable.
 interface Props {
   name: string; category: string; rating: number; count: number; area: string;
-  open: boolean | null; openText: string; website: string | null; phone: string | null;
+  open: boolean | null; openText: string; website: string | null; phone: string | null; photo?: string | null;
 }
-const { name, category, rating, count, area, open, openText, website, phone } = Astro.props;
+const { name, category, rating, count, area, open, openText, website, phone, photo = null } = Astro.props;
 const full = Math.round(rating);
 const ratingText = rating.toFixed(1).replace(".", ",");
 const actions = [
@@ -24,10 +24,10 @@ const rows = [
 ].filter((r): r is { key: string; text: string; path: string } => !!r);
 ---
 <section class="gm" aria-label="Aperçu de votre fiche sur Google Maps">
-  <div class="gm-photo" aria-hidden="true">
+  {photo ? <img class="gm-img" src={photo} alt="" width="408" height="451" /> : <div class="gm-photo" aria-hidden="true">
     <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M9 2 7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
     <span>Photos de vos chantiers</span>
-  </div>
+  </div>}
   <div class="gm-head">
     <h3 class="gm-name">{name}</h3>
     <p class="gm-rating">
@@ -62,6 +62,7 @@ const rows = [
 <style>
   .gm { background: #fff; border-radius: var(--radius-block); box-shadow: inset 0 0 0 1px var(--color-line); overflow: hidden; color: #202124; font-family: Roboto, Arial, sans-serif; }
   .gm-photo { height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #5f6368; font-size: 14px; background: linear-gradient(135deg, #e8eaed, #dadce0); }
+  .gm-img { display: block; width: 100%; height: 240px; object-fit: cover; object-position: center 35%; }
   .gm-head { padding: 16px 20px 6px; }
   .gm-name { font-family: "Google Sans", Roboto, Arial, sans-serif; font-size: 22px; font-weight: 400; line-height: 1.25; }
   .gm-rating { margin-top: 4px; display: flex; align-items: center; gap: 4px; font-size: 14px; }
