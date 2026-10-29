@@ -26,6 +26,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - étape Votre numéro : code de renvoi sur non-réponse / refus à composer (**61*, **67*) vers le numéro du répondeur ; l'artisan ne change rien sur Google ; un appel renvoyé va direct au répondeur
 - 27 · Écoute des voix avant de choisir
   - aperçu audio de chaque voix (ElevenLabs preview_url, ou phrase d'accueil générée en TTS) ; nécessite la clé
+- 28 · Publicités Meta : étudier l'intégration
+  - API Marketing de Meta : accès, validation de l'app, coût ; v2, pour le pitch
 
 ## En cours
 
