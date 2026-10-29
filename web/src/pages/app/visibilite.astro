@@ -1,0 +1,32 @@
+---
+// « Visibilité »: what brings clients to the artisan's number. Site web works; the rest is announced.
+// Layout: DESIGN.md (blocs, lignes, pastilles), texts: COPY.md.
+import AppShell from "../../layouts/AppShell.astro";
+import HubIcon from "../../components/hub/HubIcon.astro";
+import SiteCard from "../../components/hub/SiteCard.astro";
+import SoonRow from "../../components/hub/SoonRow.astro";
+import { appUrl } from "../../lib/env";
+import type { SiteRow } from "../../lib/site-run";
+
+const business = Astro.locals.business as unknown as SiteRow | null;
+if (!business) return Astro.redirect("/onboarding");
+const slug = business.site_slug;
+const url = slug ? `${appUrl()}/site/${slug}` : null;
+---
+<AppShell title="Visibilité" active="visibilite">
+  <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-[14px] px-4 pt-4 pb-6 lg:pt-10">
+    <a href="/app" class="flex items-center gap-1 font-bold text-ink lg:hidden" style="min-height:48px"><HubIcon name="chevron-left" />Appels</a>
+    <div>
+      <h1 class="text-title font-bold">Visibilité</h1>
+      <p class="mt-2 text-muted">Ce qui fait venir les clients. Leurs appels arrivent sur votre répondeur.</p>
+    </div>
+
+    <SiteCard slug={slug} published={!!business.site_published} url={url} headline={business.site_headline} />
+
+    <ul class="panel">
+      <SoonRow icon="store" label="Fiche Google" line="Vos horaires et votre numéro à jour sur Google Maps." />
+      <SoonRow icon="share" label="Réseaux sociaux" line="Vos chantiers publiés sur Facebook et Instagram." />
+      <SoonRow icon="megaphone" label="Publicités" line="Des annonces Google dans votre ville, avec votre numéro." />
+    </ul>
+  </main>
+</AppShell>

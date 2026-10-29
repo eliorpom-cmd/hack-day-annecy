@@ -1,0 +1,73 @@
+---
+// « Votre site web » card of the Visibilité hub: create the one-page site, then show its link.
+import HubIcon from "./HubIcon.astro";
+interface Props { slug: string | null; published: boolean; url: string | null; headline: string | null }
+const { slug, published, url, headline } = Astro.props;
+const live = published && !!slug && !!url;
+const shown = url?.replace(/^https?:\/\//, "") ?? "";
+---
+<section class="panel" id="site-card">
+  <div class="row items-start">
+    <span class="icon-tile"><HubIcon name="globe" size={18} class="text-ink" /></span>
+    <div class="flex min-w-0 flex-1 flex-col">
+      <h2 class="font-bold">Votre site web</h2>
+      {live ? (
+        <>
+          <p class="mt-0.5 flex items-center gap-1 text-small font-bold text-action-ink"><HubIcon name="check" size={16} />En ligne</p>
+          <p class="mt-1 break-all text-small text-muted">{shown}</p>
+        </>
+      ) : (
+        <p class="mt-0.5 text-small text-muted">Une page avec vos services, vos prix et votre numéro. Les clients appellent votre répondeur.</p>
+      )}
+    </div>
+  </div>
+
+  {live ? (
+    <div class="flex flex-col gap-2 px-[14px] pb-3">
+      {headline && <p class="rounded-block bg-page px-3 py-2 text-small italic">{headline}</p>}
+      <div class="flex gap-2">
+        <a href={url} target="_blank" rel="noopener" class="shortcut"><HubIcon name="external" class="text-action-ink" />Voir le site</a>
+        <button type="button" class="shortcut" data-copy={url} aria-live="polite"><HubIcon name="copy" class="text-action-ink" /><span data-copy-label>Copier le lien</span></button>
+      </div>
+      <button type="button" data-site-action="refresh" class="flex min-h-12 items-center justify-center gap-2 text-small font-bold text-muted">
+        <HubIcon name="rotate" size={16} /><span data-label>Mettre à jour le site</span>
+      </button>
+    </div>
+  ) : (
+    <div class="px-[14px] pb-3">
+      <button type="button" data-site-action="create" class="btn btn-primary w-full"><HubIcon name="globe" /><span data-label>Créer mon site</span></button>
+    </div>
+  )}
+  <p class="hidden px-[14px] pb-3 text-small text-muted" data-site-error role="alert"></p>
+</section>
+
+<script>
+  // Creates or refreshes the site, then reloads to show the link
+  const card = document.getElementById("site-card");
+  card?.querySelectorAll<HTMLButtonElement>("[data-site-action]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const label = btn.querySelector("[data-label]");
+      const err = card.querySelector<HTMLElement>("[data-site-error]")!;
+      btn.disabled = true;
+      if (label) label.textContent = btn.dataset.siteAction === "create" ? "Création du site…" : "Mise à jour…";
+      try {
+        const res = await fetch("/api/site", { method: "POST" });
+        if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { hint?: string }).hint ?? "");
+        location.reload();
+      } catch (e) {
+        btn.disabled = false;
+        if (label) label.textContent = btn.dataset.siteAction === "create" ? "Créer mon site" : "Mettre à jour le site";
+        err.textContent = (e instanceof Error && e.message) || "Le site n’a pas pu être créé. Réessayez dans un instant.";
+        err.classList.remove("hidden");
+      }
+    });
+  });
+  // Copies the public link, with a short confirmation
+  card?.querySelector<HTMLButtonElement>("[data-copy]")?.addEventListener("click", async (e) => {
+    const btn = e.currentTarget as HTMLButtonElement;
+    const label = btn.querySelector("[data-copy-label]")!;
+    try { await navigator.clipboard.writeText(btn.dataset.copy ?? ""); label.textContent = "Copié"; }
+    catch { label.textContent = "Copie impossible"; }
+    setTimeout(() => (label.textContent = "Copier le lien"), 2000);
+  });
+</script>

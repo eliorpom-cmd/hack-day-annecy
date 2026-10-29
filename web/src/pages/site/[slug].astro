@@ -1,0 +1,140 @@
+---
+// Public one-page site of an artisan. Content is read live from the business, its FAQs and hours,
+// so it follows every change made in the app. The call button dials the answering number.
+import "../../styles/global.css";
+import HubIcon from "../../components/hub/HubIcon.astro";
+import { buildSiteContent, isValidSlug } from "../../lib/site";
+import { siteBySlug, siteData } from "../../lib/site-run";
+
+const slug = Astro.params.slug ?? "";
+const business = isValidSlug(slug) ? await siteBySlug(slug) : null;
+if (!business) return new Response("Ce site n’existe pas ou n’est plus en ligne.", { status: 404, headers: { "content-type": "text/plain; charset=utf-8" } });
+const data = await siteData(business.id);
+const c = buildSiteContent({ business, ...data });
+const tel = c.phone ? `tel:${c.phone}` : null;
+const year = new Date().getFullYear();
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org", "@type": "LocalBusiness", name: c.name,
+  ...(c.phone ? { telephone: c.phone } : {}),
+  ...(business.city ? { address: { "@type": "PostalAddress", addressLocality: business.city, addressCountry: "FR" } } : {}),
+  ...(c.description ? { description: c.description } : {}),
+}).replace(/</g, "\\u003c");
+const hasSide = c.prices.length > 0 || c.hours.length > 0 || !!c.area;
+---
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{c.title}</title>
+    <meta name="description" content={c.metaDescription} />
+    <meta property="og:title" content={c.title} />
+    <meta property="og:description" content={c.metaDescription} />
+    <meta property="og:type" content="website" />
+    <link rel="canonical" href={new URL(`/site/${slug}`, Astro.url).toString()} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+    <script type="application/ld+json" set:html={jsonLd} />
+  </head>
+  <body class="min-h-dvh antialiased">
+    <header class="sticky top-0 z-10 border-b border-line bg-surface">
+      <div class="mx-auto flex max-w-[1040px] items-center justify-between gap-3 px-4 py-2 lg:py-3">
+        <p class="min-w-0 truncate font-bold">{c.name}</p>
+        {tel && <a href={tel} class="btn btn-primary site-call shrink-0 px-5"><HubIcon name="phone" />Appeler</a>}
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-[1040px] px-4 pb-12">
+      <section class="py-8 lg:py-16">
+        {c.kicker && <p class="text-small font-bold text-muted">{c.kicker}</p>}
+        <h1 class="mt-2 text-title font-bold lg:text-[44px]">{c.name}</h1>
+        {c.headline && <p class="mt-3 max-w-[640px] lg:text-[22px] lg:leading-snug">{c.headline}</p>}
+        {c.phoneDisplay && tel && (
+          <p class="mt-6">
+            <a href={tel} class="text-title font-bold underline decoration-action decoration-[3px] underline-offset-4">{c.phoneDisplay}</a>
+          </p>
+        )}
+        {c.phoneDisplay && data.answeringNumber && <p class="mt-2 text-small text-muted">Pendant un chantier, votre demande est notée et vous êtes rappelé.</p>}
+      </section>
+
+      <div class={hasSide ? "grid gap-[14px] lg:grid-cols-[1fr_380px] lg:items-start lg:gap-6" : "grid gap-[14px]"}>
+        <div class="flex flex-col gap-[14px]">
+          {c.description && (
+            <section class="panel px-[14px] py-4 lg:px-6 lg:py-5">
+              <h2 class="text-small font-bold text-muted">Présentation</h2>
+              <p class="mt-2">{c.description}</p>
+            </section>
+          )}
+          {c.infos.length > 0 && (
+            <section class="panel">
+              <div class="row lg:px-6"><span class="icon-tile"><HubIcon name="info" size={18} class="text-ink" /></span><h2 class="font-bold">Bon à savoir</h2></div>
+              <dl>
+                {c.infos.map((i) => (
+                  <div class="border-t border-line px-[14px] py-3 lg:px-6">
+                    <dt class="font-bold">{i.question}</dt>
+                    <dd class="mt-1 text-muted">{i.answer}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          )}
+        </div>
+
+        {hasSide && (
+          <div class="flex flex-col gap-[14px]">
+            {c.prices.length > 0 && (
+              <section class="panel">
+                <div class="row"><span class="icon-tile"><HubIcon name="euro" size={18} class="text-ink" /></span><h2 class="font-bold">Tarifs</h2></div>
+                <ul>
+                  {c.prices.map((p) => (
+                    <li class="border-t border-line px-[14px] py-3">
+                      <div class="flex items-baseline justify-between gap-3">
+                        <span class="font-bold">{p.label}</span>
+                        {p.amount && <span class="shrink-0 font-bold">{p.amount}</span>}
+                      </div>
+                      <p class="mt-1 text-small text-muted">{p.detail}</p>
+                    </li>
+                  ))}
+                </ul>
+                {c.priceOnQuote && <p class="border-t border-line px-[14px] py-3 text-small text-muted">Le prix exact se fait sur devis.</p>}
+              </section>
+            )}
+            {c.hours.length > 0 && (
+              <section class="panel">
+                <div class="row"><span class="icon-tile"><HubIcon name="clock" size={18} class="text-ink" /></span><h2 class="font-bold">Horaires</h2></div>
+                <dl class="border-t border-line px-[14px] py-2">
+                  {c.hours.map((h) => (
+                    <div class="flex justify-between gap-3 py-1.5">
+                      <dt>{h.days}</dt>
+                      <dd class={h.closed ? "text-muted" : "font-bold"}>{h.time}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            )}
+            {c.area && (
+              <section class="panel">
+                <div class="row"><span class="icon-tile"><HubIcon name="map" size={18} class="text-ink" /></span><h2 class="font-bold">Zone d’intervention</h2></div>
+                <p class="border-t border-line px-[14px] py-3">{c.area}</p>
+              </section>
+            )}
+          </div>
+        )}
+      </div>
+    </main>
+
+    <footer class="border-t border-line bg-surface">
+      <div class="mx-auto flex max-w-[1040px] flex-col gap-1 px-4 py-6 text-small text-muted lg:flex-row lg:justify-between">
+        <p><span class="font-bold text-ink">{c.name}</span>{c.kicker && ` · ${c.kicker}`}</p>
+        <p>{c.phoneDisplay && tel && <a href={tel} class="font-bold text-ink">{c.phoneDisplay}</a>}{c.phoneDisplay && " · "}© {year}</p>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style>
+  /* Header call button: 48 px on a phone (DESIGN.md minimum), 56 px on a computer */
+  .site-call { height: 48px; }
+  @media (min-width: 1024px) { .site-call { height: 56px; } }
+</style>

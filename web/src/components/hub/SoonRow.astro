@@ -1,0 +1,21 @@
+---
+// A « Visibilité » channel that is not built yet: icon, label, « Bientôt » chip, one line. Not clickable.
+import HubIcon, { type HubIconName } from "./HubIcon.astro";
+interface Props { icon: HubIconName; label: string; line: string }
+const { icon, label, line } = Astro.props;
+---
+<li class="row items-start">
+  <span class="icon-tile soon-tile"><HubIcon name={icon} size={18} class="text-neutral" /></span>
+  <div class="flex min-w-0 flex-1 flex-col">
+    <div class="flex items-center gap-2">
+      <span class="font-bold">{label}</span>
+      <span class="chip chip-soon">Bientôt</span>
+    </div>
+    <p class="mt-0.5 text-small text-muted">{line}</p>
+  </div>
+</li>
+
+<style is:global>
+  .soon-tile { background: var(--color-neutral-bg); box-shadow: inset 0 0 0 1px var(--color-neutral-line); }
+  .chip-soon { color: var(--color-neutral); background: var(--color-neutral-bg); box-shadow: inset 0 0 0 1px var(--color-neutral-line); }
+</style>
