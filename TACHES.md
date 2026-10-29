@@ -12,6 +12,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - demander son pseudo, rôle Write
 - 02 · Ajouter au dépôt le code de l'agent ElevenLabs de Mathieu
   - dans un dossier à lui ; noter dans PROJET.md ce que l'agent sait déjà faire
+- 03 · Brainstorm : choisir le métier visé et ce que montre la démo
+  - s'appuyer sur etude-marche/README.md ; remplir Problème, Démo et Hors périmètre dans PROJET.md
 
 ## En cours
 
