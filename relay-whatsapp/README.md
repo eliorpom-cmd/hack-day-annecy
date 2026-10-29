@@ -29,6 +29,16 @@ Variables : `RELAY_URL` (par défaut le Worker de démo), `GRNBL_WA_AUTH` (dossi
 - Les messages de plus de 10 min ne sont plus envoyés.
 - Un message vers un numéro sans WhatsApp est marqué en erreur, sans nouvel essai.
 
+## Plan B : relais de secours sur le Mac d'Elior
+
+Le relais principal tourne sur le Mac de Maxime. Le Mac d'Elior lance en même temps un relais **de secours** depuis le numéro GRNBL (…1570) : il n'envoie un message que s'il est encore dans la file 20 s après l'avoir vu, donc rien ne part en double.
+
+1. Une fois : créer `relay-whatsapp/.env` (jamais commité) avec `WHATSAPP_RELAY_TOKEN=<le même jeton que sur Cloudflare>`.
+2. Double-cliquer `relay-whatsapp/plan-b.command` (ou le lancer dans Terminal). La fenêtre reste ouverte ; le Mac ne se met pas en veille.
+3. Le journal affiche `EN ATTENTE` pour chaque message, puis `SECOURS … ENVOYÉ` seulement si le relais principal est tombé.
+
+Plan C, si les deux relais échouent : `bin/dernier-whatsapp` affiche le dernier message et le copie dans le presse-papiers, à coller dans WhatsApp à la main.
+
 ## Relier un autre compte WhatsApp (un coéquipier, sur son ordinateur)
 
 Le relais marche avec n'importe quel compte WhatsApp, pas seulement celui de GRNBL. Sur l'ordinateur qui fera le relais :

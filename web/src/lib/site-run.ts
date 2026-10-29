@@ -8,17 +8,14 @@ export type SiteRow = SiteBusiness & { id: string; site_slug: string | null; sit
 const HEADLINE_MODELS = ["@cf/google/gemma-4-26b-a4b-it", "@cf/mistralai/mistral-small-3.1-24b-instruct"] as const;
 
 // FAQs, hours and the answering number (the bought Twilio number) of a business
-// answeringNumber = the number clients are given, answered by the répondeur: the répondeur number, or the artisan's
-// own mobile when he keeps his number and forwards unanswered calls to it (forwarding_mode « renvoi »)
+// answeringNumber = the number clients are given: the répondeur number
 export async function siteData(businessId: string) {
-  const [faqs, hours, number, routing] = await Promise.all([
+  const [faqs, hours, number] = await Promise.all([
     db().prepare("SELECT question, answer, kind FROM faqs WHERE business_id = ? ORDER BY created_at, id").bind(businessId).all<SiteFaq>(),
     db().prepare("SELECT weekday, opens, closes FROM business_hours WHERE business_id = ? ORDER BY weekday, opens").bind(businessId).all<SiteHour>(),
     db().prepare("SELECT e164 FROM phone_numbers WHERE business_id = ? AND status = 'live' LIMIT 1").bind(businessId).first<{ e164: string }>(),
-    db().prepare("SELECT forwarding_mode, artisan_phone FROM businesses WHERE id = ?").bind(businessId).first<{ forwarding_mode: string | null; artisan_phone: string | null }>(),
   ]);
-  const kept = number && routing?.forwarding_mode === "renvoi" ? routing.artisan_phone : null;
-  return { faqs: faqs.results, hours: hours.results, answeringNumber: kept || (number?.e164 ?? null) };
+  return { faqs: faqs.results, hours: hours.results, answeringNumber: number?.e164 ?? null };
 }
 
 export async function siteBySlug(slug: string): Promise<SiteRow | null> {

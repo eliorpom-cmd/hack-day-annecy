@@ -20,6 +20,13 @@ export function isDemoAccount(user: { id: string; email: string } | null | undef
   return !!user && (user.id === DEMO_ACCOUNT_ID || isDemoSetupEmail(user.email));
 }
 
+// Same test from a business record (webhooks have no session): its owner is a demo account
+export async function isDemoBusiness(b: { owner_id: string }): Promise<boolean> {
+  if (b.owner_id === DEMO_ACCOUNT_ID) return true;
+  const u = await db().prepare("SELECT email FROM users WHERE id = ?").bind(b.owner_id).first<{ email: string }>();
+  return isDemoSetupEmail(u?.email);
+}
+
 export async function demoVoice(): Promise<DemoVoice | null> {
   const id = secret("DEMO_VOICE_ID");
   const hasKey = !!secret("ELEVENLABS_API_KEY");

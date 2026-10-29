@@ -6,6 +6,8 @@
 //   node relay.mjs --dry-run   polls and prints the queue, sends nothing, acks nothing, no WhatsApp connection
 //   node relay.mjs check       connects to WhatsApp, prints the linked number, disconnects
 //   node relay.mjs link 33612345678   links another WhatsApp account (pairing code), session in ./session
+//   node relay.mjs --secours  backup relay (plan B): sends a message only if it is still unsent 20 s after it was
+//                             first seen, i.e. the main relay (another Mac) is down. RELAY_STANDBY_S changes the delay.
 //
 // Env: WHATSAPP_RELAY_TOKEN (required except for check), RELAY_URL (default: the demo Worker),
 //      WA_AUTH (session folder; default: GRNBL_WA_AUTH, else ~/Documents/Code/Perso/grnbl/data/whatsapp-auth,
@@ -13,11 +15,20 @@
 
 import makeWASocket, { Browsers, DisconnectReason, useMultiFileAuthState } from "@whiskeysockets/baileys";
 import pino from "pino";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+// Optional relay-whatsapp/.env (never committed): WHATSAPP_RELAY_TOKEN=…, so the token is not typed each time
+try {
+  for (const line of readFileSync(path.join(import.meta.dirname, ".env"), "utf8").split("\n")) {
+    const m = /^\s*([A-Z_]+)\s*=\s*(.*?)\s*$/.exec(line);
+    if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
+  }
+} catch { /* no .env: the environment only */ }
+
 const args = process.argv.slice(2);
+const STANDBY_MS = args.includes("--secours") ? Number(process.env.RELAY_STANDBY_S || 20) * 1000 : 0;
 const mode = args.includes("link") ? "link" : args.includes("check") ? "check" : args.includes("--dry-run") ? "dry-run" : "run";
 const AUTH = process.env.WA_AUTH || process.env.GRNBL_WA_AUTH
   || (mode === "link" ? path.join(import.meta.dirname, "session") : path.join(os.homedir(), "Documents/Code/Perso/grnbl/data/whatsapp-auth"));
@@ -137,6 +148,8 @@ async function run() {
   // id → error|null: sent (or failed) but the ack has not reached the Worker yet; never re-sent
   const toAck = new Map();
   const handled = new Set();
+  // Backup mode: id → when this relay first saw the message
+  const firstSeen = new Map();
 
   const open = async () => {
     for (let attempt = 1; ; attempt++) {
@@ -186,13 +199,18 @@ async function run() {
   };
 
   await open();
-  log(`Relais actif sur ${RELAY_URL}, interrogation toutes les ${POLL_MS / 1000} s.`);
+  log(`Relais ${STANDBY_MS ? `de secours (attend ${STANDBY_MS / 1000} s)` : "principal"} actif sur ${RELAY_URL}, interrogation toutes les ${POLL_MS / 1000} s.`);
   for (;;) {
     try {
       await flushAcks();
       if (sock) {
         for (const m of await fetchOutbox()) {
           if (handled.has(m.id) || !sock) continue;
+          if (STANDBY_MS) {
+            if (!firstSeen.has(m.id)) { firstSeen.set(m.id, Date.now()); log(`EN ATTENTE ${m.id} : envoyé dans ${STANDBY_MS / 1000} s si le relais principal ne l'a pas fait.`); }
+            if (Date.now() - firstSeen.get(m.id) < STANDBY_MS) continue;
+            log(`SECOURS ${m.id} : le relais principal ne l'a pas envoyé, envoi par ce Mac.`);
+          }
           await deliver(m);
         }
         await flushAcks();

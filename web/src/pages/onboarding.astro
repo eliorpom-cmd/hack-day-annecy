@@ -201,28 +201,19 @@ init.demo = demo;
       <section data-step="3" class="flex flex-col gap-[14px]" hidden>
         <div>
           <h1 class="text-title font-bold">Votre numéro</h1>
-          <p class="mt-2 text-muted">Vos clients appellent toujours votre numéro. Si vous ne répondez pas, l’appel passe au répondeur.</p>
+          <p class="mt-2 text-muted">Vos clients appellent le numéro du répondeur. Il décroche tout de suite.</p>
         </div>
-        <Field id="phone3" label="Votre portable" type="tel" inputmode="tel" autocomplete="tel" value={b.artisan_phone} help="Le numéro que vos clients connaissent. Exemple : 06 12 34 56 78" />
-
-        <div class="panel">
-          <div class="row">
-            <span class="icon-tile"><Icon name="timer" size={18} /></span>
-            <div class="flex-1"><p class="text-small text-muted">Durée de sonnerie</p><p><span data-ring>{b.ring_seconds}</span> secondes</p></div>
-            <button type="button" class="step-btn" data-ring-step="-5" aria-label="5 secondes de moins"><Icon name="minus" /></button>
-            <button type="button" class="step-btn" data-ring-step="5" aria-label="5 secondes de plus"><Icon name="plus" /></button>
-          </div>
-        </div>
-        <p class="-mt-2 mx-4 text-small text-muted">Ensuite, l’appel passe au répondeur.</p>
 
         <h2 class="mt-2 text-small font-bold text-muted">Numéro du répondeur</h2>
-        <p class="-mt-2 mx-4 text-small text-muted">Votre portable lui renvoie les appels. Vous n’avez pas à le donner.</p>
         <p data-numbers-status class="text-muted" role="status">Recherche des numéros…</p>
         <div class="panel" data-numbers role="radiogroup" aria-label="Numéros" hidden></div>
         <p data-numbers-error class="panel flex items-start gap-3 px-[14px] py-3" hidden>
           <span class="icon-tile"><Icon name="alert" size={18} /></span>
           <span data-numbers-error-text></span>
         </p>
+        <p class="-mt-2 mx-4 text-small text-muted">Faites vos essais avec ce numéro. Plus tard, si le répondeur vous convient, vous pourrez y renvoyer les appels de votre numéro habituel.</p>
+
+        <Field id="phone3" label="Votre portable" type="tel" inputmode="tel" autocomplete="tel" value={b.artisan_phone} help="Vous y recevez un message après chaque appel. Exemple : 06 12 34 56 78" />
       </section>
 
       <!-- 4 · Essai -->
@@ -230,13 +221,6 @@ init.demo = demo;
         <div>
           <h1 class="text-title font-bold">Essai</h1>
           <p class="mt-2 font-bold" data-ready>Votre répondeur est prêt.</p>
-        </div>
-        <div data-renvoi-next class="flex flex-col gap-[14px]" hidden>
-          <div class="panel">
-            <div class="row"><span class="icon-tile"><Icon name="smartphone" size={18} /></span><div><p class="text-small text-muted">Votre portable</p><p class="font-bold" data-renvoi-mobile></p></div></div>
-            <div class="row"><span class="icon-tile"><Icon name="forward" size={18} /></span><div><p class="text-small text-muted">Renvoyé vers le répondeur</p><p class="font-bold" data-renvoi-number></p></div></div>
-          </div>
-          <p>Dernière étape : activer le renvoi d’appel sur votre portable. Cela prend 2 minutes, écran par écran.</p>
         </div>
         <div data-has-number class="flex flex-col gap-[14px]">
           <a data-test-link href="#" class="panel flex flex-col gap-1 px-[14px] py-4">
@@ -996,19 +980,9 @@ init.demo = demo;
     }
 
     // ---------- Step 3 · Votre numéro ----------
-    // « Garder mon numéro »: clients call the artisan's own number, his mobile forwards unanswered calls
-    // to the répondeur number (codes shown full screen in the app, components/ForwardingGuide.astro)
-    const mode = "renvoi";
-    // Forwarding on no answer accepts 5 to 30 s, by steps of 5
-    let ring = Math.min(30, Math.max(5, Math.round((biz.ring_seconds || 20) / 5) * 5));
-    const ringOut = $("[data-ring]");
-    ringOut.textContent = String(ring);
-    for (const btn of $$<HTMLButtonElement>("[data-ring-step]")) {
-      btn.addEventListener("click", () => {
-        ring = Math.min(30, Math.max(5, ring + Number(btn.dataset.ringStep)));
-        ringOut.textContent = String(ring);
-      });
-    }
+    // Clients call the répondeur number, which answers straight away. Call forwarding from the artisan's own
+    // number is no longer offered at setup (29/10): it comes later, once he is happy with the service.
+    const mode = "numero";
     const numbersBox = $("[data-numbers]");
     let chosenNumber: string | null = init.number;
     let attached: string | null = init.number;
@@ -1077,8 +1051,8 @@ init.demo = demo;
 
     async function saveRouting(): Promise<boolean> {
       const phone = input("phone3").value.trim();
-      if (!phone) { fieldHelp("phone3", "Indiquez votre portable : il sonne en premier.", true); input("phone3").focus(); return false; }
-      const r = await api<{ business: Init["business"] }>("PUT", "/api/business", { artisan_phone: phone, ring_seconds: ring, forwarding_mode: mode });
+      if (!phone) { fieldHelp("phone3", "Indiquez votre portable : vous y recevez un message après chaque appel.", true); input("phone3").focus(); return false; }
+      const r = await api<{ business: Init["business"] }>("PUT", "/api/business", { artisan_phone: phone, forwarding_mode: mode });
       if (!r.ok) {
         if (/portable/i.test(r.data.hint ?? "")) { fieldHelp("phone3", "Ce numéro ne marche pas. Exemple : 06 12 34 56 78", true); input("phone3").focus(); }
         else showError(r.data.hint ?? "Enregistrement impossible. Réessayez.");
@@ -1113,17 +1087,14 @@ init.demo = demo;
 
     // ---------- Step 4 · Essai ----------
     function enterTest() {
-      $("[data-has-number]").hidden = !attached || mode === "renvoi";
-      $("[data-renvoi-next]").hidden = !attached || mode !== "renvoi";
+      $("[data-has-number]").hidden = !attached;
       $("[data-no-number]").hidden = !!attached;
       $("[data-ready]").hidden = !attached;
       if (attached) {
         $("[data-test-number]").textContent = frPhone(attached);
         $<HTMLAnchorElement>("[data-test-link]").href = `tel:${attached}`;
-        $("[data-renvoi-mobile]").textContent = frPhone(biz.artisan_phone);
-        $("[data-renvoi-number]").textContent = frPhone(attached);
       }
-      bar(attached && mode === "renvoi" ? "Activer le renvoi" : "Terminer", "check", null);
+      bar("Terminer", "check", null);
       onPrimary = async () => {
         busy(true, "Enregistrement…");
         const r = await api("PUT", "/api/business", { onboarding_step: "done" });

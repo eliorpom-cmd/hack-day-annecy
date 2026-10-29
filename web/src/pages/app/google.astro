@@ -29,8 +29,8 @@ const [hours, number, replied] = await Promise.all([
   db().prepare("SELECT e164 FROM phone_numbers WHERE business_id = ? AND status = 'live' LIMIT 1").bind(b.id).first<{ e164: string }>(),
   db().prepare("SELECT review_id, reply FROM google_review_replies WHERE business_id = ?").bind(b.id).all<{ review_id: string; reply: string }>(),
 ]);
-// The number clients see on Google: his own when calls are forwarded, else the répondeur number
-const shownPhone = frPhone(b.forwarding_mode === "renvoi" ? b.artisan_phone : number?.e164 ?? b.artisan_phone);
+// The number clients see on Google: the répondeur number
+const shownPhone = frPhone(number?.e164 ?? b.artisan_phone);
 const name = b.name.trim() || [b.first_name, b.last_name].map((s) => (s ?? "").trim()).filter(Boolean).join(" ") || "Votre entreprise";
 const trade = b.trade.trim() ? b.trade.trim().charAt(0).toUpperCase() + b.trade.trim().slice(1) : "Artisan";
 

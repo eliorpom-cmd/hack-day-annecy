@@ -84,3 +84,18 @@ export function pickedSlot(choice: string | null | undefined, slots: { iso?: str
   if (!m || /aucun|non|none/i.test(choice ?? "")) return null;
   return slots[Number(m[1]) - 1]?.iso ?? null;
 }
+
+// Demo accounts (« Voir la démo », « Essayer la configuration »): the two slots of the pitch script, whatever the
+// calendar holds. Once a date is past, the real computation takes over.
+export const DEMO_SLOTS = [
+  { year: 2026, month: 10, day: 30, hour: 11, label: "vendredi 30 octobre à 11 h" },
+  { year: 2026, month: 11, day: 2, hour: 14, label: "lundi 2 novembre à 14 h" },
+] as const;
+
+export function demoSlots(hours: CalendarHour[], busy: Busy[], nowMs: number): Slot[] {
+  const fixed = DEMO_SLOTS.map((s) => {
+    const start = parisTime(s.year, s.month, s.day, s.hour, 0);
+    return { start, end: start + SLOT_MINUTES * 60000, label: s.label, iso: new Date(start).toISOString() };
+  });
+  return fixed.every((s) => s.start > nowMs) ? fixed : nextSlots(hours, busy, nowMs);
+}

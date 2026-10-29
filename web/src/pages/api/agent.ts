@@ -4,6 +4,7 @@ import { elRequest } from "../../lib/elevenlabs";
 import { appUrl, requireBusiness, secret } from "../../lib/env";
 import { fail, handle, HttpError, json } from "../../lib/http";
 import { buildAgentPayload, buildSystemPrompt, firstMessage, type PromptFaq, type PromptHour } from "../../lib/prompt";
+import { isDemoBusiness } from "../../lib/demo-voice";
 import { DATA_COLLECTION, postCallWebhookUrl } from "../../lib/telephony/agent-config";
 
 async function promptFor(b: Business) {
@@ -11,7 +12,9 @@ async function promptFor(b: Business) {
     db().prepare("SELECT weekday, opens, closes FROM business_hours WHERE business_id = ? ORDER BY weekday, opens").bind(b.id).all<PromptHour>(),
     db().prepare("SELECT question, answer, kind FROM faqs WHERE business_id = ? ORDER BY created_at").bind(b.id).all<PromptFaq>(),
   ]);
-  return buildSystemPrompt(b, hours.results, faqs.results, { calendar: !!b.calendar_connected_at });
+  // A demo account always books (the pitch script), connected calendar or not
+  const calendar = !!b.calendar_connected_at || (await isDemoBusiness(b));
+  return buildSystemPrompt(b, hours.results, faqs.results, { calendar });
 }
 
 // Preview of what the agent will say and know (advanced mode)

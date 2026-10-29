@@ -3,7 +3,8 @@ import { db, type Business } from "../db";
 import { telEnv } from "./env";
 import { sayAndHangup } from "./twiml";
 import { logEvent, registerElevenLabsCall } from "./providers";
-import { nextSlots, type Busy, type CalendarHour } from "../calendar";
+import { demoSlots, nextSlots, type Busy, type CalendarHour } from "../calendar";
+import { isDemoBusiness } from "../demo-voice";
 import { formatFrPhone } from "./postcall";
 
 // {{caller_phone}}, {{slot_1}}, {{slot_2}} of the prompt (lib/prompt.ts), plus the slots' dates for the booking
@@ -12,7 +13,9 @@ export async function callVariables(business: Business, from: string, now = Date
     db().prepare("SELECT weekday, opens, closes FROM business_hours WHERE business_id = ?").bind(business.id).all<CalendarHour>(),
     db().prepare("SELECT starts_at, ends_at FROM appointments WHERE business_id = ? AND ends_at > ?").bind(business.id, Math.floor(now / 1000)).all<Busy>(),
   ]);
-  const [s1, s2] = nextSlots(hours.results, busy.results, now);
+  // Demo accounts always offer the two slots of the pitch script
+  const demo = await isDemoBusiness(business).catch(() => false);
+  const [s1, s2] = demo ? demoSlots(hours.results, busy.results, now) : nextSlots(hours.results, busy.results, now);
   return {
     caller_phone: formatFrPhone(from) || "numéro inconnu",
     slot_1: s1?.label ?? "", slot_2: s2?.label ?? "",

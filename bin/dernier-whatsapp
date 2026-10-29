@@ -1,0 +1,13 @@
+#!/bin/zsh
+# Plan C for the demo: prints the last post-call WhatsApp message and copies it to the clipboard,
+# to send it by hand if both relays fail. Read-only on the production database.
+cd "$(dirname "$0")/../web"
+CLOUDFLARE_ACCOUNT_ID=0bcd1b213f9a7a11ff83178c5ebd69d2 npx wrangler d1 execute hack-day-annecy --remote --json \
+  --command "SELECT to_phone, body, sent_at, error FROM whatsapp_outbox ORDER BY created_at DESC LIMIT 1" 2>/dev/null \
+| node -e '
+  const r = JSON.parse(require("fs").readFileSync(0, "utf8"))[0].results[0];
+  if (!r) { console.log("Aucun message."); process.exit(1); }
+  console.error(`Pour ${r.to_phone} · ${r.sent_at ? "déjà envoyé" : "PAS envoyé"}${r.error ? " · erreur : " + r.error : ""}\n`);
+  process.stdout.write(r.body);
+' | tee >(pbcopy)
+echo "\n\n(copié dans le presse-papiers)"

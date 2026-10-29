@@ -10,9 +10,11 @@ export type RoutingInput = {
 };
 
 // True when the artisan's phone must ring before the agent answers.
-// A forwarded call (mode « renvoi » or a ForwardedFrom on the request) already rang his phone: straight to the agent.
+// 29/10: never. The répondeur number is the one clients try first, and the répondeur answers straight away (no
+// ringing on the artisan's mobile, so a demo call is never caught by his phone). The rules below stay for later.
+export const RING_ARTISAN_FIRST = false;
 export function shouldRingArtisan(r: RoutingInput): boolean {
-  if (!r.artisanPhone) return false;
+  if (!RING_ARTISAN_FIRST || !r.artisanPhone) return false;
   if (r.forwardingMode === "renvoi" || r.forwarded) return false;
   if (!r.hours.length) return true;
   return isWithinHours(r.hours, r.now);

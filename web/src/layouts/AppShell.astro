@@ -3,9 +3,7 @@
 // On a phone: only the page content, exactly as before (DESIGN.md « Espace et mise en page »).
 import Base from "./Base.astro";
 import Icon from "../components/Icon.astro";
-import ForwardingGuide from "../components/ForwardingGuide.astro";
 import { urgentToCallBackCount } from "../lib/leads-list";
-import { db } from "../lib/db";
 
 type Section = "appels" | "visibilite" | "google" | "reseaux" | "pubs" | "reglages";
 interface Props { title: string; active: Section; urgent?: number }
@@ -13,12 +11,6 @@ const { title, active } = Astro.props;
 const { business } = Astro.locals;
 const urgent = Astro.props.urgent ?? (business ? await urgentToCallBackCount(business.id) : 0);
 
-// Keeping his number (« renvoi »): the forwarding guide covers the app until he confirms it works.
-// ?renvoi=guide reopens it from Réglages, with a « Fermer » link.
-const reopened = Astro.url.searchParams.get("renvoi") === "guide";
-const answering = business && business.forwarding_mode === "renvoi" && (!business.forwarding_done_at || reopened)
-  ? (await db().prepare("SELECT e164 FROM phone_numbers WHERE business_id = ? AND status = 'live' LIMIT 1").bind(business.id).first<{ e164: string }>())?.e164 ?? null
-  : null;
 
 const nav: { id: Section; href: string; label: string; icon: "phone" | "globe" | "settings" | "store" | "share" | "megaphone" }[] = [
   { id: "appels", href: "/app", label: "Appels", icon: "phone" },
@@ -90,9 +82,6 @@ const item = "flex min-h-12 items-center gap-3 rounded-call px-3 font-bold";
       <slot />
     </div>
   </div>
-  {answering && business && (
-    <ForwardingGuide answering={answering} mobile={business.artisan_phone} seconds={business.ring_seconds} closable={!!business.forwarding_done_at} />
-  )}
 </Base>
 
 <script>

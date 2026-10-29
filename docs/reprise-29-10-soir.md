@@ -75,6 +75,22 @@ https://hack-day-annecy.eliorpom-0bc.workers.dev (PR #4 à #14, toutes fusionné
 11. **La photo de chantier** (`web/public/demo/chantier-plombier.jpg`) montre « Le plombier Annecy » sur la veste : nom
     d'une vraie entreprise. À remplacer si possible.
 
+## Changements du 29/10, 21 h (Elior + Claude, sur le Mac d'Elior)
+
+- **Plus de renvoi d'appel** : la configuration (étape 3) donne le numéro du répondeur, avec « Faites vos essais avec ce
+  numéro. Plus tard, si le répondeur vous convient, vous pourrez y renvoyer les appels de votre numéro habituel. »
+  L'écran plein écran du renvoi et la ligne des Réglages sont retirés. Le répondeur décroche tout de suite, le
+  portable de l'artisan ne sonne plus d'abord (`RING_ARTISAN_FIRST = false`, `lib/telephony/routing.ts`).
+- **Comptes démo** : le répondeur prend toujours rendez-vous, calendrier connecté ou non, et propose « vendredi
+  30 octobre à 11 h » puis « lundi 2 novembre à 14 h » (`DEMO_SLOTS`, `lib/calendar.ts`). Il faut que l'agent ait été
+  mis à jour après le déploiement : refaire « Essayer la configuration » jusqu'à l'étape Voix.
+- **WhatsApp** quand un rendez-vous est pris : « 🟢 Rendez-vous pris : … » puis « Vendredi 30 octobre à 11 h, déjà dans
+  votre agenda. Rien à faire. », et « Client : » au lieu de « Rappeler : ».
+- **Plan B / C WhatsApp** : `relay-whatsapp/plan-b.command` (secours GRNBL sur le Mac d'Elior), `bin/dernier-whatsapp`.
+- **Sauvegardes** : tag git `demo-ok-29-10` (état d'avant), base D1 exportée et version du Worker d'avant
+  (`7a210eca-…`) dans `~/Documents/Code/Perso/hack-day-annecy-sauvegardes/2026-10-29-avant-plan-b/` (Mac d'Elior).
+  Revenir en arrière : `cd web && npx wrangler rollback 7a210eca-4b15-4489-abf8-5651a5bc0fa2`.
+
 ## À vérifier avant la démo
 
 - [ ] Un vrai appel au +1 863 230 2742 : voix Elior, réponses aux questions, 2 créneaux, rendez-vous, WhatsApp reçu.

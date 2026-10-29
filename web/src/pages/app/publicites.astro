@@ -18,8 +18,6 @@ const name = businessDisplayName(business);
 const trade = business.trade.trim().toLowerCase() || "artisan";
 const city = business.city.trim();
 const search = city ? `${trade} ${city.toLowerCase()}` : trade;
-// Keeping his number: the ads give his own mobile, which forwards unanswered calls to the répondeur
-const kept = (business as unknown as { forwarding_mode?: string | null }).forwarding_mode === "renvoi";
 const steps = [
   { title: `Un client cherche « ${search} »`, line: "Sur Google ou sur Google Maps, depuis son téléphone." },
   { title: "Vous apparaissez en premier", line: "Avec le bouton Appeler, au-dessus des autres." },
@@ -64,7 +62,7 @@ const steps = [
             <div class="min-w-0 flex-1">
               <p class="text-small text-muted">Les appels arrivent sur</p>
               {phone.display
-                ? <p><b>{phone.display}</b><span class="text-muted"> · {phone.answering ? (kept ? "votre numéro, renvoyé au répondeur" : "votre répondeur") : "votre portable"}</span></p>
+                ? <p><b>{phone.display}</b><span class="text-muted"> · {phone.answering ? "votre répondeur" : "votre portable"}</span></p>
                 : <p>Aucun numéro. <a href="/app/reglages" class="font-bold underline">Choisir un numéro</a></p>}
             </div>
           </div>

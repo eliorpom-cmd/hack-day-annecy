@@ -89,7 +89,10 @@ test("the slot picked during the call becomes the appointment, and goes into the
   const p = parsePostCall(booked)!;
   assert.deepEqual(p.lead.appointment, { iso: "2026-10-30T08:00:00.000Z", label: "demain à 9 h" });
   const msg = buildCallMessage({ ...p.lead, appointment: p.lead.appointment!.label, summary: p.summary });
-  assert.match(msg, /\nRendez-vous : demain à 9 h, dans votre agenda\n/);
+  assert.match(msg, /^. Rendez-vous pris : /u);
+  assert.match(msg, /\nDemain à 9 h, déjà dans votre agenda\. Rien à faire\.\n/);
+  assert.match(msg, /\nClient : /);
+  assert.doesNotMatch(msg, /Rappeler/);
 });
 
 test("parsePostCall extracts call and lead", () => {
@@ -168,22 +171,14 @@ test("agent config", () => {
   assert.equal(postCallWebhookUrl("https://x.dev/"), "https://x.dev/api/elevenlabs/post-call");
 });
 
-test("routing: ring the artisan during his hours, at any time without fixed hours, never on a forwarded call", () => {
+test("routing: the répondeur answers straight away, the artisan's phone never rings first (29/10)", () => {
   const base = { artisanPhone: "+33612345678", hours: week, forwardingMode: null, forwarded: false } as const;
   const friday1430 = new Date("2026-10-30T13:30:00Z");
   const saturday = new Date("2026-10-31T09:00:00Z");
-  assert.ok(shouldRingArtisan({ ...base, now: friday1430 }));
-  assert.ok(!shouldRingArtisan({ ...base, now: saturday }));
-  // « Pas d'horaires fixes »: no rows, his phone rings first at any time
-  assert.ok(shouldRingArtisan({ ...base, hours: [], now: saturday }));
-  assert.ok(shouldRingArtisan({ ...base, hours: [], now: new Date("2026-11-01T02:00:00Z") }));
-  // No phone: always the agent
-  assert.ok(!shouldRingArtisan({ ...base, artisanPhone: null, hours: [], now: friday1430 }));
-  // He keeps his number: calls arrive forwarded, his phone already rang
-  assert.ok(!shouldRingArtisan({ ...base, forwardingMode: "renvoi", now: friday1430 }));
-  assert.ok(!shouldRingArtisan({ ...base, forwardingMode: "renvoi", hours: [], now: friday1430 }));
-  assert.ok(!shouldRingArtisan({ ...base, forwarded: true, now: friday1430 }));
-  assert.ok(shouldRingArtisan({ ...base, forwardingMode: "numero", now: friday1430 }));
+  for (const forwardingMode of [null, "numero", "renvoi"] as const) {
+    assert.ok(!shouldRingArtisan({ ...base, forwardingMode, now: friday1430 }));
+    assert.ok(!shouldRingArtisan({ ...base, forwardingMode, hours: [], now: saturday }));
+  }
 });
 
 test("forwarded call detected from Twilio's ForwardedFrom or a Diversion header", () => {

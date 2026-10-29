@@ -116,16 +116,20 @@ export function buildCallMessage(input: {
   const demand = clip(input.need, 200) || clip(input.summary, 200) || "besoin non précisé";
   const subject = clip(input.subject, 40) || clip(input.need, 40) || clip(input.summary, 40) || "appel";
   const name = clip(input.name, 60) || "un client";
-  const lines: string[] = [`${PRIORITY_LABEL[input.urgency]} : ${subject}, ${name}`];
+  // Appointment booked during the call: the artisan has nothing to do, the first two lines say so
+  const booked = clip(input.appointment, 60);
+  const dot = PRIORITY_LABEL[input.urgency].split(" ")[0];
+  const lines: string[] = booked
+    ? [`${dot} Rendez-vous pris : ${subject}, ${name}`, `${booked.charAt(0).toUpperCase()}${booked.slice(1)}, déjà dans votre agenda. Rien à faire.`]
+    : [`${PRIORITY_LABEL[input.urgency]} : ${subject}, ${name}`];
 
   const reason = clip(input.urgencyReason, 140);
   if (reason && input.urgency !== "normal") lines.push(`Pourquoi : ${reason}`);
   lines.push(`Demande : ${demand}`);
-  if (input.appointment) lines.push(`Rendez-vous : ${clip(input.appointment, 60)}, dans votre agenda`);
 
   const address = clip(input.address, 100);
   if (address) lines.push(address);
-  lines.push(`Rappeler : ${clip(formatFrPhone(input.phone), 25) || "numéro inconnu"}`);
+  lines.push(`${booked ? "Client" : "Rappeler"} : ${clip(formatFrPhone(input.phone), 25) || "numéro inconnu"}`);
   if (input.link) lines.push(`Détails : ${input.link}`);
 
   const message = lines.join("\n");
