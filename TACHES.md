@@ -18,6 +18,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - champ prénom à l'étape 1 ; « l'assistant » ou « l'assistante » selon la voix ; « Marc est sur un chantier »
 - 22 · Régler le prompt du répondeur sur le scénario de démo
   - après le script de Maxime (tâche 13) ; tester au téléphone
+- 24 · Configuration : sans nom d'entreprise et sans horaires
+  - nom d'entreprise facultatif (auto-entrepreneur : prénom + nom + métier) ; « Pas d'horaires fixes » possible (le portable sonne toujours d'abord)
 
 ## En cours
 
