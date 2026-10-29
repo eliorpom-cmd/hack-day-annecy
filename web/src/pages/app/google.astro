@@ -14,6 +14,8 @@ import { hoursSummary, type SettingsHour } from "../../lib/settings";
 import { frPhone } from "../../lib/forwarding-guide";
 import { db } from "../../lib/db";
 import { appUrl } from "../../lib/env";
+import { isDemoAccount } from "../../lib/demo-voice";
+import { demoPages } from "../../lib/demo-content";
 
 const b = Astro.locals.business;
 if (!b) return Astro.redirect("/onboarding");
@@ -38,6 +40,8 @@ const stats = testStats(b.id);
 const steps = creationSteps({ name: b.name, trade: b.trade, city: b.city, first_name: b.first_name, last_name: b.last_name, phone: frPhone(b.artisan_phone) || null, siteUrl });
 const area = "w-full resize-none rounded-block bg-page px-3 py-2 text-body outline-none shadow-[inset_0_0_0_1px_var(--color-line)] focus:shadow-[inset_0_0_0_2px_var(--color-ink)]";
 const nb = " ";
+// Demo: the profile address is pre-filled, « Connecter ma fiche » is enough
+const prefill = isDemoAccount(Astro.locals.user) ? demoPages(b).google : undefined;
 ---
 <AppShell title="Fiche Google" active="google">
   <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-[14px] px-4 pt-4 pb-6 lg:max-w-[1040px] lg:px-8 lg:pt-10">
@@ -51,7 +55,7 @@ const nb = " ";
       <section class="flex flex-col gap-[14px] lg:max-w-[480px]">
         <h2 class="mt-2 text-small font-bold text-muted">Avez-vous une fiche Google{nb}?</h2>
         <div class="panel">
-          <button type="button" class="row w-full text-left" data-profile="connected">
+          <button type="button" class="row w-full text-left" data-profile-has>
             <span class="icon-tile"><Icon name="store" size={18} /></span>
             <span class="flex flex-1 flex-col"><span class="font-bold">J’ai une fiche Google</span><span class="text-small text-muted">Connectez-la : avis, horaires et numéro au même endroit.</span></span>
             <Icon name="chevron-right" class="flex-none text-muted" />
@@ -62,6 +66,14 @@ const nb = " ";
             <Icon name="chevron-right" class="flex-none text-muted" />
           </button>
         </div>
+        <form class="flex flex-col gap-2" data-profile-form hidden novalidate>
+          <label class="field">
+            <input class="field-input" name="url" placeholder=" " autocomplete="url" inputmode="url" value={prefill} />
+            <span class="field-label">Lien ou nom de votre fiche</span>
+          </label>
+          <p class="px-4 text-small text-muted">Dans Google Maps, ouvrez votre fiche, puis «{nb}Partager{nb}». Ou tapez son nom.</p>
+          <button class="btn btn-primary w-full"><Icon name="store" />Connecter ma fiche</button>
+        </form>
         <p class="hidden px-4 text-small font-bold" data-profile-error role="alert"></p>
       </section>
     )}
@@ -229,6 +241,22 @@ const nb = " ";
     const err = btn.parentElement?.closest("section, div")?.querySelector<HTMLElement>("[data-profile-error]") ?? document.querySelector<HTMLElement>("[data-profile-error]");
     if (err) { err.textContent = res.data.hint ?? "Enregistrement impossible. Réessayez."; err.classList.remove("hidden"); }
   }));
+
+  // « J'ai une fiche Google »: its link or name, then connected (test data until the Google API is plugged in)
+  const hasBtn = document.querySelector<HTMLButtonElement>("[data-profile-has]");
+  const hasForm = document.querySelector<HTMLFormElement>("[data-profile-form]");
+  hasBtn?.addEventListener("click", () => { hasForm!.hidden = false; hasForm!.querySelector("input")!.focus(); });
+  hasForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const err = document.querySelector<HTMLElement>("[data-profile-error]")!;
+    if (hasForm.querySelector("input")!.value.trim().length < 3) { err.textContent = "Collez le lien de votre fiche, ou tapez son nom."; err.classList.remove("hidden"); return; }
+    const btn = hasForm.querySelector("button")!;
+    btn.disabled = true; btn.lastChild!.textContent = "Connexion…";
+    const res = await send("PUT", "/api/google/profile", { state: "connected" });
+    if (res.ok) return location.reload();
+    btn.disabled = false; btn.lastChild!.textContent = "Connecter ma fiche";
+    err.textContent = res.data.hint ?? "Connexion impossible. Réessayez."; err.classList.remove("hidden");
+  });
 
   // Creation guide: one step at a time, the step is kept if the artisan leaves for Google and comes back
   const guide = document.getElementById("g-guide");

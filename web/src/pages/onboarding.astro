@@ -761,7 +761,7 @@ init.demo = demo;
       // Demo: the team's voice was cloned before the demo; it is his voice, already selected
       const team = init.demo_voice;
       if (team) {
-        ownVoice = { id: team.id, name: team.name, preview_url: team.preview_url, french: true, category: "cloned", gender: null };
+        ownVoice = { id: team.id, name: team.name, preview_url: team.preview_url, category: "cloned", gender: null };
         voices = voices.filter((v) => v.id !== team.id);
         useOwn = true;
         chosenVoice = team.id;

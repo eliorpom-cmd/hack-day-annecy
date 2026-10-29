@@ -38,9 +38,9 @@ export async function rateLimited(businessId: string): Promise<boolean> {
 
 type GenBusiness = PostBusiness & { id: string; artisan_phone: string | null };
 
-// Writes one post with Workers AI, stores it, keeps the 50 newest per business. Null when the AI fails.
-// `topic` comes from parsePostRequest, already scrubbed of contact details
-export async function generatePost(b: GenBusiness, network: Network, topic: string): Promise<SocialPost | null> {
+// Writes one post with Workers AI (or from `prepared`, a demo answer: lib/demo-content.ts), stores it, keeps the
+// 50 newest per business. Null when the AI fails. `topic` comes from parsePostRequest, already scrubbed of contact details
+export async function generatePost(b: GenBusiness, network: Network, topic: string, prepared?: Record<string, unknown>): Promise<SocialPost | null> {
   const [faqs, number] = await Promise.all([
     faqsOf(b.id),
     db().prepare("SELECT e164 FROM phone_numbers WHERE business_id = ? AND status = 'live' LIMIT 1").bind(b.id).first<{ e164: string }>()
@@ -51,6 +51,10 @@ export async function generatePost(b: GenBusiness, network: Network, topic: stri
   const prompt = buildPostPrompt(b, topic, network, services);
   let body: string | null = null;
   let model: string | null = null;
+  if (prepared) {
+    body = finalizePost(network, prepared, { business: b, context: `${prompt}\n${String(prepared.text ?? "")}`, phone: number?.e164 ?? b.artisan_phone });
+    model = "demo";
+  }
   for (let attempt = 0; attempt < 2 && !body; attempt++) {
     const res = await askJson(POST_SYSTEM, prompt, { maxTokens: 700, temperature: 0.7 });
     if (!res.data) console.log(JSON.stringify({ event: "social.ai_error", error: String(res.error).slice(0, 200) }));

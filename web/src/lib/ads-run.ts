@@ -47,7 +47,8 @@ const FIELDS = {
 
 // Writes one draft from what the site shows (headline, description, documentation): a first answer, a second one
 // if some texts were too long. If the model fails, the draft is built from the fallbacks: the button always works.
-export async function generateDraft(business: AdsBusiness, channel: AdChannel): Promise<GoogleDraft | MetaDraft> {
+// `prepared`: a demo answer written in advance (lib/demo-content.ts), used instead of the model
+export async function generateDraft(business: AdsBusiness, channel: AdChannel, prepared?: Record<string, unknown>): Promise<GoogleDraft | MetaDraft> {
   const slot = await reserveSlot(business.id, channel);
   const { faqs } = await siteData(business.id);
   const headline = business.site_published ? business.site_headline?.trim() : "";
@@ -56,9 +57,9 @@ export async function generateDraft(business: AdsBusiness, channel: AdChannel): 
   const system = channel === "google" ? GOOGLE_SYSTEM : META_SYSTEM;
   const build = (raw: Record<string, unknown> | null) => (channel === "google" ? buildGoogleDraft(raw, b) : buildMetaDraft(raw, b, f));
 
-  const first = await askJson(system, adPrompt(b, f), { maxTokens: 900, temperature: 0.5 });
+  const first = prepared ? { data: prepared, error: null } : await askJson(system, adPrompt(b, f), { maxTokens: 900, temperature: 0.5 });
   let raw = first.data;
-  if (raw && build(raw).overflow > 0) {
+  if (raw && !prepared && build(raw).overflow > 0) {
     const second = await askJson(system, adPrompt(b, f, tooLongTexts(raw, FIELDS[channel])), { maxTokens: 900, temperature: 0.4 });
     raw = mergeRaw(raw, second.data);
   }
