@@ -12,8 +12,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - scan du site ou saisie, voix, numéro, dashboard ; voir PROJET.md « Onboarding » ; référence reception.ai
 - 06 · Refaire le dashboard : leads, appels, mode avancé
   - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
-- 09 · Mail récap de la semaine
-  - appels, urgences, leads ; envoi programmé
 
 ## En cours
 
@@ -23,6 +21,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - déclenché par l'agent ; + transfert de l'appel si possible
 - 11 · Back de l'onboarding et du dashboard (API) (Claude)
   - scan du site, voix, agent ElevenLabs, numéros, fiche, horaires, FAQ, appels, leads, stats ; voir le contrat dans PROJET.md
+- 09 · Mail récap de la semaine (Claude)
+  - appels, urgences, leads ; envoi programmé
 
 ## Fait
 
