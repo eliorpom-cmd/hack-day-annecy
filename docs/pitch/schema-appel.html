@@ -1,0 +1,375 @@
+<title>Parcours d'un appel</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single reading column; each diagram sits on its own sheet, wide on desktop, scrollable on a phone.
+   Palette: bleu de travail (workwear navy) + jaune chantier, WhatsApp green only for the message. */
+:root {
+  --bg: #f3f5fa;
+  --sheet: #ffffff;
+  --ink: #14213d;
+  --muted: #5b6680;
+  --line: #c9d2e3;
+  --accent: #2346b8;
+  --accent-soft: #e3e9fa;
+  --on-accent: #ffffff;
+  --signal: #f2b705;
+  --on-signal: #14213d;
+  --wa: #1a9a4d;
+  --wa-soft: #dcf5e4;
+  --phase: #f6f8fc;
+  --phase-alt: #eef2f9;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1322; --sheet: #121c31; --ink: #e8edf7; --muted: #98a3bd; --line: #2b3b5e;
+    --accent: #7f9cff; --accent-soft: #1d2a4f; --on-accent: #0c1322; --signal: #f5c431; --on-signal: #14213d;
+    --wa: #3ccf78; --wa-soft: #11331f; --phase: #121c31; --phase-alt: #16223b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1322; --sheet: #121c31; --ink: #e8edf7; --muted: #98a3bd; --line: #2b3b5e;
+  --accent: #7f9cff; --accent-soft: #1d2a4f; --on-accent: #0c1322; --signal: #f5c431; --on-signal: #14213d;
+  --wa: #3ccf78; --wa-soft: #11331f; --phase: #121c31; --phase-alt: #16223b; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.55; }
+.wrap {
+  max-width: 1280px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 64px;
+  display: grid; gap: 56px;
+}
+header { display: grid; gap: 14px; max-width: 62ch; }
+.eyebrow { font: 600 12px/1 var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+h1 { font: 800 clamp(32px, 5vw, 56px)/1.02 var(--display); letter-spacing: -.02em; margin: 0; text-wrap: balance; }
+h1 mark { background: linear-gradient(transparent 62%, var(--signal) 62%); color: inherit; padding: 0 .05em; }
+.lede { font-size: 19px; color: var(--muted); margin: 0; }
+nav { display: flex; flex-wrap: wrap; gap: 8px; }
+nav a { font: 500 14px/1 var(--body); color: var(--ink); text-decoration: none; border: 1px solid var(--line); padding: 9px 14px; border-radius: 999px; }
+nav a:hover, nav a:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
+section { display: grid; gap: 20px; }
+.section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
+h2 { font: 700 clamp(24px, 3vw, 32px)/1.1 var(--display); margin: 0; letter-spacing: -.01em; }
+.section-head p { margin: 0; color: var(--muted); font-size: 15px; max-width: 60ch; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 14px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.legend i { display: inline-block; width: 28px; height: 0; border-top: 2px solid var(--ink); }
+.legend i.dash { border-top-style: dashed; border-color: var(--muted); }
+.legend i.todo { border-top: 3px dashed var(--signal); }
+.legend i.voice { border-top: 4px solid var(--accent); }
+
+/* Onboarding strip */
+.steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; list-style: none; margin: 0; padding: 0; counter-reset: s; }
+.steps li { counter-increment: s; background: var(--sheet); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: grid; gap: 4px; min-width: 0; }
+.steps li::before { content: "Étape " counter(s); font: 600 11px/1 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.steps b { font: 700 18px/1.2 var(--display); }
+.steps span { color: var(--muted); font-size: 14px; }
+@media (max-width: 760px) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.sheet { background: var(--sheet); border: 1px solid var(--line); border-radius: 18px; overflow-x: auto; padding: 12px; }
+.diagram { display: block; width: 100%; min-width: 980px; height: auto; }
+
+/* Pitch diagram */
+.box { fill: var(--sheet); stroke: var(--ink); stroke-width: 1.5; }
+.box.quiet { stroke: var(--line); fill: var(--phase); }
+.box.v2 { fill: none; stroke: var(--muted); stroke-dasharray: 6 5; }
+.box.agent { stroke: var(--accent); stroke-width: 2.5; }
+.band { fill: var(--accent); }
+.box.wa { stroke: var(--wa); stroke-width: 2; }
+.wa-band { fill: var(--wa); }
+.bubble { fill: var(--wa-soft); }
+.box.win { fill: var(--signal); stroke: none; }
+.decision { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+.flow { fill: none; stroke: var(--ink); stroke-width: 2; }
+.flow.v2 { stroke: var(--muted); stroke-dasharray: 5 5; }
+.head { fill: var(--ink); }
+.head-v2 { fill: var(--muted); }
+.k { font: 600 11px var(--body); letter-spacing: .1em; fill: var(--accent); }
+.k.muted { fill: var(--muted); }
+.t { font: 700 18px var(--display); fill: var(--ink); }
+.t.sm { font-size: 16px; }
+.t.inv { fill: var(--on-accent); font-size: 18px; }
+.t.win { fill: var(--on-signal); font-size: 15px; }
+.s { font: 400 13px var(--body); fill: var(--muted); }
+.s.ink { fill: var(--ink); }
+.s.inv { fill: var(--on-accent); opacity: .85; font-size: 12px; }
+.s.wa-h { fill: var(--sheet); font-weight: 600; font-size: 12px; }
+.s.wa-t { fill: var(--ink); font-size: 12.5px; }
+.s.win { fill: var(--on-signal); font-size: 13px; }
+.q { font: italic 400 13.5px var(--body); fill: var(--ink); }
+.dot { fill: var(--accent); }
+.lbl { font: 600 13px var(--body); fill: var(--accent); }
+.lbl-s { font: 400 12px var(--body); fill: var(--muted); }
+.dtext { font: 700 14.5px var(--display); fill: var(--ink); text-anchor: middle; }
+
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.fact { border-top: 3px solid var(--signal); padding-top: 12px; display: grid; gap: 2px; min-width: 0; }
+.fact b { font: 800 34px/1 var(--display); font-variant-numeric: tabular-nums; }
+.fact span { color: var(--muted); font-size: 15px; }
+@media (max-width: 640px) { .facts { grid-template-columns: 1fr; } }
+
+/* Tech diagram (generated by schema.mjs) */
+.phase { fill: var(--phase); }
+.phase.alt { fill: var(--phase-alt); }
+.phase-label { font: 600 11px var(--body); letter-spacing: .08em; text-transform: uppercase; fill: var(--muted); }
+.lifeline { stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 4 5; }
+.lane-head { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+.lane-head.ours { fill: var(--accent); }
+.lane-name { font: 700 16px var(--display); fill: var(--ink); text-anchor: middle; }
+.lane-sub { font: 400 11.5px var(--mono); fill: var(--muted); text-anchor: middle; }
+.lane-name.ours, .lane-sub.ours { fill: var(--on-accent); }
+.msg { stroke: var(--ink); stroke-width: 1.5; }
+.msg.voice { stroke: var(--accent); stroke-width: 4; }
+.msg.todo { stroke: var(--signal); stroke-width: 2.5; stroke-dasharray: 7 5; }
+.msg-label { font: 400 12px var(--mono); fill: var(--ink); text-anchor: middle; paint-order: stroke; stroke: var(--phase); stroke-width: 5px; stroke-linejoin: round; }
+.msg-label.todo { font-weight: 500; }
+.note { fill: var(--sheet); stroke: var(--accent); stroke-width: 1.2; }
+.note-text { font: 400 12px var(--mono); fill: var(--ink); text-anchor: middle; }
+.note-muted { font: italic 400 12px var(--body); fill: var(--muted); text-anchor: middle; }
+.h-ink { fill: var(--ink); }
+.h-todo { fill: var(--signal); }
+.h-voice { fill: var(--accent); }
+
+footer { color: var(--muted); font-size: 13px; display: grid; gap: 4px; }
+footer code { font: 400 12px var(--mono); }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="p-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0 0 L10 5 L0 10 z"/></marker>
+    <marker id="p-head-v2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-v2" d="M0 0 L10 5 L0 10 z"/></marker>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="h-ink" d="M0 0 L10 5 L0 10 z"/></marker>
+    <marker id="head-todo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="h-todo" d="M0 0 L10 5 L0 10 z"/></marker>
+    <marker id="head-voice" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path class="h-voice" d="M0 0 L10 5 L0 10 z"/></marker>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Hack Day Annecy · le répondeur de l'artisan</div>
+    <h1>Un client appelle. <mark>Personne ne le perd.</mark></h1>
+    <p class="lede">Le portable de l'artisan sonne d'abord. S'il est sur un chantier, son assistante IA décroche, répond avec ses infos et ses prix, puis lui envoie le client sur WhatsApp.</p>
+    <nav aria-label="Sections">
+      <a href="#onboarding">Avant le premier appel</a>
+      <a href="#metier">Vue métier</a>
+      <a href="#technique">Vue technique</a>
+    </nav>
+  </header>
+
+  <section id="onboarding" aria-labelledby="onb-title">
+    <div class="section-head">
+      <h2 id="onb-title">Avant le premier appel : 5 minutes</h2>
+      <p>L'artisan configure tout depuis son téléphone. Sans agenda, l'assistante prend le contact ; avec, elle prendra le rendez-vous (v2).</p>
+    </div>
+    <ol class="steps">
+      <li><b>Votre activité</b><span>On scanne votre site, ou vous remplissez la fiche : métier, zone, horaires, prix.</span></li>
+      <li><b>Votre voix</b><span>Une voix de la bibliothèque, ou la vôtre, clonée.</span></li>
+      <li><b>Votre numéro</b><span>Un numéro local (04…) qui fait sonner vers votre portable puis l'assistante.</span></li>
+      <li><b>C'est prêt</b><span>Appelez-le pour tester, puis donnez-le à vos clients.</span></li>
+    </ol>
+  </section>
+
+  <section id="metier" aria-labelledby="metier-title">
+    <div class="section-head">
+      <h2 id="metier-title">Vue métier : quand un client appelle</h2>
+      <div class="legend"><span><i></i>v1, la démo</span><span><i class="dash"></i>v2, bientôt</span></div>
+    </div>
+    <div class="sheet">
+      <svg class="diagram" viewBox="0 72 1240 556" role="img" aria-labelledby="metier-svg-title">
+        <title id="metier-svg-title">Un client appelle ; pendant les horaires le portable de l'artisan sonne 15 secondes, sinon l'assistante IA répond ; après l'appel l'artisan reçoit un WhatsApp, une fiche client et un mail le lundi.</title>
+
+        <!-- arrows first, boxes on top -->
+        <path class="flow" d="M234 345 H248" marker-end="url(#p-head)"/>
+        <path class="flow" d="M320 285 V140 H478" marker-end="url(#p-head)"/>
+        <path class="flow" d="M390 345 H478" marker-end="url(#p-head)"/>
+        <path class="flow" d="M720 140 H778" marker-end="url(#p-head)"/>
+        <path class="flow" d="M600 190 V258" marker-end="url(#p-head)"/>
+        <path class="flow" d="M780 390 H810 M810 299 V513 M810 299 H838 M810 424 H838 M810 513 H838"/>
+        <path class="flow" d="M836 299 H838" marker-end="url(#p-head)"/>
+        <path class="flow" d="M836 424 H838" marker-end="url(#p-head)"/>
+        <path class="flow" d="M836 513 H838" marker-end="url(#p-head)"/>
+        <path class="flow" d="M1060 299 H1083" marker-end="url(#p-head)"/>
+        <path class="flow v2" d="M630 520 V548" marker-end="url(#p-head-v2)"/>
+
+        <text class="lbl" x="330" y="214">Oui</text>
+        <text class="lbl" x="402" y="335">Non</text>
+        <text class="lbl-s" x="398" y="364">soir, week-end</text>
+        <text class="lbl-s" x="750" y="130" text-anchor="middle">décroché</text>
+        <text class="lbl-s" x="612" y="222">pas de réponse</text>
+        <text class="lbl-s" x="612" y="238">ou refus</text>
+
+        <!-- client -->
+        <rect class="box" x="24" y="270" width="210" height="150" rx="14"/>
+        <text class="k" x="42" y="296">UN CLIENT APPELLE</text>
+        <text class="t" x="42" y="322">Mme Durand</text>
+        <text class="q" x="42" y="350">« J'aimerais un devis</text>
+        <text class="q" x="42" y="368">pour changer mon</text>
+        <text class="q" x="42" y="386">chauffe-eau. »</text>
+        <text class="s" x="42" y="408">mardi, 10 h 12</text>
+
+        <!-- decision -->
+        <path class="decision" d="M320 285 L390 345 L320 405 L250 345 Z"/>
+        <text class="dtext" x="320" y="341">Pendant vos</text>
+        <text class="dtext" x="320" y="359">horaires ?</text>
+
+        <!-- portable -->
+        <rect class="box" x="480" y="90" width="240" height="100" rx="14"/>
+        <text class="k" x="500" y="116">PENDANT VOS HORAIRES</text>
+        <text class="t" x="500" y="143">Votre portable sonne</text>
+        <text class="s" x="500" y="166">15 secondes, réglable</text>
+
+        <!-- artisan picks up -->
+        <rect class="box quiet" x="780" y="90" width="200" height="100" rx="14"/>
+        <text class="t sm" x="800" y="130">Vous parlez</text>
+        <text class="t sm" x="800" y="151">au client</text>
+        <text class="s" x="800" y="174">comme d'habitude</text>
+
+        <!-- v2 screening -->
+        <rect class="box v2" x="1005" y="90" width="215" height="100" rx="14"/>
+        <text class="k muted" x="1023" y="114">BIENTÔT · V2</text>
+        <text class="t sm" x="1023" y="138">Filtrage d'appel</text>
+        <text class="s" x="1023" y="160">L'assistante vous annonce</text>
+        <text class="s" x="1023" y="177">qui appelle, vous choisissez.</text>
+
+        <!-- agent -->
+        <rect class="box agent" x="480" y="260" width="300" height="260" rx="14"/>
+        <path class="band" d="M494 260 H766 A14 14 0 0 1 780 274 V318 H480 V274 A14 14 0 0 1 494 260 Z"/>
+        <text class="t inv" x="500" y="287">Votre assistante IA répond</text>
+        <text class="s inv" x="500" y="307">avec la voix que vous avez choisie</text>
+        <circle class="dot" cx="503" cy="346" r="3.5"/><text class="s ink" x="516" y="350">Répond avec vos infos et vos prix</text>
+        <circle class="dot" cx="503" cy="374" r="3.5"/><text class="s ink" x="516" y="378">Sinon une fourchette, « sur devis »</text>
+        <circle class="dot" cx="503" cy="402" r="3.5"/><text class="s ink" x="516" y="406">Jamais de prix inventé</text>
+        <circle class="dot" cx="503" cy="430" r="3.5"/><text class="s ink" x="516" y="434">Note le nom, le numéro, l'adresse,</text>
+        <text class="s ink" x="516" y="452">le besoin et l'urgence</text>
+        <text class="s" x="500" y="500">24 h/24 · environ 2 minutes</text>
+
+        <!-- v2 agenda -->
+        <rect class="box v2" x="480" y="550" width="300" height="60" rx="14"/>
+        <text class="k muted" x="500" y="573">BIENTÔT · V2</text>
+        <text class="s ink" x="500" y="595">Agenda Google : elle prend le rendez-vous</text>
+
+        <!-- outputs -->
+        <text class="k" x="840" y="220">APRÈS L'APPEL, VOUS RECEVEZ</text>
+        <rect class="box wa" x="840" y="232" width="220" height="134" rx="14"/>
+        <path class="wa-band" d="M854 232 H1046 A14 14 0 0 1 1060 246 V262 H840 V246 A14 14 0 0 1 854 232 Z"/>
+        <text class="s wa-h" x="856" y="252">WhatsApp · tout de suite</text>
+        <rect class="bubble" x="852" y="270" width="196" height="86" rx="10"/>
+        <text class="s wa-t" x="864" y="290" font-weight="600">Nouveau client : Mme Durand</text>
+        <text class="s wa-t" x="864" y="308">Devis chauffe-eau 200 L</text>
+        <text class="s wa-t" x="864" y="326">Annecy · pas urgent</text>
+        <text class="s wa-t" x="864" y="344">Rappeler : 06 12 34 56 78</text>
+
+        <rect class="box" x="840" y="384" width="220" height="80" rx="14"/>
+        <text class="k" x="856" y="406">TABLEAU DE BORD</text>
+        <text class="t sm" x="856" y="429">La fiche client</text>
+        <text class="s" x="856" y="450">nouveau → rappelé → devis</text>
+
+        <rect class="box" x="840" y="482" width="220" height="62" rx="14"/>
+        <text class="t sm" x="856" y="508">Mail récap du lundi</text>
+        <text class="s" x="856" y="529">appels, clients, urgences</text>
+
+        <!-- outcome -->
+        <rect class="box win" x="1085" y="250" width="135" height="100" rx="14"/>
+        <text class="t win" x="1100" y="278">Vous rappelez,</text>
+        <text class="s win" x="1100" y="300">faites le devis,</text>
+        <text class="s win" x="1100" y="318">gagnez le</text>
+        <text class="s win" x="1100" y="336">chantier.</text>
+      </svg>
+    </div>
+    <div class="facts">
+      <div class="fact"><b>15 s</b><span>votre portable sonne d'abord, l'assistante ne prend que les appels que vous ratez</span></div>
+      <div class="fact"><b>0</b><span>prix inventé : prix exact, fourchette « sur devis », ou « l'artisan vous rappelle »</span></div>
+      <div class="fact"><b>1</b><span>WhatsApp par appel, avec le numéro à rappeler ; les urgences arrivent en tête</span></div>
+    </div>
+  </section>
+
+  <section id="technique" aria-labelledby="tech-title-h">
+    <div class="section-head">
+      <h2 id="tech-title-h">Vue technique : qui appelle quoi</h2>
+      <div class="legend"><span><i></i>codé</span><span><i class="voice"></i>conversation vocale</span><span><i class="todo"></i>à faire</span></div>
+    </div>
+    <div class="sheet">
+<!-- TECH:start -->
+<svg class="diagram tech" viewBox="0 0 1240 800" role="img" aria-labelledby="tech-title">
+<title id="tech-title">Séquence technique d'un appel : Twilio, Worker Cloudflare, ElevenLabs, D1, artisan</title>
+<rect class="phase" x="0" y="92" width="1240" height="140"/>
+<text class="phase-label" x="12" y="110">1 · Appel entrant</text>
+<rect class="phase alt" x="0" y="232" width="1240" height="160"/>
+<text class="phase-label" x="12" y="250">2 · Cascade, pendant les horaires</text>
+<rect class="phase" x="0" y="392" width="1240" height="140"/>
+<text class="phase-label" x="12" y="410">3 · L'agent répond</text>
+<rect class="phase alt" x="0" y="532" width="1240" height="160"/>
+<text class="phase-label" x="12" y="550">4 · Après l'appel</text>
+<rect class="phase" x="0" y="692" width="1240" height="98"/>
+<text class="phase-label" x="12" y="710">5 · Ensuite</text>
+<line class="lifeline" x1="90" y1="80" x2="90" y2="792"/>
+<rect class="lane-head" x="15" y="18" width="150" height="58" rx="10"/>
+<text class="lane-name" x="90" y="43">Client</text>
+<text class="lane-sub" x="90" y="62">l'appelant</text>
+<line class="lifeline" x1="300" y1="80" x2="300" y2="792"/>
+<rect class="lane-head" x="225" y="18" width="150" height="58" rx="10"/>
+<text class="lane-name" x="300" y="43">Twilio</text>
+<text class="lane-sub" x="300" y="62">numéro +33</text>
+<line class="lifeline" x1="560" y1="80" x2="560" y2="792"/>
+<rect class="lane-head ours" x="460" y="18" width="200" height="58" rx="10"/>
+<text class="lane-name ours" x="560" y="43">Worker</text>
+<text class="lane-sub ours" x="560" y="62">Cloudflare · web/</text>
+<line class="lifeline" x1="820" y1="80" x2="820" y2="792"/>
+<rect class="lane-head" x="745" y="18" width="150" height="58" rx="10"/>
+<text class="lane-name" x="820" y="43">ElevenLabs</text>
+<text class="lane-sub" x="820" y="62">agent vocal</text>
+<line class="lifeline" x1="1000" y1="80" x2="1000" y2="792"/>
+<rect class="lane-head" x="925" y="18" width="150" height="58" rx="10"/>
+<text class="lane-name" x="1000" y="43">D1</text>
+<text class="lane-sub" x="1000" y="62">base SQLite</text>
+<line class="lifeline" x1="1160" y1="80" x2="1160" y2="792"/>
+<rect class="lane-head" x="1085" y="18" width="150" height="58" rx="10"/>
+<text class="lane-name" x="1160" y="43">Artisan</text>
+<text class="lane-sub" x="1160" y="62">portable + WhatsApp</text>
+<rect class="note" x="435" y="246" width="250" height="28" rx="6"/>
+<text class="note-text" x="560" y="265">isWithinHours() · heure de Paris</text>
+<text class="note-muted" x="860" y="679">aujourd'hui : SMS seulement si urgence · tâche 15</text>
+<line class="msg" x1="90" y1="142" x2="296" y2="142" marker-end="url(#head)"/>
+<text class="msg-label" x="195" y="134">compose le numéro de l'artisan</text>
+<line class="msg" x1="300" y1="172" x2="556" y2="172" marker-end="url(#head)"/>
+<text class="msg-label" x="430" y="164">POST /api/twilio/voice?token=…</text>
+<line class="msg" x1="560" y1="212" x2="996" y2="212" marker-end="url(#head)"/>
+<text class="msg-label" x="780" y="204">SELECT businesses, business_hours · INSERT calls</text>
+<line class="msg" x1="560" y1="300" x2="304" y2="300" marker-end="url(#head)"/>
+<text class="msg-label" x="430" y="292">TwiML &lt;Dial timeout=15&gt; vers le portable</text>
+<line class="msg" x1="300" y1="336" x2="1156" y2="336" marker-end="url(#head)"/>
+<text class="msg-label" x="730" y="328">fait sonner le portable 15 s</text>
+<line class="msg" x1="300" y1="372" x2="556" y2="372" marker-end="url(#head)"/>
+<text class="msg-label" x="430" y="364">POST /api/twilio/fallback · no-answer / busy</text>
+<line class="msg" x1="560" y1="430" x2="816" y2="430" marker-end="url(#head)"/>
+<text class="msg-label" x="690" y="422">register_call(agent_id) · direct si hors horaires</text>
+<line class="msg" x1="560" y1="466" x2="304" y2="466" marker-end="url(#head)"/>
+<text class="msg-label" x="430" y="458">TwiML qui relie l'appel à l'agent</text>
+<line class="msg voice" x1="94" y1="508" x2="816" y2="508" marker-end="url(#head-voice)" marker-start="url(#head-voice)"/>
+<text class="msg-label" x="455" y="500">conversation en direct : FAQ, prix, nom, numéro, adresse, besoin, urgence</text>
+<line class="msg" x1="820" y1="572" x2="564" y2="572" marker-end="url(#head)"/>
+<text class="msg-label" x="690" y="564">POST /api/elevenlabs/post-call · signé HMAC · résumé + données</text>
+<line class="msg" x1="560" y1="610" x2="996" y2="610" marker-end="url(#head)"/>
+<text class="msg-label" x="780" y="602">UPDATE calls · INSERT leads</text>
+<line class="msg todo" x1="560" y1="650" x2="1156" y2="650" marker-end="url(#head-todo)"/>
+<text class="msg-label todo" x="860" y="642">WhatsApp récap à chaque appel (via Twilio)</text>
+<line class="msg" x1="560" y1="730" x2="1156" y2="730" marker-end="url(#head)"/>
+<text class="msg-label" x="860" y="722">cron du lundi : mail récap (Resend)</text>
+<line class="msg" x1="1160" y1="766" x2="564" y2="766" marker-end="url(#head)"/>
+<text class="msg-label" x="860" y="758">tableau de bord : GET /api/calls, /api/leads, /api/stats</text>
+</svg>
+<!-- TECH:end -->
+    </div>
+  </section>
+
+  <footer>
+    <span>Routes du contrat d'API de <code>PROJET.md</code>, code dans <code>web/src/pages/api/twilio/</code> et <code>web/src/pages/api/elevenlabs/</code>.</span>
+    <span>Vue technique générée par <code>docs/pitch/schema.mjs</code>, qui écrit aussi <code>schema-appel.excalidraw</code>. Mis à jour le 29 octobre 2026.</span>
+  </footer>
+</div>
