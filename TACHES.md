@@ -12,6 +12,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - scan du site ou saisie, voix, numéro, dashboard ; voir PROJET.md « Onboarding » ; référence reception.ai
 - 06 · Refaire le dashboard : leads, appels, mode avancé
   - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
+- 12 · Schéma du parcours d'un appel (vue pitch + vue technique)
+  - page web pour le pitch + docs/schema-appel.excalidraw pour l'équipe
 
 ## En cours
 
