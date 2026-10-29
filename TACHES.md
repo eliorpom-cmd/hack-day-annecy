@@ -20,8 +20,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - horaires, documentation et prix, voix, message d'accueil, durée de sonnerie ; reprend les composants de la configuration
 - 22 · Régler le prompt du répondeur sur le scénario de démo
   - après le script de Maxime (tâche 13) ; tester au téléphone
-- 23 · Landing page du produit
-  - web/src/pages/index.astro : pitch, comment ça marche, configuration, Visibilité, essai gratuit et démo ; COPY.md + DESIGN.md
 
 ## En cours
 
@@ -31,6 +29,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - scénario demande de devis : un appelle, un joue l'artisan
 - 14 · Slides du pitch (~5 min) (Maxime)
   - deck web exportable PDF/PPTX
+- 23 · Landing page du produit (Claude)
+  - web/src/pages/index.astro : pitch, comment ça marche, configuration, Visibilité, essai gratuit et démo ; COPY.md + DESIGN.md
 
 ## Fait
 
