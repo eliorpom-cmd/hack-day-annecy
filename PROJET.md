@@ -23,16 +23,18 @@ Specs à jour (source de vérité, écrite par l'équipe) : https://docs.google.
 
 ## Stack
 
-Code : `app/`, copié le 29/10 du MVP Lovable de Mathieu (dépôt `Matthieu1203/your-virtual-agent`). On ne resynchronise pas avec Lovable : on code ici avec nos agents.
+Décision du 29/10 (15 h) : **on quitte Lovable / Supabase** et on passe sur la stack Cloudflare qu'Elior maîtrise déjà (Printomatic, print-on-my-desk, video.byelior.com).
 
-- Front : TanStack Start (React 19), Tailwind 4, shadcn/ui
-- Back : fonctions serveur TanStack (`app/src/lib/**/*.server.ts`), routes publiques dans `app/src/routes/api/public/` (webhooks Twilio, receptionist, paiements)
-- IA : agents vocaux ElevenLabs (`app/src/lib/elevenlabs/`), prompt de l'agent dans `app/src/lib/receptionist/prompt.server.ts`, scan du site dans `app/src/lib/crawler/`
-- Téléphonie : Twilio (`app/src/lib/telephony/`) ; pour l'instant numéros américains seulement
-- Agenda : Google Calendar (`app/src/lib/calendar/`)
-- Paiement : Stripe
-- Données : Supabase via Lovable Cloud (`app/supabase/migrations/`) ; clés dans `app/.env`, jamais commité (à récupérer auprès d'Elior ou Mathieu)
-- Hébergement : build Cloudflare (nitro / wrangler)
+- **Back** : un Cloudflare Worker en TypeScript, `wrangler`
+- **Données** : D1 (SQLite) avec migrations `wrangler d1 migrations`
+- **Tâches programmées** : Cron Triggers du Worker (mail récap du lundi)
+- **Front** : React + Vite + Tailwind + shadcn/ui, servi par le même Worker (static assets). On reprend les composants `ui/` du MVP.
+- **Tests** : `node --test`
+- **IA vocale** : ElevenLabs (agents), téléphonie Twilio, agenda Google Calendar : on reprend la logique du MVP (`app/src/lib/elevenlabs`, `telephony`, `receptionist`, `crawler`, `calendar`, ~1 850 lignes, surtout des appels `fetch`, facile à porter).
+- **À remplacer** : l'auth Lovable Cloud, la base Supabase (20 tables → D1), la passerelle IA de Lovable utilisée par le scan du site.
+- **Secrets** : `wrangler secret put` / `.dev.vars`, jamais commités.
+
+`app/` (le MVP Lovable importé) sert de **référence** pendant le portage, puis il partira.
 
 ## Contrat d'API
 
@@ -43,6 +45,12 @@ Code : `app/`, copié le 29/10 du MVP Lovable de Mathieu (dépôt `Matthieu1203/
 Types partagés :
 
 ## Ownership
+
+| Qui | Rôle |
+|---|---|
+| Elior | Design UI/UX (web et mobile), tests |
+| Maxime | Product manager : schémas Excalidraw du fonctionnement, slides du pitch |
+| Mathieu | Entretien avec un plombier (user interview), puis connecteurs : ElevenLabs, Twilio, Google Ads, Meta Ads, réseaux sociaux |
 
 | Dossier | Responsable |
 |---|---|
