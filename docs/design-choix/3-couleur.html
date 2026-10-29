@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Étape 3 · Couleur</title>
+<title>Étape 3 · Couleurs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
@@ -40,10 +40,13 @@
   .name{font-weight:700}
 </style></head><body>
 <style>
- .btn{background:var(--primary)!important} .nav{color:var(--primary)!important} .act svg{color:var(--primary)} .row{gap:22px} .label{max-width:320px;min-height:56px}
- .sw{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted)} .sw i{width:16px;height:16px;border-radius:4px;display:inline-block}
-</style><header><h1>Étape 3 sur 6 · La couleur principale</h1>
-<p>Une seule couleur de marque, utilisée pour l'action (bouton Rappeler, retour, icônes des raccourcis). Le rouge (urgence) et l'orange (urgent) ne changent pas. Tout le reste est noir, gris et blanc. Réponds A, B, C ou D.</p></header><div class="row"><div class="opt A" style="--primary:#111111"><div class="label">A · Noir<span class="sw"><i style="background:#111111"></i>#111111 · aucune couleur de marque : le noir pour l'action, le rouge pour l'urgence</span></div>
+ .btn{background:var(--primary)!important;color:var(--onprimary)!important}
+ .nav{color:var(--ink)!important} .h1,.name{color:var(--ink)} .act svg,.line .ic svg{color:var(--ink)}
+ .phone{background:var(--surf)!important} .bar{background:var(--surf)!important} .line .ic{background:var(--tint)!important}
+ .row{gap:22px} .label{max-width:300px;min-height:72px}
+ .sw{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted);margin-top:4px} .sw i{width:18px;height:18px;border-radius:5px;display:inline-block;border:1px solid rgba(0,0,0,.08)}
+</style><header><h1>Étape 3 sur 6 · Les couleurs (2e essai)</h1>
+<p>Les applis pros de l'étude posent presque toutes un marine très foncé comme base, et une couleur vive pour l'action. Chaque option est une paire : la base (titres, icônes, retour) et l'action (le bouton Rappeler). Le rouge urgence et l'orange urgent ne changent pas. Réponds A, B, C ou D, ou un mélange.</p></header><div class="row"><div class="opt A" style="--ink:#0b2545;--primary:#0a8fd6;--onprimary:#ffffff;--surf:#f1f4f8;--tint:#e6eef6"><div class="label">A · Marine + cyan<span class="sw"><i style="background:#0b2545"></i>base #0b2545 <i style="background:#0a8fd6"></i>action #0a8fd6</span><span>le duo des applis pros (Doctolib, Housecall Pro) : sérieux, rassurant</span></div>
 <div class="phone"><div class="scroll">
   <div class="nav">‹ Appels</div>
   <div class="chip red">● Urgence</div>
@@ -56,7 +59,7 @@
   </div>
   <div class="card"><div class="line"><div class="grow">Contenu de la conversation</div><span class="chev">›</span></div></div>
 </div><div class="bar"><button class="btn"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button></div></div>
-</div><div class="opt A" style="--primary:#1f3a8a"><div class="label">B · Bleu nuit<span class="sw"><i style="background:#1f3a8a"></i>#1f3a8a · sérieux, rassurant, se distingue bien du rouge</span></div>
+</div><div class="opt A" style="--ink:#141414;--primary:#ffc400;--onprimary:#141414;--surf:#f3f2ee;--tint:#efece2"><div class="label">B · Noir + jaune chantier<span class="sw"><i style="background:#141414"></i>base #141414 <i style="background:#ffc400"></i>action #ffc400</span><span>les couleurs de l'outillage (DeWalt, Stanley) : se voit de loin, très « métier »</span></div>
 <div class="phone"><div class="scroll">
   <div class="nav">‹ Appels</div>
   <div class="chip red">● Urgence</div>
@@ -69,7 +72,7 @@
   </div>
   <div class="card"><div class="line"><div class="grow">Contenu de la conversation</div><span class="chev">›</span></div></div>
 </div><div class="bar"><button class="btn"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button></div></div>
-</div><div class="opt A" style="--primary:#0f5c4d"><div class="label">C · Vert sapin<span class="sw"><i style="background:#0f5c4d"></i>#0f5c4d · calme, évoque « réglé », se distingue du rouge</span></div>
+</div><div class="opt A" style="--ink:#06343a;--primary:#00838f;--onprimary:#ffffff;--surf:#f0f4f4;--tint:#e2eeee"><div class="label">C · Pétrole<span class="sw"><i style="background:#06343a"></i>base #06343a <i style="background:#00838f"></i>action #00838f</span><span>teinte des outils pros (Makita) : calme, se distingue de toutes les applis</span></div>
 <div class="phone"><div class="scroll">
   <div class="nav">‹ Appels</div>
   <div class="chip red">● Urgence</div>
@@ -82,7 +85,7 @@
   </div>
   <div class="card"><div class="line"><div class="grow">Contenu de la conversation</div><span class="chev">›</span></div></div>
 </div><div class="bar"><button class="btn"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button></div></div>
-</div><div class="opt A" style="--primary:#2457c5"><div class="label">D · Bleu de travail<span class="sw"><i style="background:#2457c5"></i>#2457c5 · plus vif, la couleur des bleus de chantier</span></div>
+</div><div class="opt A" style="--ink:#0b2545;--primary:#2e9e4f;--onprimary:#ffffff;--surf:#f1f4f6;--tint:#e5eef0"><div class="label">D · Marine + vert<span class="sw"><i style="background:#0b2545"></i>base #0b2545 <i style="background:#2e9e4f"></i>action #2e9e4f</span><span>le vert de « c'est réglé » (Jobber) sur une base marine</span></div>
 <div class="phone"><div class="scroll">
   <div class="nav">‹ Appels</div>
   <div class="chip red">● Urgence</div>
