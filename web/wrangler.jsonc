@@ -1,17 +1,18 @@
 {
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"name": "hack-day-annecy",
+	"account_id": "0bcd1b213f9a7a11ff83178c5ebd69d2",
 	"compatibility_date": "2026-10-23",
 	"compatibility_flags": ["global_fetch_strictly_public"],
 	// Our own entry: Astro's fetch handler + the weekly recap cron
 	"main": "./src/worker.ts",
 	"assets": { "directory": "./dist", "binding": "ASSETS" },
-	// database_id is filled in by wrangler on first deploy (auto-provisioning)
-	"d1_databases": [{ "binding": "DB", "database_name": "hack-day-annecy", "migrations_dir": "migrations" }],
+	"d1_databases": [{ "binding": "DB", "database_name": "hack-day-annecy", "database_id": "9d9bd66b-3538-424a-82c5-d77aa6a7767d", "migrations_dir": "migrations" }],
 	// Monday 08:00 Paris (07:00 UTC in winter): weekly recap e-mail
 	// Workers AI: website scan extraction (remote even in local dev)
 	"ai": { "binding": "AI", "remote": true },
 	"triggers": { "crons": ["0 7 * * 1"] },
-	"vars": { "APP_URL": "http://localhost:4321" },
+	// Production address; local dev overrides it in .dev.vars
+	"vars": { "APP_URL": "https://hack-day-annecy.eliorpom-0bc.workers.dev" },
 	"observability": { "enabled": true }
 }
