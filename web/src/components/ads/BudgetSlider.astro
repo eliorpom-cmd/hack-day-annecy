@@ -1,0 +1,48 @@
+---
+// Daily budget slider (5 to 30 € a day). Shows only the monthly total: no estimate of clicks or calls.
+import HubIcon from "../hub/HubIcon.astro";
+import { BUDGET, monthlyTotal } from "../../lib/ads";
+---
+<section class="flex flex-col gap-[10px]" id="ads-budget" data-min={BUDGET.min} data-max={BUDGET.max}>
+  <h2 class="font-bold">Budget</h2>
+  <div class="panel">
+    <div class="row">
+      <span class="icon-tile"><HubIcon name="euro" size={18} class="text-ink" /></span>
+      <label for="ads-daily" class="flex-1 text-small text-muted">Par jour</label>
+      <span class="font-bold" data-daily>{BUDGET.initial} €</span>
+    </div>
+    <div class="px-[14px] pb-3">
+      <input id="ads-daily" type="range" min={BUDGET.min} max={BUDGET.max} step={BUDGET.step} value={BUDGET.initial}
+             class="budget-range w-full" aria-describedby="ads-monthly" />
+      <div class="flex justify-between text-small text-muted"><span>{BUDGET.min} €</span><span>{BUDGET.max} €</span></div>
+    </div>
+    <div class="row">
+      <p id="ads-monthly" class="flex flex-col" aria-live="polite">
+        <span class="text-title font-bold" data-monthly>{monthlyTotal(BUDGET.initial)} € par mois</span>
+        <span class="mt-1 text-small text-muted">Total sur 30 jours.</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .budget-range { height: 48px; accent-color: var(--color-ink); cursor: pointer; }
+</style>
+
+<script>
+  // Updates the daily and monthly amounts; remembers the choice in this browser only
+  const box = document.getElementById("ads-budget");
+  const input = box?.querySelector<HTMLInputElement>("input[type=range]");
+  if (box && input) {
+    const min = Number(box.dataset.min), max = Number(box.dataset.max);
+    const show = () => {
+      const daily = Math.min(max, Math.max(min, Math.round(Number(input.value))));
+      box.querySelector("[data-daily]")!.textContent = `${daily} €`;
+      box.querySelector("[data-monthly]")!.textContent = `${daily * 30} € par mois`;
+      try { localStorage.setItem("ads-daily", String(daily)); } catch { /* storage blocked: not needed */ }
+    };
+    try { const saved = localStorage.getItem("ads-daily"); if (saved) input.value = saved; } catch { /* ignore */ }
+    input.addEventListener("input", show);
+    show();
+  }
+</script>
