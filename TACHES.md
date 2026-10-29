@@ -31,8 +31,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - scénario demande de devis : un appelle, un joue l'artisan
 - 14 · Slides du pitch (~5 min) (Maxime)
   - deck web exportable PDF/PPTX
-- 23 · Landing page du produit (Claude)
-  - web/src/pages/index.astro : pitch, comment ça marche, configuration, Visibilité, essai gratuit et démo ; COPY.md + DESIGN.md
 
 ## Fait
 
@@ -88,3 +86,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - Fait : liste + appel côte à côte sur ordinateur, barre latérale (Appels, Visibilité, Réglages), chiffres de la semaine ; mobile inchangé
 - 29 · Hub Visibilité + site web généré (Claude)
   - Fait : /app/visibilite : « Créer mon site » → /site/<slug> public (titre écrit par l'IA, tarifs de la documentation seulement) ; Google, réseaux, pubs en « Bientôt »
+- 23 · Landing page du produit (Claude)
+  - web/src/pages/index.astro : pitch, comment ça marche, configuration, Visibilité, essai gratuit et démo ; COPY.md + DESIGN.md
+  - Fait : web/src/pages/index.astro + components/landing/ : hero, comment ça marche, faits, configuration, visibilité ; animations GSAP
