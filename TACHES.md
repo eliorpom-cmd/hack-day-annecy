@@ -27,8 +27,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - deck web exportable PDF/PPTX
 - 30 · Fiche Google : j'ai une fiche / je n'en ai pas (démo) (Mathieu)
   - Choix en haut de la page Fiche Google ; « j'ai une fiche » charge 3 s puis montre la fiche Le plombier annecy et ses derniers avis, avec une réponse pré-remplie à envoyer en un clic.
-- 31 · Publicités : Google Ads seul, aperçu Google Maps, Lancer la campagne (Mathieu)
-  - Retirer Facebook/Instagram de la page Publicités ; expliquer en 3 étapes ; aperçu façon Google Maps de la recherche « plombier Annecy » ; budget puis bouton « Lancer la campagne » (démo).
 
 ## Fait
 
@@ -96,3 +94,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 - 26 · Garder son numéro : renvoi d'appel vers le répondeur (Claude)
   - étape Votre numéro : code de renvoi sur non-réponse / refus à composer (**61*, **67*) vers le numéro du répondeur ; l'artisan ne change rien sur Google ; un appel renvoyé va direct au répondeur
   - Fait : Commit 96d4f45 (config v2) : migrations 0010-0011, lib/forwarding.ts, lib/interview*.ts, lib/telephony/routing.ts, /api/onboarding/questions
+- 31 · Publicités : Google Ads seul, aperçu Google Maps, Lancer la campagne (Mathieu)
+  - Retirer Facebook/Instagram de la page Publicités ; expliquer en 3 étapes ; aperçu façon Google Maps de la recherche « plombier Annecy » ; budget puis bouton « Lancer la campagne » (démo).
+  - Fait : web/src/pages/app/publicites.astro refaite : Google seul (Facebook/Instagram retirés), 3 étapes, aperçu Google Maps (components/ads/MapsPreview.astro), budget + « Lancer la campagne » (démo, rien n'est envoyé à Google). MetaPreview supprimé ; le back sait encore écrire des annonces Meta.
