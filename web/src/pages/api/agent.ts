@@ -31,13 +31,17 @@ export const POST: APIRoute = handle(async ({ locals }) => {
   if (!secret("ELEVENLABS_API_KEY"))
     return fail(503, "elevenlabs_not_configured", "La clé ElevenLabs n'est pas configurée : ajoutez ELEVENLABS_API_KEY dans web/.dev.vars. Le prompt ci-joint est celui qui sera envoyé.",
       { prompt, first_message: firstMessage(b) });
-  const payload = buildAgentPayload({ business: b, prompt, voiceId: b.voice_id, dataCollection: DATA_COLLECTION });
+  let payload = buildAgentPayload({ business: b, prompt, voiceId: b.voice_id, dataCollection: DATA_COLLECTION });
+  // If ElevenLabs refuses the end_call tool (400/422), the agent is still saved, without it
+  const withoutEndCall = () => buildAgentPayload({ business: b, prompt, voiceId: b.voice_id, dataCollection: DATA_COLLECTION, withEndCall: false });
+  const refused = (e: unknown) => e instanceof HttpError && [400, 422].includes(Number(e.extra.upstream_status));
 
   let agentId = b.elevenlabs_agent_id;
   let created = false;
   if (agentId) {
+    const patch = (body: unknown) => elRequest(`/v1/convai/agents/${encodeURIComponent(agentId!)}`, { method: "PATCH", body, timeoutMs: 30000 });
     try {
-      await elRequest(`/v1/convai/agents/${encodeURIComponent(agentId)}`, { method: "PATCH", body: payload, timeoutMs: 30000 });
+      await patch(payload).catch(async (e) => { if (!refused(e)) throw e; payload = withoutEndCall(); await patch(payload); });
     } catch (e) {
       // Agent deleted on the ElevenLabs side: create a fresh one
       if (e instanceof HttpError && e.extra.upstream_status === 404) agentId = null;
@@ -45,7 +49,8 @@ export const POST: APIRoute = handle(async ({ locals }) => {
     }
   }
   if (!agentId) {
-    const res = await elRequest<{ agent_id: string }>("/v1/convai/agents/create", { method: "POST", body: payload, timeoutMs: 30000 });
+    const create = (body: unknown) => elRequest<{ agent_id: string }>("/v1/convai/agents/create", { method: "POST", body, timeoutMs: 30000 });
+    const res = await create(payload).catch((e) => { if (!refused(e)) throw e; return create(withoutEndCall()); });
     agentId = res.agent_id;
     created = true;
     await db().prepare("UPDATE businesses SET elevenlabs_agent_id = ? WHERE id = ?").bind(agentId, b.id).run();
