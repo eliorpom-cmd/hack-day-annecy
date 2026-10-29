@@ -38,11 +38,33 @@ Décision du 29/10 (15 h) : **on quitte Lovable / Supabase** et on passe sur la 
 
 ## Contrat d'API
 
+Code dans `web/`. Tables : `web/migrations/0001_init.sql`. Toutes les routes `/api/*` exigent une session, sauf `/api/auth/*`, `/api/twilio/*`, `/api/elevenlabs/*` (webhooks, protégés par jeton ou signature).
+
 | Méthode | Route | Entrée | Sortie |
 |---|---|---|---|
-| | | | |
+| POST | /api/auth/demo | – | session du compte démo, redirige vers /app |
+| POST | /api/auth/magic | form `email` | `{sent}` ou `{sent:false, link}` sans clé Resend |
+| GET | /auth/verify?token= | – | session, redirige vers /app ou /onboarding |
+| POST | /api/auth/logout | – | redirige vers / |
+| GET | /api/me | – | `{user, business}` |
+| PUT | /api/business | champs de `businesses` | `{business}` |
+| PUT | /api/business/hours | `[{weekday, opens, closes}]` | `{hours}` |
+| GET/POST | /api/faqs | `{question, answer, kind}` | `{faqs}` / `{faq}` |
+| PUT/DELETE | /api/faqs/:id | idem | `{faq}` / 204 |
+| POST | /api/onboarding/scan | `{url}` | `{business, faqs}` proposés (pas encore enregistrés) |
+| GET | /api/voices | – | `{voices:[{id, name, preview_url}]}` |
+| POST | /api/agent | – | crée ou met à jour l'agent ElevenLabs depuis la fiche → `{agent_id}` |
+| GET | /api/numbers/search?country=FR | – | `{numbers:[e164]}` |
+| POST | /api/numbers | `{e164}` | achète le numéro, branche le webhook → `{number}` |
+| GET | /api/calls | – | `{calls}` (récents d'abord) |
+| GET | /api/leads | – | `{leads}` |
+| PATCH | /api/leads/:id | `{status}` | `{lead}` |
+| GET | /api/stats?days=7 | – | `{calls, missed_saved, urgent, leads}` |
+| POST | /api/twilio/voice?token= | webhook Twilio (appel entrant) | TwiML : sonne chez l'artisan pendant ses horaires, sinon l'agent |
+| POST | /api/twilio/fallback?token= | webhook Twilio (fin du `<Dial>`) | TwiML : l'agent si pas de réponse / refus |
+| POST | /api/elevenlabs/post-call | webhook ElevenLabs (fin d'appel) | enregistre l'appel + le lead, SMS si urgence |
 
-Types partagés :
+Secrets (`web/.dev.vars` en local, `wrangler secret put` en prod, jamais commités) : `ELEVENLABS_API_KEY`, `ELEVENLABS_WEBHOOK_SECRET`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WEBHOOK_TOKEN`, `RESEND_API_KEY`, `MAIL_FROM`.
 
 ## Ownership
 
@@ -54,7 +76,9 @@ Types partagés :
 
 | Dossier | Responsable |
 |---|---|
-| | |
+| `web/src/lib/telephony/`, `web/src/pages/api/twilio/`, `web/src/pages/api/elevenlabs/` | Claude (agent téléphonie) |
+| `web/src/lib/` (reste), `web/src/pages/api/` (reste) | Claude (agent back) |
+| `web/src/pages/*.astro`, `web/src/components/`, design | Elior |
 
 Intégrateur (relit et merge les PR, répare `main`) :
 
