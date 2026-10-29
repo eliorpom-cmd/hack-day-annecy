@@ -1,5 +1,6 @@
 // Pure parsing of the ElevenLabs post-call webhook and the call notification text.
 import { URGENCY_VALUES, type Urgency } from "./agent-config.ts";
+import { pickedSlot } from "../calendar.ts";
 
 export type ParsedPostCall = {
   agentId: string;
@@ -17,6 +18,8 @@ export type ParsedPostCall = {
     urgency: Urgency;
     urgencyReason: string | null;
     subject: string | null;
+    // Slot booked during the call ({{slot_1}} or {{slot_2}} picked by the caller)
+    appointment: { iso: string; label: string } | null;
   };
 };
 
@@ -46,6 +49,9 @@ export function parsePostCall(payload: unknown): ParsedPostCall | null {
   const results = obj(analysis.data_collection_results);
   const field = (k: string) => str(obj(results[k]).value);
   const callerNumber = str(phoneCall.external_number) ?? str(dyn.system__caller_id);
+  const slots = [1, 2].map((n) => ({ iso: str(dyn[`slot_${n}_iso`]), label: str(dyn[`slot_${n}`]) }));
+  const bookedIso = pickedSlot(field("appointment"), slots);
+  const booked = bookedIso ? slots.find((s) => s.iso === bookedIso) : null;
   const duration = Number(meta.call_duration_secs);
   const transcript = (Array.isArray(d.transcript) ? d.transcript : [])
     .map(obj)
@@ -66,6 +72,7 @@ export function parsePostCall(payload: unknown): ParsedPostCall | null {
       urgency: normalizeUrgency(field("urgency")),
       urgencyReason: field("urgency_reason"),
       subject: field("subject"),
+      appointment: booked?.iso && booked.label ? { iso: booked.iso, label: booked.label } : null,
     },
   };
 }
@@ -103,6 +110,7 @@ export function buildCallMessage(input: {
   need: string | null;
   summary: string | null;
   link?: string | null;
+  appointment?: string | null;
 }): string {
   // Format fixed by COPY.md: priority + subject + client, why, request, address, number, link
   const demand = clip(input.need, 200) || clip(input.summary, 200) || "besoin non précisé";
@@ -113,6 +121,7 @@ export function buildCallMessage(input: {
   const reason = clip(input.urgencyReason, 140);
   if (reason && input.urgency !== "normal") lines.push(`Pourquoi : ${reason}`);
   lines.push(`Demande : ${demand}`);
+  if (input.appointment) lines.push(`Rendez-vous : ${clip(input.appointment, 60)}, dans votre agenda`);
 
   const address = clip(input.address, 100);
   if (address) lines.push(address);

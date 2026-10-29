@@ -3,13 +3,17 @@
 // Asks ElevenLabs to take the call; returns the TwiML that connects Twilio to the agent
 export async function registerElevenLabsCall(
   apiKey: string | undefined,
-  args: { agentId: string; from: string; to: string },
+  args: { agentId: string; from: string; to: string; variables?: Record<string, string> },
 ): Promise<string> {
   if (!apiKey) throw new Error("ELEVENLABS_API_KEY missing");
   const res = await fetch("https://api.elevenlabs.io/v1/convai/twilio/register-call", {
     method: "POST",
     headers: { "xi-api-key": apiKey, "Content-Type": "application/json" },
-    body: JSON.stringify({ agent_id: args.agentId, from_number: args.from || "unknown", to_number: args.to, direction: "inbound" }),
+    body: JSON.stringify({
+      agent_id: args.agentId, from_number: args.from || "unknown", to_number: args.to, direction: "inbound",
+      // Values of the {{…}} of the prompt for this call (caller's number, free slots)
+      ...(args.variables ? { conversation_initiation_client_data: { dynamic_variables: args.variables } } : {}),
+    }),
     signal: AbortSignal.timeout(8000),
   });
   if (!res.ok) throw new Error(`register-call ${res.status}: ${(await res.text()).slice(0, 300)}`);

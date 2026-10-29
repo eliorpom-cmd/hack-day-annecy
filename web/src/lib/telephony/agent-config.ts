@@ -11,8 +11,10 @@ export type DataCollectionField = {
 };
 
 // Shape of ElevenLabs `platform_settings.data_collection` (key = data_collection_id)
+export const APPOINTMENT_VALUES = ["creneau_1", "creneau_2", "aucun"] as const;
+
 export const DATA_COLLECTION: Record<
-  "name" | "phone" | "address" | "subject" | "need" | "urgency" | "urgency_reason",
+  "name" | "phone" | "address" | "subject" | "need" | "urgency" | "urgency_reason" | "appointment",
   DataCollectionField
 > = {
   name: { type: "string", description: "Nom et prénom de l'appelant, tels qu'il les donne." },
@@ -28,6 +30,11 @@ export const DATA_COLLECTION: Record<
     enum: URGENCY_VALUES,
     description:
       "« urgence » si danger ou dégât en cours (fuite importante, plus de chauffage en hiver, panne totale) ; « urgent » à traiter dans les 48 h ; « normal » sinon.",
+  },
+  appointment: {
+    type: "string",
+    enum: APPOINTMENT_VALUES,
+    description: "Le rendez-vous accepté par l'appelant : « creneau_1 » ou « creneau_2 » s'il a dit oui à l'un des deux créneaux proposés, « aucun » sinon.",
   },
   urgency_reason: {
     type: "string",

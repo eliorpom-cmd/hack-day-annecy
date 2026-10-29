@@ -9,6 +9,7 @@ export type Business = {
   onboarding_step: "business" | "voice" | "number" | "done"; advanced_mode: number; created_at: number;
   forwarding_mode: "renvoi" | "numero" | null;
   forwarding_done_at: number | null; social_links: string | null; google_profile: "connected" | "none" | null;
+  calendar_connected_at: number | null;
 };
 
 export type User = { id: string; email: string };

@@ -67,11 +67,22 @@ export const POST: APIRoute = async ({ request }) => {
     ).bind(leadId, business.id, callId, name, phone, address, need ?? call.summary, urgency, urgencyReason, linkToken, subject).run();
   }
 
+  // Slot booked during the call: into the artisan's calendar (once, like the lead)
+  const appointment = call.lead.appointment;
+  if (!hadLead && appointment) {
+    const start = Math.floor(Date.parse(appointment.iso) / 1000);
+    const title = [call.lead.subject, call.lead.name].filter(Boolean).join(", ") || "Rendez-vous";
+    if (Number.isFinite(start)) {
+      await db().prepare("INSERT INTO appointments (id, business_id, lead_id, starts_at, ends_at, title) VALUES (?, ?, ?, ?, ?, ?)")
+        .bind(newId(), business.id, leadId, start, start + 3600, title.slice(0, 120)).run();
+    }
+  }
+
   // One notification per call: a retried webhook (hadLead) does not notify twice
   let notification: "whatsapp" | "sms" | "failed" | "skipped" = "skipped";
   if (!hadLead && business.artisan_phone) {
     const appUrl = (env as unknown as { APP_URL?: string }).APP_URL ?? "";
-    const message = buildCallMessage({ ...call.lead, summary: call.summary, link: linkToken && appUrl ? `${appUrl}/a/${linkToken}` : null });
+    const message = buildCallMessage({ ...call.lead, appointment: appointment?.label ?? null, summary: call.summary, link: linkToken && appUrl ? `${appUrl}/a/${linkToken}` : null });
     const result = await sendCallNotification(
       {
         accountSid: env.TWILIO_ACCOUNT_SID,

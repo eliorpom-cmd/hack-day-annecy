@@ -10,9 +10,10 @@ test("library voice: assistant agreed with the voice, first name of the artisan"
   assert.match(defaultGreeting({ name: "Plomberie Martin", first_name: " ", voice: null }), /^Bonjour, ici l’assistant de Plomberie Martin\. L’artisan est sur un chantier/);
 });
 
-test("own voice: the artisan answers as himself", () => {
-  assert.equal(defaultGreeting({ name: "Plomberie Martin", first_name: "Marc", voice: "cloned" }), "Oui allô, Plomberie Martin.");
-  assert.equal(defaultGreeting({ name: "", voice: "cloned" }), "Oui allô, l’entreprise.");
+test("own voice: the répondeur still introduces itself as the assistant", () => {
+  assert.equal(defaultGreeting({ name: "Plomberie Martin", first_name: "Marc", voice: "cloned" }),
+    "Bonjour, ici l’assistant de Plomberie Martin. Marc est sur un chantier, que puis-je faire pour vous\u00a0?");
+  assert.ok(isDefaultGreeting("Oui allô, Plomberie Martin."), "the older wording is still a generated greeting");
 });
 
 test("generated greetings follow the voice, written ones are kept", () => {
@@ -32,6 +33,6 @@ test("business name: company name first, else « prénom nom, métier » for a s
   assert.equal(businessDisplayName({ name: "", first_name: "Marc", last_name: "Durand", trade: "" }), "Marc Durand");
   assert.equal(businessDisplayName({}), "");
   const name = businessDisplayName({ name: "", first_name: "Marc", last_name: "Durand", trade: "plombier" });
-  assert.equal(defaultGreeting({ name, first_name: "Marc", voice: "cloned" }), "Oui allô, Marc Durand, plombier.");
+  assert.match(defaultGreeting({ name, first_name: "Marc", voice: "cloned" }), /^Bonjour, ici l’assistant de Marc Durand, plombier\./);
   assert.ok(isDefaultGreeting(defaultGreeting({ name, first_name: "Marc", voice: "male" })));
 });

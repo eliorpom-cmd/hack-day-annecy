@@ -80,6 +80,18 @@ const sample = {
   },
 };
 
+test("the slot picked during the call becomes the appointment, and goes into the message", () => {
+  const booked = structuredClone(sample) as typeof sample & { data: Record<string, unknown> };
+  (booked.data.analysis.data_collection_results as Record<string, unknown>).appointment = { value: "creneau_2" };
+  booked.data.conversation_initiation_client_data = { dynamic_variables: {
+    slot_1: "aujourd’hui à 15 h", slot_1_iso: "2026-10-29T14:00:00.000Z", slot_2: "demain à 9 h", slot_2_iso: "2026-10-30T08:00:00.000Z",
+  } };
+  const p = parsePostCall(booked)!;
+  assert.deepEqual(p.lead.appointment, { iso: "2026-10-30T08:00:00.000Z", label: "demain à 9 h" });
+  const msg = buildCallMessage({ ...p.lead, appointment: p.lead.appointment!.label, summary: p.summary });
+  assert.match(msg, /\nRendez-vous : demain à 9 h, dans votre agenda\n/);
+});
+
 test("parsePostCall extracts call and lead", () => {
   const p = parsePostCall(sample)!;
   assert.equal(p.agentId, "agent_1");
@@ -88,7 +100,7 @@ test("parsePostCall extracts call and lead", () => {
   assert.equal(p.transcript.length, 2);
   assert.deepEqual(p.lead, {
     name: "Jean Dupont", phone: "+33611111111", address: "3 rue du Lac, Annecy", need: "Fuite d'eau sous l'évier",
-    urgency: "urgence", urgencyReason: "Fuite en cours, risque de dégât.", subject: null,
+    urgency: "urgence", urgencyReason: "Fuite en cours, risque de dégât.", subject: null, appointment: null,
   });
   assert.equal(parsePostCall({ type: "post_call_audio", data: {} }), null);
   assert.equal(parsePostCall({ type: "post_call_transcription", data: {} }), null);
@@ -150,7 +162,8 @@ test("phone format", () => {
 });
 
 test("agent config", () => {
-  assert.deepEqual(Object.keys(DATA_COLLECTION), ["name", "phone", "address", "subject", "need", "urgency", "urgency_reason"]);
+  assert.deepEqual(Object.keys(DATA_COLLECTION), ["name", "phone", "address", "subject", "need", "urgency", "appointment", "urgency_reason"]);
+  assert.deepEqual(DATA_COLLECTION.appointment.enum, ["creneau_1", "creneau_2", "aucun"]);
   assert.deepEqual(DATA_COLLECTION.urgency.enum, ["urgence", "urgent", "normal"]);
   assert.equal(postCallWebhookUrl("https://x.dev/"), "https://x.dev/api/elevenlabs/post-call");
 });
