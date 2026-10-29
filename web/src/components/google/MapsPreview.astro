@@ -1,0 +1,85 @@
+---
+// Read-only preview of the artisan's profile as clients see it in Google Maps (layout, colours and type of the
+// Maps place panel), so the page reads as « this is my Google profile ». Like components/ads/GooglePreview.astro,
+// it imitates the platform on purpose and stays outside DESIGN.md. Nothing in it is clickable.
+interface Props {
+  name: string; category: string; rating: number; count: number; area: string;
+  open: boolean | null; openText: string; website: string | null; phone: string | null;
+}
+const { name, category, rating, count, area, open, openText, website, phone } = Astro.props;
+const full = Math.round(rating);
+const ratingText = rating.toFixed(1).replace(".", ",");
+const actions = [
+  { label: "Itinéraires", path: '<path d="M21.71 11.29l-9-9a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l9 9a1 1 0 0 0 1.42 0l9-9a1 1 0 0 0 0-1.42zM14 14.5V12h-4v3H8v-4a1 1 0 0 1 1-1h5V7.5l3.5 3.5-3.5 3.5z"/>', fill: true },
+  { label: "Enregistrer", path: '<path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15-5-2.18L7 18V5h10v13z"/>', fill: true },
+  { label: "À proximité", path: '<path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>', fill: true },
+  { label: "Envoyer vers un téléphone", path: '<path d="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H7V5h10v14zm-5-9V7l4 4-4 4v-3H8v-2h4z"/>', fill: true },
+  { label: "Partager", path: '<path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11A2.99 2.99 0 0 0 21 5a3 3 0 1 0-5.91.7L8.04 9.81A3 3 0 0 0 3 12a3 3 0 0 0 5.04 2.19l7.12 4.16c-.05.21-.08.43-.08.65A2.92 2.92 0 1 0 18 16.08z"/>', fill: true },
+];
+const rows = [
+  { key: "area", text: `Zone desservie : ${area}`, path: '<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>' },
+  { key: "hours", text: openText, path: '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>' },
+  website ? { key: "web", text: website, path: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm6.93 6h-2.95a15.65 15.65 0 0 0-1.38-3.56A8.03 8.03 0 0 1 18.93 8zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2s.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56A7.99 7.99 0 0 1 5.08 16zm2.95-8H5.08a7.99 7.99 0 0 1 4.33-3.56A15.65 15.65 0 0 0 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2s.07-1.35.16-2h4.68c.09.65.16 1.32.16 2s-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95a8.03 8.03 0 0 1-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2s-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/>' } : null,
+  phone ? { key: "phone", text: phone, path: '<path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 0 0-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>' } : null,
+].filter((r): r is { key: string; text: string; path: string } => !!r);
+---
+<section class="gm" aria-label="Aperçu de votre fiche sur Google Maps">
+  <div class="gm-photo" aria-hidden="true">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M9 2 7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+    <span>Photos de vos chantiers</span>
+  </div>
+  <div class="gm-head">
+    <h3 class="gm-name">{name}</h3>
+    <p class="gm-rating">
+      <span>{ratingText}</span>
+      <span class="gm-stars" aria-label={`${ratingText} sur 5`}>{[1, 2, 3, 4, 5].map((n) => <span class={n <= full ? "on" : ""}>★</span>)}</span>
+      <span class="gm-muted">({count})</span>
+    </p>
+    <p class="gm-muted">{category}</p>
+  </div>
+  <div class="gm-tabs" aria-hidden="true"><span class="active">Présentation</span><span>Avis</span><span>À propos</span></div>
+  <div class="gm-actions" aria-hidden="true">
+    {actions.map((a, i) => (
+      <div class="gm-action">
+        <span class:list={["gm-circle", { primary: i === 0 }]}><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" set:html={a.path} /></span>
+        <span class="gm-action-label">{a.label}</span>
+      </div>
+    ))}
+  </div>
+  <ul class="gm-rows">
+    {rows.map((r) => (
+      <li>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" set:html={r.path} />
+        {r.key === "hours"
+          ? <span><span class={open === true ? "gm-open" : open === false ? "gm-closed" : ""}>{open === true ? "Ouvert" : open === false ? "Fermé" : ""}</span>{open !== null && <span class="gm-dot"> · </span>}<span>{r.text}</span></span>
+          : <span class="break-all">{r.text}</span>}
+      </li>
+    ))}
+  </ul>
+  <p class="gm-note">Aperçu : ce que vos clients voient sur Google Maps.</p>
+</section>
+
+<style>
+  .gm { background: #fff; border-radius: var(--radius-block); box-shadow: inset 0 0 0 1px var(--color-line); overflow: hidden; color: #202124; font-family: Roboto, Arial, sans-serif; }
+  .gm-photo { height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #5f6368; font-size: 14px; background: linear-gradient(135deg, #e8eaed, #dadce0); }
+  .gm-head { padding: 16px 20px 6px; }
+  .gm-name { font-family: "Google Sans", Roboto, Arial, sans-serif; font-size: 22px; font-weight: 400; line-height: 1.25; }
+  .gm-rating { margin-top: 4px; display: flex; align-items: center; gap: 4px; font-size: 14px; }
+  .gm-stars span { color: #dadce0; font-size: 15px; letter-spacing: -1px; }
+  .gm-stars span.on { color: #fbbc04; }
+  .gm-muted { color: #70757a; font-size: 14px; }
+  .gm-tabs { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid #e8eaed; margin-top: 8px; font-size: 14px; font-weight: 500; color: #5f6368; text-align: center; }
+  .gm-tabs span { padding: 12px 0; }
+  .gm-tabs .active { color: #00796b; box-shadow: inset 0 -3px 0 #00796b; }
+  .gm-actions { display: flex; justify-content: space-between; gap: 4px; padding: 14px 12px; border-bottom: 1px solid #e8eaed; }
+  .gm-action { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+  .gm-circle { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: #d4f3f1; color: #00796b; }
+  .gm-circle.primary { background: #00796b; color: #fff; }
+  .gm-action-label { font-size: 12px; font-weight: 500; color: #00796b; text-align: center; line-height: 1.25; }
+  .gm-rows li { display: flex; align-items: center; gap: 20px; padding: 11px 20px; font-size: 14px; }
+  .gm-rows svg { color: #00796b; flex: none; }
+  .gm-open { color: #188038; }
+  .gm-closed { color: #d93025; }
+  .gm-dot { color: #70757a; }
+  .gm-note { padding: 10px 20px 14px; font-size: 12px; color: #70757a; border-top: 1px solid #e8eaed; }
+</style>

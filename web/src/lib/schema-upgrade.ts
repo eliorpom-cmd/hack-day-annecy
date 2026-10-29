@@ -1,4 +1,4 @@
-// Applies migration 0015 from the Worker itself, once per isolate, when it is missing: the Cloudflare token of the
+// Applies migration 0015 (then the one-off cleanups below) from the Worker itself, once per isolate, when it is missing: the Cloudflare token of the
 // cloud sessions can deploy but not query D1. Same statements as migrations/0015_forwarding_guide_hub.sql, made
 // idempotent, then recorded in d1_migrations so that `wrangler d1 migrations apply` skips it afterwards.
 // Can be removed once every database has 0015.
@@ -27,8 +27,23 @@ async function upgrade(): Promise<void> {
   console.log(JSON.stringify({ event: "schema.upgraded", migration: NAME }));
 }
 
+// One-off cleanups asked by the team, each run once (marked in app_settings)
+const CLEANUPS: { key: string; sql: string }[] = [
+  // 29/10: the test replies to Google reviews written while trying the page
+  { key: "cleanup_review_replies_2910", sql: "DELETE FROM google_review_replies" },
+];
+
+async function cleanups(): Promise<void> {
+  for (const c of CLEANUPS) {
+    const done = await db().prepare("SELECT 1 FROM app_settings WHERE key = ?").bind(c.key).first();
+    if (done) continue;
+    await db().batch([db().prepare(c.sql), db().prepare("INSERT OR IGNORE INTO app_settings (key, value) VALUES (?, 'done')").bind(c.key)]);
+    console.log(JSON.stringify({ event: "schema.cleanup", key: c.key }));
+  }
+}
+
 export function ensureSchema(): Promise<void> {
-  done ??= upgrade().catch((e) => {
+  done ??= upgrade().then(cleanups).catch((e) => {
     done = null; // tried again on the next request
     console.error(JSON.stringify({ event: "schema.upgrade_failed", error: String(e) }));
   });

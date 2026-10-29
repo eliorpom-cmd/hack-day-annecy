@@ -37,3 +37,14 @@ test("creation guide gives the artisan's own answers to copy", () => {
 test("profile states", () => {
   assert.ok(isProfileState("connected") && isProfileState("none") && !isProfileState("other"));
 });
+
+test("open status reads like Google Maps, in Paris time", async () => {
+  const { openStatus } = await import("../src/lib/google-profile.ts");
+  const week = [0, 1, 2, 3, 4].map((weekday) => ({ weekday, opens: "08:00", closes: "18:00" }));
+  // Thursday 29/10/2026, 10:00 in Paris (09:00 UTC)
+  assert.deepEqual(openStatus(week, new Date("2026-10-29T09:00:00Z")), { open: true, text: "Ferme à 18:00" });
+  assert.deepEqual(openStatus(week, new Date("2026-10-29T05:00:00Z")), { open: false, text: "Ouvre à 08:00" });
+  // Saturday: next opening on Monday
+  assert.deepEqual(openStatus(week, new Date("2026-10-31T12:00:00Z")), { open: false, text: "Ouvre à 08:00 lun." });
+  assert.equal(openStatus([], new Date()).open, null);
+});
