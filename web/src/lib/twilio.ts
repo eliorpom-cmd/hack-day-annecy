@@ -5,20 +5,22 @@ import { HttpError } from "./http";
 import { parseAvailable, parseIncoming, twilioErrorHint, type AvailableNumber, type OwnedNumber, type SearchCountry } from "./numbers";
 
 function creds() {
-  const sid = secret("TWILIO_ACCOUNT_SID"), token = secret("TWILIO_AUTH_TOKEN");
+  // Auth Token, or an API Key (SK… + secret) acting for the account (URL still uses the AC… SID)
+  const sid = secret("TWILIO_ACCOUNT_SID");
+  const user = secret("TWILIO_API_KEY_SID") || sid, token = secret("TWILIO_API_KEY_SECRET") || secret("TWILIO_AUTH_TOKEN");
   if (!sid || !token)
     throw new HttpError(503, "twilio_not_configured", "Twilio n'est pas configuré : ajoutez TWILIO_ACCOUNT_SID et TWILIO_AUTH_TOKEN dans web/.dev.vars (ou wrangler secret put).");
-  return { sid, token };
+  return { sid, user, token };
 }
 
 async function twilio(path: string, init: { method?: string; form?: Record<string, string> } = {}): Promise<unknown> {
-  const { sid, token } = creds();
+  const { sid, user, token } = creds();
   let res: Response;
   try {
     res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}${path}`, {
       method: init.method ?? "GET",
       headers: {
-        Authorization: `Basic ${btoa(`${sid}:${token}`)}`,
+        Authorization: `Basic ${btoa(`${user}:${token}`)}`,
         ...(init.form ? { "Content-Type": "application/x-www-form-urlencoded" } : {}),
       },
       body: init.form ? new URLSearchParams(init.form) : undefined,

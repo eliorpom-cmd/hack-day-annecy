@@ -16,7 +16,7 @@ export async function registerElevenLabsCall(
   return res.text();
 }
 
-export type TwilioCreds = { accountSid?: string; authToken?: string; smsFrom?: string; whatsappFrom?: string };
+export type TwilioCreds = { accountSid?: string; authToken?: string; apiKeySid?: string; smsFrom?: string; whatsappFrom?: string };
 
 // Sends one message through the Twilio Messages API and returns its sid; throws on failure
 async function sendTwilioMessage(
@@ -31,7 +31,7 @@ async function sendTwilioMessage(
   const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`, {
     method: "POST",
     headers: {
-      Authorization: `Basic ${btoa(`${accountSid}:${authToken}`)}`,
+      Authorization: `Basic ${btoa(`${creds.apiKeySid || accountSid}:${authToken}`)}`,
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams({ To: to, From: from, Body: body }),

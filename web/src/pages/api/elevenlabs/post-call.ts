@@ -74,7 +74,8 @@ export const POST: APIRoute = async ({ request }) => {
     const result = await sendCallNotification(
       {
         accountSid: env.TWILIO_ACCOUNT_SID,
-        authToken: env.TWILIO_AUTH_TOKEN,
+        authToken: (env as unknown as Record<string, string | undefined>).TWILIO_API_KEY_SECRET || env.TWILIO_AUTH_TOKEN,
+        apiKeySid: (env as unknown as Record<string, string | undefined>).TWILIO_API_KEY_SID,
         smsFrom: env.TWILIO_SMS_FROM,
         whatsappFrom: env.TWILIO_WHATSAPP_FROM,
       },
