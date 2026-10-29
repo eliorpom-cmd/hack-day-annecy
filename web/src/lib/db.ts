@@ -5,7 +5,7 @@ export const db = () => env.DB;
 export type Business = {
   id: string; owner_id: string; name: string; trade: string; city: string; website: string | null;
   description: string; artisan_phone: string | null; ring_seconds: number; greeting: string;
-  voice_id: string | null; voice_name: string | null; elevenlabs_agent_id: string | null;
+  voice_id: string | null; voice_name: string | null; first_name: string; voice_gender: "female" | "male" | null; elevenlabs_agent_id: string | null;
   onboarding_step: "business" | "voice" | "number" | "done"; advanced_mode: number; created_at: number;
 };
 

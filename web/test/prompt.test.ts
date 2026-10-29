@@ -6,10 +6,22 @@ import { parseAvailable, parseCountry, parseIncoming, twilioErrorHint } from "..
 
 const biz = { name: "Plomberie Dupont", trade: "plombier", city: "Annecy", description: "Dépannage 7j/7.", greeting: "" };
 
-test("first message introduces the artisan's assistant", () => {
-  assert.match(firstMessage(biz), /^Bonjour, vous êtes bien chez Plomberie Dupont\. Je suis l'assistant/);
-  assert.equal(firstMessage({ ...biz, greeting: "Plomberie Dupont, j'écoute" }), "Bonjour, Plomberie Dupont, j'écoute");
+test("first message: saved greeting as is, else the gendered default with the first name", () => {
+  assert.equal(firstMessage(biz), "Bonjour, ici l’assistant de Plomberie Dupont. L’artisan est sur un chantier, que puis-je faire pour vous\u00a0?");
+  assert.equal(firstMessage({ ...biz, first_name: "Marc", voice_gender: "female" }), "Bonjour, ici l’assistante de Plomberie Dupont. Marc est sur un chantier, que puis-je faire pour vous\u00a0?");
+  assert.equal(firstMessage({ ...biz, greeting: "Oui allô, Plomberie Dupont." }), "Oui allô, Plomberie Dupont.");
   assert.equal(firstMessage({ ...biz, greeting: "Bonjour, ici Dupont" }), "Bonjour, ici Dupont");
+});
+
+test("prompt uses the first name for the callback and keeps the rules", () => {
+  const p = buildSystemPrompt({ ...biz, first_name: "Marc", voice_gender: "female" }, [], []);
+  assert.match(p, /Vous êtes l'assistante téléphonique de Plomberie Dupont/);
+  assert.match(p, /L'artisan s'appelle Marc\./);
+  assert.match(p, /« Marc vous rappelle pour le prix\. »/);
+  assert.match(p, /« Marc vous rappelle rapidement\. »/);
+  assert.match(p, /dites que Marc vous rappellera pour préciser/);
+  assert.match(p, /ne dites jamais où en est son dossier/);
+  assert.match(p, /N'inventez jamais un prix/);
 });
 
 test("hours in French, closed days included", () => {
@@ -36,7 +48,7 @@ test("prompt carries business facts and the price rule", () => {
   assert.match(p, /Débouchage \? → Entre 90 et 150 € \(fourchette : ajouter « le prix exact se fait sur devis »\)/);
   assert.match(p, /Q : Devis gratuit \?\nR : Oui/);
   assert.match(p, /N'inventez jamais un prix/);
-  assert.match(p, /l'artisan vous rappellera pour vous donner un prix/);
+  assert.match(p, /« L'artisan vous rappelle pour le prix\. »/);
   assert.match(p, /urgence/);
   assert.doesNotMatch(p, /\n{3,}/);
   const none = buildSystemPrompt({ ...biz, city: "" }, [], []);
@@ -63,6 +75,17 @@ test("voices: cloned then French first", () => {
   assert.deepEqual(v.map((x) => x.id), ["d", "c", "b", "a"]);
   assert.equal(v[1]!.preview_url, "https://x/fr.mp3");
   assert.ok(DEMO_VOICES.length > 0);
+  assert.ok(DEMO_VOICES.every((x) => x.gender === "female" || x.gender === "male"));
+});
+
+test("voices carry the ElevenLabs gender label", () => {
+  const v = toVoices([
+    { voice_id: "f", name: "A", labels: { gender: "female" } },
+    { voice_id: "m", name: "B", labels: { gender: "Male" } },
+    { voice_id: "n", name: "C", labels: { gender: "neutral" } },
+    { voice_id: "x", name: "D" },
+  ]);
+  assert.deepEqual(v.map((x) => [x.id, x.gender]), [["f", "female"], ["m", "male"], ["n", null], ["x", null]]);
 });
 
 test("Twilio parsing and French error hints", () => {

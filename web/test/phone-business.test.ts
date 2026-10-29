@@ -25,6 +25,12 @@ test("business patch keeps only whitelisted, valid fields", () => {
   assert.ok(!sanitizeBusinessPatch({ artisan_phone: "123" }).ok);
   assert.ok(!sanitizeBusinessPatch({ onboarding_step: "nope" }).ok);
   assert.ok(!sanitizeBusinessPatch({ name: 42 }).ok);
+  const named = sanitizeBusinessPatch({ first_name: "  Jean  Marc ", voice_gender: "female" });
+  assert.ok(named.ok && named.value.first_name === "Jean Marc" && named.value.voice_gender === "female");
+  assert.ok(!sanitizeBusinessPatch({ voice_gender: "other" }).ok);
+  assert.ok(!sanitizeBusinessPatch({ first_name: "x".repeat(61) }).ok);
+  const noGender = sanitizeBusinessPatch({ voice_gender: null });
+  assert.ok(noGender.ok && noGender.value.voice_gender === null);
   const cleared = sanitizeBusinessPatch({ artisan_phone: "", website: null });
   assert.ok(cleared.ok && cleared.value.artisan_phone === null && cleared.value.website === null);
 });

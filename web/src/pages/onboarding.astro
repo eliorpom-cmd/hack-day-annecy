@@ -27,6 +27,7 @@ const init = {
   business: {
     name: b.name, trade: b.trade, city: b.city, description: b.description, website: b.website,
     artisan_phone: b.artisan_phone, ring_seconds: b.ring_seconds, greeting: b.greeting, voice_id: b.voice_id, voice_name: b.voice_name,
+    first_name: b.first_name ?? "", voice_gender: b.voice_gender ?? null,
   },
   hours: hours.results,
   faqs: faqs.results,
@@ -62,6 +63,7 @@ const filled = !!b.name;
         <div data-phase="form" class="flex flex-col gap-[14px]" hidden={!filled}>
           <p data-scan-note-box class="panel flex items-start gap-3 px-[14px] py-3" hidden><span class="icon-tile"><Icon name="check" size={18} /></span><span data-scan-note></span></p>
           <Field id="name" label="Nom de votre entreprise" value={b.name} maxlength={120} autocomplete="organization" />
+          <Field id="first_name" label="Votre prénom" value={b.first_name} maxlength={60} autocomplete="given-name" help="Le répondeur le dit aux clients : « Marc vous rappelle. »" />
           <Field id="trade" label="Votre métier" value={b.trade} maxlength={80} />
           <Field id="city" label="Ville" value={b.city} maxlength={80} autocomplete="address-level2" />
           <Field id="description" label="Ce que vous faites" value={b.description} multiline maxlength={2000} />
@@ -84,7 +86,43 @@ const filled = !!b.name;
           <p class="mt-2 text-muted">Les clients entendent cette voix quand le répondeur décroche.</p>
         </div>
         <p data-voices-status class="text-muted" role="status">Chargement des voix…</p>
-        <div class="panel" data-voices role="radiogroup" aria-label="Voix" hidden></div>
+        <div data-voices-wrap class="flex flex-col gap-[14px]" role="radiogroup" aria-label="Voix" hidden>
+          <!-- Option card: the artisan's own voice -->
+          <div class="panel">
+            <label class="row cursor-pointer">
+              <input type="radio" name="voice" value="__clone" class="radio" data-clone-radio />
+              <span class="flex flex-1 flex-col"><span class="font-bold">Utiliser ma voix</span><span class="text-small text-muted" data-clone-sub>Vous lisez 3 phrases, le répondeur parle comme vous.</span></span>
+              <span class="icon-tile"><Icon name="mic" size={18} /></span>
+            </label>
+            <div class="row" data-clone-ready hidden>
+              <span class="icon-tile"><Icon name="check" size={18} /></span>
+              <p class="flex-1">Votre voix est prête.</p>
+              <button type="button" class="link-btn" data-clone-redo>Enregistrer à nouveau</button>
+            </div>
+          </div>
+
+          <!-- Recorder, shown when « Utiliser ma voix » is chosen -->
+          <div data-clone class="flex flex-col gap-[14px]" hidden>
+            <div class="panel">
+              <div class="row items-start">
+                <span class="icon-tile"><Icon name="message" size={18} /></span>
+                <div class="flex-1"><p class="text-small text-muted" data-clone-count></p><p class="font-bold" data-clone-sentence></p></div>
+              </div>
+              <div class="flex flex-col items-center gap-2 px-[14px] pt-2 pb-4" data-rec-box>
+                <button type="button" class="rec-btn" data-rec aria-label="Enregistrer la phrase"><Icon name="mic" size={28} /></button>
+                <p class="text-small text-muted text-center" data-rec-status role="status">Appuyez, puis lisez la phrase à voix haute.</p>
+              </div>
+            </div>
+            <div class="panel" data-takes hidden></div>
+            <label class="panel row cursor-pointer">
+              <input type="checkbox" class="checkbox" data-consent />
+              <span>J’accepte que ma voix soit utilisée par mon répondeur.</span>
+            </label>
+          </div>
+
+          <h2 class="mt-2 text-small font-bold text-muted">Ou choisissez une voix</h2>
+          <div class="panel" data-voices></div>
+        </div>
         <Field id="greeting" label="Phrase d’accueil" value={b.greeting} multiline maxlength={300} help="Le répondeur la dit en décrochant." />
         <p data-agent-error class="panel flex items-start gap-3 px-[14px] py-3" hidden>
           <span class="icon-tile"><Icon name="alert" size={18} /></span>
@@ -164,6 +202,11 @@ const filled = !!b.name;
     <template data-icon="play"><Icon name="play" /></template>
     <template data-icon="pause"><Icon name="pause" /></template>
     <template data-icon="check"><Icon name="check" /></template>
+    <template data-icon="check-tile"><span class="icon-tile"><Icon name="check" size={18} /></span></template>
+    <template data-icon="mic"><Icon name="mic" size={28} /></template>
+    <template data-icon="mic-sm"><Icon name="mic" /></template>
+    <template data-icon="square"><Icon name="square" size={24} /></template>
+    <template data-icon="rotate"><Icon name="rotate" /></template>
 
     <script type="application/json" id="setup-init" set:html={JSON.stringify(init).replace(/</g, "\\u003c")} />
     <script type="application/json" id="setup-steps" set:html={JSON.stringify(STEPS)} />
@@ -171,15 +214,18 @@ const filled = !!b.name;
 
   <script>
     import { DAYS } from "../components/setup/steps";
+    import { defaultGreeting, isDefaultGreeting, type GreetingVoice } from "../lib/greeting";
+    import { CLONE_LIMITS, CLONE_SENTENCES, CLONED_VOICE_NAME, encodeWav } from "../lib/voice-clone";
 
     // ---------- Types and initial state (rendered by the server) ----------
     type Hour = { weekday: number; opens: string; closes: string };
     type Faq = { id?: string; question: string; answer: string; kind: "info" | "price" };
-    type Voice = { id: string; name: string; preview_url: string | null; category?: string };
+    type Voice = { id: string; name: string; preview_url: string | null; category?: string; gender?: "female" | "male" | null };
     type Init = {
       step: number;
       business: { name: string; trade: string; city: string; description: string; website: string | null; artisan_phone: string | null;
-        ring_seconds: number; greeting: string; voice_id: string | null; voice_name: string | null };
+        ring_seconds: number; greeting: string; voice_id: string | null; voice_name: string | null;
+        first_name: string; voice_gender: "female" | "male" | null };
       hours: Hour[]; faqs: (Faq & { id: string })[]; number: string | null;
     };
     const init = JSON.parse(document.getElementById("setup-init")!.textContent!) as Init;
@@ -425,7 +471,7 @@ const filled = !!b.name;
       busy(true, "Enregistrement…");
       const phone = input("phone1").value.trim();
       const r = await api<{ business: Init["business"] }>("PUT", "/api/business", {
-        name, trade: input("trade").value, city: input("city").value, description: input("description").value,
+        name, first_name: input("first_name").value, trade: input("trade").value, city: input("city").value, description: input("description").value,
         artisan_phone: phone, ...(scannedUrl ? { website: scannedUrl } : {}),
       });
       if (!r.ok) {
@@ -465,8 +511,10 @@ const filled = !!b.name;
 
     // ---------- Step 2 · Voix du répondeur ----------
     const voicesBox = $("[data-voices]");
-    let voices: Voice[] | null = null;
+    let voices: Voice[] | null = null; // library voices (the artisan's own voice is kept apart)
+    let ownVoice: Voice | null = null; // his cloned voice, once created
     let chosenVoice: string | null = biz.voice_id;
+    let useOwn = false; // « Utiliser ma voix » chosen
     let agentFailed = false;
     const audio = new Audio();
     let playing: HTMLButtonElement | null = null;
@@ -476,51 +524,196 @@ const filled = !!b.name;
       playing = btn;
       if (btn) { btn.replaceChildren(icon("pause")); btn.setAttribute("aria-label", "Arrêter l’extrait"); }
     }
+    function playButton(label: string, src: () => string) {
+      const play = el("button", { type: "button", class: "play-btn", "aria-label": label, "data-label": label }, icon("play")) as HTMLButtonElement;
+      play.addEventListener("click", () => {
+        if (playing === play) { audio.pause(); setPlaying(null); return; }
+        audio.src = src();
+        audio.play().then(() => setPlaying(play)).catch(() => setPlaying(null));
+      });
+      return play;
+    }
 
-    function defaultGreeting() {
-      const name = (biz.name || "").trim() || "l’entreprise";
-      return `Bonjour, ici l’assistant de ${name}. L’artisan est sur un chantier, que puis-je faire pour vous ?`;
+    // Greeting follows the voice (COPY.md): « Oui allô, … » for his own voice, « l’assistant(e) » for a library voice.
+    // A greeting the artisan wrote himself is never replaced.
+    function voiceKind(): GreetingVoice {
+      if (useOwn) return "cloned";
+      return voices?.find((v) => v.id === chosenVoice)?.gender ?? null;
+    }
+    function syncGreeting() {
+      const g = input("greeting");
+      if (isDefaultGreeting(g.value)) g.value = defaultGreeting({ name: biz.name, first_name: biz.first_name, voice: voiceKind() });
     }
 
     async function loadVoices() {
       const status = $("[data-voices-status]");
       const r = await api<{ voices: Voice[] }>("GET", "/api/voices");
       if (!r.ok || !r.data.voices?.length) { status.textContent = "Impossible d’afficher les voix. Réessayez dans un instant."; return; }
-      voices = r.data.voices;
-      if (!chosenVoice || !voices.some((v) => v.id === chosenVoice)) chosenVoice = voices[0].id;
+      ownVoice = r.data.voices.find((v) => v.category === "cloned" && v.id === biz.voice_id) ?? null;
+      voices = r.data.voices.filter((v) => v.category !== "cloned");
+      if (ownVoice && chosenVoice === ownVoice.id) useOwn = true;
+      if (!useOwn && (!chosenVoice || !voices.some((v) => v.id === chosenVoice))) chosenVoice = voices[0]?.id ?? null;
       status.hidden = true;
-      voicesBox.hidden = false;
+      $("[data-voices-wrap]").hidden = false;
       voicesBox.replaceChildren(...voices.map((v) => {
         const radio = el("input", { type: "radio", name: "voice", value: v.id, class: "radio" }) as HTMLInputElement;
-        radio.checked = v.id === chosenVoice;
-        radio.addEventListener("change", () => { chosenVoice = v.id; });
-        const label = el("label", { class: "flex min-h-[48px] flex-1 cursor-pointer items-center gap-3" }, radio,
-          el("span", { class: "flex flex-col" }, el("span", { class: "font-bold" }, v.name),
-            ...(v.category === "cloned" ? [el("span", { class: "text-small text-muted" }, "Votre voix")] : [])));
+        radio.checked = !useOwn && v.id === chosenVoice;
+        radio.addEventListener("change", () => { chosenVoice = v.id; chooseOwn(false); });
+        const label = el("label", { class: "flex min-h-[48px] flex-1 cursor-pointer items-center gap-3" }, radio, el("span", { class: "font-bold" }, v.name));
         const row = el("div", { class: "row" }, label);
-        if (v.preview_url) {
-          const play = el("button", { type: "button", class: "play-btn", "aria-label": `Écouter ${v.name}`, "data-label": `Écouter ${v.name}` }, icon("play")) as HTMLButtonElement;
-          play.addEventListener("click", () => {
-            if (playing === play) { audio.pause(); setPlaying(null); return; }
-            audio.src = v.preview_url!;
-            audio.play().then(() => setPlaying(play)).catch(() => setPlaying(null));
-          });
-          row.appendChild(play);
-        }
+        if (v.preview_url) row.appendChild(playButton(`Écouter ${v.name}`, () => v.preview_url!));
         return row;
       }));
+      $<HTMLInputElement>("[data-clone-radio]").checked = useOwn;
+      chooseOwn(useOwn);
+    }
+
+    // ---- The artisan's own voice: 3 sentences recorded in the browser, sent as WAV to /api/voices/clone ----
+    const takes: ({ wav: Blob; url: string; seconds: number } | null)[] = CLONE_SENTENCES.map(() => null);
+    let recordingAgain = false; // « Enregistrer à nouveau » after a voice was created
+    let recorder: MediaRecorder | null = null;
+    let recTimer = 0;
+    let recIndex = 0;
+    const recBtn = $<HTMLButtonElement>("[data-rec]");
+    const recStatus = $("[data-rec-status]");
+    const nextIndex = () => takes.findIndex((t) => !t);
+
+    function chooseOwn(on: boolean) {
+      useOwn = on;
+      if (on) { audio.pause(); setPlaying(null); }
+      const ready = !!ownVoice && !recordingAgain;
+      $("[data-clone-ready]").hidden = !(on && ready);
+      $("[data-clone]").hidden = !(on && !ready);
+      $("[data-clone-sub]").textContent = ownVoice ? "Votre voix enregistrée." : "Vous lisez 3 phrases, le répondeur parle comme vous.";
+      syncGreeting();
+      renderRecorder();
+      voiceBar();
+    }
+    $("[data-clone-radio]").addEventListener("change", () => chooseOwn(true));
+    $("[data-clone-redo]").addEventListener("click", () => { recordingAgain = true; chooseOwn(true); });
+
+    const fmtSec = (s: number) => `0:${String(Math.round(s)).padStart(2, "0")}`;
+    function renderRecorder() {
+      const i = recorder ? recIndex : nextIndex();
+      const done = i === -1;
+      $("[data-clone-count]").textContent = done ? "3 phrases enregistrées" : `Phrase ${i + 1} sur ${CLONE_SENTENCES.length}`;
+      $("[data-clone-sentence]").textContent = done ? "Vous pouvez réécouter chaque phrase avant de créer votre voix." : CLONE_SENTENCES[i];
+      $("[data-rec-box]").hidden = done;
+      const list = takes.map((t, n) => {
+        if (!t) return null;
+        const redo = el("button", { type: "button", class: "step-btn", "aria-label": `Refaire la phrase ${n + 1}` }, icon("rotate"));
+        redo.addEventListener("click", () => { if (recorder) return; URL.revokeObjectURL(t.url); takes[n] = null; renderRecorder(); voiceBar(); });
+        return el("div", { class: "row" }, icon("check-tile"),
+          el("p", { class: "flex-1" }, el("span", { class: "font-bold" }, `Phrase ${n + 1}`), el("span", { class: "text-muted" }, ` · ${fmtSec(t.seconds)}`)),
+          playButton(`Écouter la phrase ${n + 1}`, () => t.url), redo);
+      }).filter((x): x is HTMLDivElement => !!x);
+      const box = $("[data-takes]");
+      box.hidden = !list.length;
+      box.replaceChildren(...list);
+    }
+
+    async function toWav(blob: Blob) {
+      const ctx = new AudioContext();
+      try {
+        const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
+        const channels = Array.from({ length: buf.numberOfChannels }, (_, c) => buf.getChannelData(c));
+        return { wav: new Blob([encodeWav(channels, buf.sampleRate) as Uint8Array<ArrayBuffer>], { type: "audio/wav" }), seconds: buf.duration };
+      } finally { await ctx.close(); }
+    }
+
+    async function startRecording() {
+      showError(null);
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
+      } catch {
+        recStatus.textContent = "Le micro est bloqué. Autorisez-le dans votre navigateur, ou choisissez une voix de la liste.";
+        return;
+      }
+      recIndex = nextIndex();
+      const chunks: Blob[] = [];
+      const rec = new MediaRecorder(stream);
+      recorder = rec;
+      rec.addEventListener("dataavailable", (e) => { if (e.data.size) chunks.push(e.data); });
+      rec.addEventListener("stop", async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        clearInterval(recTimer);
+        recorder = null;
+        recBtn.classList.remove("is-recording");
+        recBtn.replaceChildren(icon("mic"));
+        recBtn.setAttribute("aria-label", "Enregistrer la phrase");
+        try {
+          const { wav, seconds } = await toWav(new Blob(chunks, { type: rec.mimeType }));
+          if (seconds < CLONE_LIMITS.minSeconds) recStatus.textContent = "Trop court. Lisez toute la phrase, puis appuyez sur stop.";
+          else { takes[recIndex] = { wav, url: URL.createObjectURL(wav), seconds }; recStatus.textContent = "Appuyez, puis lisez la phrase à voix haute."; }
+        } catch {
+          recStatus.textContent = "Enregistrement illisible. Réessayez.";
+        }
+        renderRecorder();
+        voiceBar();
+      });
+      rec.start();
+      const started = Date.now();
+      recBtn.classList.add("is-recording");
+      recBtn.replaceChildren(icon("square"));
+      recBtn.setAttribute("aria-label", "Arrêter l’enregistrement");
+      recStatus.textContent = "Enregistrement… 0:00";
+      recTimer = window.setInterval(() => {
+        const s = (Date.now() - started) / 1000;
+        recStatus.textContent = `Enregistrement… ${fmtSec(s)}`;
+        if (s >= 30) rec.stop();
+      }, 250);
+      renderRecorder();
+    }
+    recBtn.addEventListener("click", () => { if (recorder) recorder.stop(); else startRecording(); });
+
+    async function createOwnVoice() {
+      if (recorder) return;
+      if (nextIndex() !== -1) { showError("Enregistrez les 3 phrases, ou choisissez une voix de la liste."); return; }
+      if (!$<HTMLInputElement>("[data-consent]").checked) { showError("Cochez la case pour accepter que votre voix soit utilisée."); return; }
+      showError(null);
+      const form = new FormData();
+      form.append("consent", "true");
+      takes.forEach((t, n) => form.append("files", t!.wav, `phrase-${n + 1}.wav`));
+      busy(true, "Création de votre voix…");
+      let r: ApiResult<{ voice: Voice; business: Init["business"] }>;
+      try {
+        const res = await fetch("/api/voices/clone", { method: "POST", body: form });
+        r = { ok: res.ok, status: res.status, data: (await res.json().catch(() => ({}))) as typeof r.data };
+      } catch {
+        r = { ok: false, status: 0, data: { hint: "Pas de connexion. Vérifiez votre réseau et réessayez." } as ApiResult<{ voice: Voice; business: Init["business"] }>["data"] };
+      }
+      busy(false);
+      if (!r.ok) { voiceBar(); showError(r.data.hint ?? "Votre voix n’a pas pu être créée. Réessayez."); return; }
+      Object.assign(biz, r.data.business);
+      ownVoice = r.data.voice;
+      chosenVoice = ownVoice.id;
+      recordingAgain = false;
+      takes.forEach((t, n) => { if (t) URL.revokeObjectURL(t.url); takes[n] = null; });
+      input("greeting").value = biz.greeting || input("greeting").value;
+      chooseOwn(true);
+    }
+
+    // One green button: « Créer ma voix » while the recorder is open, « Continuer » otherwise
+    function voiceBar() {
+      if (current !== 2) return;
+      const recording = useOwn && (!ownVoice || recordingAgain);
+      bar(recording ? "Créer ma voix" : "Continuer", recording ? "mic-sm" : null, null);
+      onPrimary = recording ? createOwnVoice : saveVoice;
     }
 
     async function saveVoice() {
       if (agentFailed) { go(3); return; }
-      const voice = voices?.find((v) => v.id === chosenVoice);
+      const voice = useOwn ? ownVoice : voices?.find((v) => v.id === chosenVoice);
       if (!voice) { showError("Choisissez une voix."); return; }
-      const greeting = input("greeting").value.trim() || defaultGreeting();
+      const greeting = input("greeting").value.trim() || defaultGreeting({ name: biz.name, first_name: biz.first_name, voice: voiceKind() });
+      const voice_gender = useOwn ? null : voice.gender ?? null;
+      const voice_name = useOwn ? CLONED_VOICE_NAME : voice.name;
       busy(true, "Enregistrement…");
       audio.pause(); setPlaying(null);
-      const r = await api("PUT", "/api/business", { voice_id: voice.id, voice_name: voice.name, greeting, onboarding_step: stepAtLeast("number") });
-      if (!r.ok) { busy(false); bar("Continuer", null, null); showError(r.data.hint ?? "Enregistrement impossible. Réessayez."); return; }
-      biz.voice_id = voice.id; biz.voice_name = voice.name; biz.greeting = greeting;
+      const r = await api("PUT", "/api/business", { voice_id: voice.id, voice_name, voice_gender, greeting, onboarding_step: stepAtLeast("number") });
+      if (!r.ok) { busy(false); voiceBar(); showError(r.data.hint ?? "Enregistrement impossible. Réessayez."); return; }
+      biz.voice_id = voice.id; biz.voice_name = voice_name; biz.voice_gender = voice_gender; biz.greeting = greeting;
       busy(true, "Préparation du répondeur…");
       const agent = await api("POST", "/api/agent");
       busy(false);
@@ -657,11 +850,11 @@ const filled = !!b.name;
     const enter: Record<number, () => void> = {
       1: () => { renderHours(); renderFaqs(); showPhase(formPhase.hidden ? "site" : "form"); },
       2: () => {
-        const g = input("greeting");
-        if (!g.value.trim()) g.value = defaultGreeting();
+        // The first name may have changed on step 1: a generated greeting follows it
+        syncGreeting();
         bar("Continuer", null, null);
         onPrimary = saveVoice;
-        if (!voices) loadVoices();
+        if (!voices) loadVoices(); else voiceBar();
       },
       3: () => {
         if (!input("phone3").value) input("phone3").value = frPhone(biz.artisan_phone);
@@ -689,6 +882,19 @@ const filled = !!b.name;
 
   /* 48 px square icon button (add, remove, ring duration) */
   .step-btn { flex: none; display: grid; place-items: center; width: 48px; height: 48px; margin: -6px -8px -6px 0; border-radius: var(--radius-call); color: var(--color-ink); }
+  /* Record button of « Utiliser ma voix »: 72 px, ink; while recording it turns white with a stop square */
+  .rec-btn { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; color: #fff; background: var(--color-ink); box-shadow: inset 0 0 0 1px var(--color-ink); transition: background 150ms, color 150ms; }
+  .rec-btn.is-recording { color: var(--color-ink); background: var(--color-surface); box-shadow: inset 0 0 0 2px var(--color-ink); }
+  .rec-btn:focus-visible, .link-btn:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+  /* Text button inside a block row (« Enregistrer à nouveau ») */
+  .link-btn { min-height: 48px; padding: 0 4px; font-size: var(--text-small); font-weight: 700; color: var(--color-ink); text-decoration: underline; text-underline-offset: 3px; }
+
+  /* Consent checkbox: 22 px square in ink, check mark when ticked */
+  .checkbox { appearance: none; flex: none; width: 22px; height: 22px; border-radius: 4px; box-shadow: inset 0 0 0 2px var(--color-ink); display: grid; place-items: center; }
+  .checkbox:checked { background: var(--color-ink); }
+  .checkbox:checked::after { content: ""; width: 6px; height: 11px; margin-top: -3px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  .checkbox:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+
   .step-btn:focus-visible, .play-btn:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
 
   /* Listen button: same look as the call button of the list (DESIGN.md « Bouton d'appel en liste ») */

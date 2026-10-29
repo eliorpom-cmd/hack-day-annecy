@@ -4,7 +4,7 @@ import { normalizeE164 } from "./phone.ts";
 export type BusinessPatch = Partial<{
   name: string; trade: string; city: string; website: string | null; description: string;
   artisan_phone: string | null; ring_seconds: number; greeting: string; voice_id: string | null;
-  voice_name: string | null; onboarding_step: "business" | "voice" | "number" | "done"; advanced_mode: number;
+  voice_name: string | null; first_name: string; voice_gender: "female" | "male" | null; onboarding_step: "business" | "voice" | "number" | "done"; advanced_mode: number;
 }>;
 
 export type Hour = { weekday: number; opens: string; closes: string };
@@ -13,7 +13,7 @@ export type FaqInput = { question: string; answer: string; kind: FaqKind };
 
 type Result<T> = { ok: true; value: T } | { ok: false; hint: string };
 
-const TEXT_LIMITS = { name: 120, trade: 80, city: 80, description: 2000, greeting: 300, voice_name: 120 } as const;
+const TEXT_LIMITS = { name: 120, trade: 80, city: 80, description: 2000, greeting: 300, voice_name: 120, first_name: 60 } as const;
 const STEPS = ["business", "voice", "number", "done"] as const;
 
 export function normalizeWebsite(raw: string): string | null {
@@ -38,7 +38,7 @@ export function sanitizeBusinessPatch(input: Record<string, unknown>): Result<Bu
     if (key === "voice_name" && v === null) { out.voice_name = null; continue; }
     if (typeof v !== "string") return { ok: false, hint: `Le champ « ${key} » doit être un texte.` };
     if (v.length > TEXT_LIMITS[key]) return { ok: false, hint: `Le champ « ${key} » est trop long (${TEXT_LIMITS[key]} caractères max).` };
-    out[key] = v.trim();
+    out[key] = key === "first_name" ? v.trim().replace(/\s+/g, " ") : v.trim();
   }
   if ("website" in input) {
     const v = input.website;
@@ -63,6 +63,12 @@ export function sanitizeBusinessPatch(input: Record<string, unknown>): Result<Bu
     if (v === null || v === "") out.voice_id = null;
     else if (typeof v !== "string" || !/^[A-Za-z0-9_-]{1,64}$/.test(v)) return { ok: false, hint: "Identifiant de voix invalide." };
     else out.voice_id = v;
+  }
+  if ("voice_gender" in input) {
+    const v = input.voice_gender;
+    if (v === null || v === "") out.voice_gender = null;
+    else if (v === "female" || v === "male") out.voice_gender = v;
+    else return { ok: false, hint: "Le genre de la voix doit être « female » ou « male »." };
   }
   if ("onboarding_step" in input) {
     const v = input.onboarding_step;

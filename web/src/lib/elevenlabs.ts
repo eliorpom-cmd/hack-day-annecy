@@ -12,11 +12,13 @@ export function elevenLabsKey(): string {
 
 export async function elRequest<T>(path: string, init: { method?: string; body?: unknown; timeoutMs?: number } = {}): Promise<T> {
   let res: Response;
+  const isForm = init.body instanceof FormData;
   try {
     res = await fetch(`${BASE}${path}`, {
       method: init.method ?? "GET",
-      headers: { "xi-api-key": elevenLabsKey(), ...(init.body !== undefined ? { "Content-Type": "application/json" } : {}) },
-      body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
+      // A FormData body (voice upload) sets its own multipart Content-Type
+      headers: { "xi-api-key": elevenLabsKey(), ...(init.body !== undefined && !isForm ? { "Content-Type": "application/json" } : {}) },
+      body: init.body === undefined ? undefined : isForm ? (init.body as FormData) : JSON.stringify(init.body),
       signal: AbortSignal.timeout(init.timeoutMs ?? 20000),
     });
   } catch (e) {
