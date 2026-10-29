@@ -1,0 +1,11 @@
+---
+// Segmented filter « À rappeler · N » / « Tous » (DESIGN.md « Filtre segmenté »)
+interface Props { view: "rappeler" | "tous"; count: number }
+const { view, count } = Astro.props;
+const seg = "flex min-h-12 flex-1 items-center justify-center rounded-filter text-small font-bold";
+const on = "bg-surface shadow-[inset_0_0_0_1px_var(--color-line)]";
+---
+<nav class="flex gap-1 rounded-filter bg-neutral-bg p-1" aria-label="Filtrer les appels">
+  <a href="/app" class={`${seg} ${view === "rappeler" ? on : "text-muted"}`} aria-current={view === "rappeler" ? "page" : undefined}>À rappeler · {count}</a>
+  <a href="/app?vue=tous" class={`${seg} ${view === "tous" ? on : "text-muted"}`} aria-current={view === "tous" ? "page" : undefined}>Tous</a>
+</nav>

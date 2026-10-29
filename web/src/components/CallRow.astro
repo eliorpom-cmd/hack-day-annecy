@@ -1,0 +1,45 @@
+---
+// One row of the « Appels » list (DESIGN.md « Ligne d'appel »).
+// The whole row opens the call page; the call button on the right dials directly.
+import Icon from "./Icon.astro";
+import { capitalize } from "../lib/callpage";
+import { statusLabel, whenLabel, type ListLead } from "../lib/leads-group";
+
+interface Props { lead: ListLead; when?: string }
+const { lead, when } = Astro.props;
+
+const name = lead.name ?? "Client";
+const subject = capitalize(lead.subject ?? lead.need ?? "Appel");
+const status = statusLabel(lead.status);
+const done = lead.status !== "nouveau";
+const chip = done ? null
+  : lead.urgency === "urgence" ? { label: "Urgence", cls: "chip-urgence" }
+  : lead.urgency === "urgent" ? { label: "Prioritaire", cls: "chip-prio" } : null;
+const href = lead.link_token ? `/a/${lead.link_token}` : null;
+const tail = [when ?? whenLabel(lead.created_at), status].filter(Boolean).join(" · ");
+---
+<li class="row relative">
+  <div class="min-w-0 flex-1">
+    <p class="flex items-center gap-2">
+      {chip && <span class={`chip shrink-0 ${chip.cls}`}>{chip.label}</span>}
+      {href
+        ? <a href={href} class={`call-link truncate ${done ? "" : "font-bold"}`}>{name}</a>
+        : <span class={`truncate ${done ? "" : "font-bold"}`}>{name}</span>}
+    </p>
+    <p class="flex text-small text-muted"><span class="truncate">{subject}</span><span class="shrink-0 whitespace-pre"> · {tail}</span></p>
+  </div>
+  {lead.phone && (
+    <a href={`tel:${lead.phone}`} class="relative z-10 -my-1 -mr-1 grid size-12 shrink-0 place-items-center" aria-label={`Appeler ${name}`}>
+      <span class="grid size-10 place-items-center rounded-call bg-tint text-action-ink shadow-[inset_0_0_0_1px_var(--color-tint-line)]">
+        <Icon name="phone" />
+      </span>
+    </a>
+  )}
+</li>
+
+<style>
+  /* Stretch the name link over the whole row so tapping anywhere opens the call page */
+  .call-link::after { content: ""; position: absolute; inset: 0; }
+  .call-link:focus-visible { outline: none; }
+  .call-link:focus-visible::after { outline: 2px solid var(--color-ink); outline-offset: -2px; border-radius: var(--radius-block); }
+</style>

@@ -1,13 +1,49 @@
 ---
+// « Appels »: the artisan's list of calls (DESIGN.md « Ligne d'appel », « Filtre segmenté »; texts: COPY.md)
 import Base from "../../layouts/Base.astro";
-const { user, business } = Astro.locals;
+import CallRow from "../../components/CallRow.astro";
+import SegmentedFilter from "../../components/SegmentedFilter.astro";
+import { leadsForBusiness } from "../../lib/leads-list";
+import { groupByDay, hourLabel, toCallBack } from "../../lib/leads-group";
+
+const { business } = Astro.locals;
 if (business && business.onboarding_step !== "done") return Astro.redirect("/onboarding");
+
+const view = Astro.url.searchParams.get("vue") === "tous" ? "tous" : "rappeler";
+const leads = business ? await leadsForBusiness(business.id) : [];
+const pending = toCallBack(leads);
+const groups = view === "tous" ? groupByDay(leads) : [];
 ---
-<Base title="Tableau de bord">
-  <main class="mx-auto max-w-4xl px-4 py-12">
-    <h1 class="text-2xl font-semibold">{business?.name || "Mon entreprise"}</h1>
-    <p class="text-neutral-600">{user?.email}</p>
-    <p class="mt-8 text-neutral-500">Tableau de bord à venir (tâche 06) : appels, leads, mode avancé.</p>
-    <form method="post" action="/api/auth/logout" class="mt-8"><button class="underline">Se déconnecter</button></form>
+<Base title="Appels">
+  <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-[14px] px-4 pt-6 pb-6">
+    <h1 class="text-title font-bold">Appels</h1>
+    <SegmentedFilter view={view} count={pending.length} />
+
+    {leads.length === 0 ? (
+      <div class="py-12 text-center">
+        <p class="font-bold">Aucun appel</p>
+        <p class="mt-1 text-small text-muted">Vos appels s’afficheront ici.</p>
+      </div>
+    ) : view === "rappeler" ? (
+      pending.length === 0 ? (
+        <div class="py-12 text-center">
+          <p class="font-bold">Personne à rappeler</p>
+          <p class="mt-1 text-small text-muted">Les nouveaux appels s’afficheront ici.</p>
+        </div>
+      ) : (
+        <ul class="panel">{pending.map((lead) => <CallRow lead={lead} />)}</ul>
+      )
+    ) : (
+      groups.map((g) => (
+        <section>
+          <h2 class="px-[14px] pb-2 text-small font-bold text-muted">{g.label}</h2>
+          <ul class="panel">{g.items.map((lead) => <CallRow lead={lead} when={hourLabel(lead.created_at)} />)}</ul>
+        </section>
+      ))
+    )}
+
+    <form method="post" action="/api/auth/logout" class="mt-auto flex justify-center pt-6">
+      <button class="min-h-12 px-4 text-small text-muted underline underline-offset-2">Se déconnecter</button>
+    </form>
   </main>
 </Base>

@@ -162,6 +162,7 @@ S'ouvre au retour dans l'app après « Rappeler » ; ne se ferme qu'en répondan
   --text-small--line-height: 1.35;
   --radius-chip: 8px;
   --radius-call: 12px;
+  --radius-filter: 10px;
   --radius-block: 14px;
   --radius-button: 16px;
   --radius-dialog: 28px;

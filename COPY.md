@@ -26,7 +26,7 @@ Lecteur : artisan de 30-40 ans en reconversion, au début de son activité, sur 
 | Message après un appel normal | neutre, la demande en une phrase | 🟢 Devis salle de bain, M. Durand · Veut un devis pour remplacer la baignoire. |
 | Succès | participe passé, 1-2 mots | Enregistré |
 | Erreur | ce qui a échoué + quoi faire | Numéro introuvable · Vérifiez le numéro et réessayez. |
-| État vide | ce qui va apparaître ici, sans détail superflu | Aucun appel · Vos appels s'afficheront ici. |
+| État vide | ce qui va apparaître ici, sans détail superflu | Aucun appel · Vos appels s'afficheront ici. / Personne à rappeler · Les nouveaux appels s'afficheront ici. |
 | Configuration | ce qu'on demande, puis à quoi ça sert concrètement | Votre métier et vos horaires · Le répondeur les donne aux clients qui appellent. |
 | Répondeur au téléphone | poli, court, comme un secrétariat | Bonjour, ici l'assistant de Plomberie Martin. Marc est sur un chantier, que puis-je faire pour vous ? |
 
