@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Étape 3 · Couleurs</title>
+<title>Étape 3 · Générateur de couleur</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
@@ -40,13 +40,40 @@
   .name{font-weight:700}
 </style></head><body>
 <style>
+ :root{--ink:#0b2545;--surf:#f1f4f8;--tint:#e6eef6;--primary:#0a8fd6;--onprimary:#fff}
+ body{background:#dfe3e8}
  .btn{background:var(--primary)!important;color:var(--onprimary)!important}
- .nav{color:var(--ink)!important} .h1,.name{color:var(--ink)} .act svg,.line .ic svg{color:var(--ink)}
+ .nav{color:var(--accentText)!important} .h1,.name{color:var(--ink)} .act svg{color:var(--accentText)} .line .ic svg{color:var(--ink)}
  .phone{background:var(--surf)!important} .bar{background:var(--surf)!important} .line .ic{background:var(--tint)!important}
- .row{gap:22px} .label{max-width:300px;min-height:72px}
- .sw{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted);margin-top:4px} .sw i{width:18px;height:18px;border-radius:5px;display:inline-block;border:1px solid rgba(0,0,0,.08)}
-</style><header><h1>Étape 3 sur 6 · Les couleurs (2e essai)</h1>
-<p>Les applis pros de l'étude posent presque toutes un marine très foncé comme base, et une couleur vive pour l'action. Chaque option est une paire : la base (titres, icônes, retour) et l'action (le bouton Rappeler). Le rouge urgence et l'orange urgent ne changent pas. Réponds A, B, C ou D, ou un mélange.</p></header><div class="row"><div class="opt A" style="--ink:#0b2545;--primary:#0a8fd6;--onprimary:#ffffff;--surf:#f1f4f8;--tint:#e6eef6"><div class="label">A · Marine + cyan<span class="sw"><i style="background:#0b2545"></i>base #0b2545 <i style="background:#0a8fd6"></i>action #0a8fd6</span><span>le duo des applis pros (Doctolib, Housecall Pro) : sérieux, rassurant</span></div>
+ .seg .on{color:var(--ink)} .act{color:var(--ink)}
+ .wrap{display:flex;gap:32px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+ .panel{width:340px;background:#fff;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:16px;position:sticky;top:20px}
+ .panel h2{font-size:17px} .panel label{display:flex;flex-direction:column;gap:6px;font-size:14px;color:#555}
+ .panel input[type=range]{width:100%} .panel input[type=color]{width:100%;height:48px;border:0;border-radius:10px;padding:0;background:none}
+ .hue{background:linear-gradient(90deg,oklch(.62 .17 0),oklch(.62 .17 60),oklch(.62 .17 120),oklch(.62 .17 180),oklch(.62 .17 240),oklch(.62 .17 300),oklch(.62 .17 360));height:10px;border-radius:5px}
+ .vals{font:13px ui-monospace,Menlo,monospace;background:#f4f5f7;border-radius:10px;padding:10px;line-height:1.7}
+ .vals i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px;border:1px solid rgba(0,0,0,.1)}
+ .warn{font-size:13px;color:#b42318;min-height:18px}
+ .ok{font-size:13px;color:#1a7f37}
+ .b{height:44px;border-radius:12px;border:0;background:var(--ink);color:#fff;font:600 15px 'Atkinson Hyperlegible Next',sans-serif;cursor:pointer}
+ .b2{height:40px;border-radius:12px;border:1px solid #d0d5dd;background:#fff;font:600 14px 'Atkinson Hyperlegible Next',sans-serif;cursor:pointer}
+ .chips{display:flex;flex-wrap:wrap;gap:8px} .chips button{width:34px;height:34px;border-radius:10px;border:2px solid #fff;box-shadow:0 0 0 1px #d0d5dd;cursor:pointer}
+ .panel label.tg{flex-direction:row;gap:8px;align-items:center;font-size:14px;color:#555}
+</style><header><h1>Étape 3 sur 6 · Générateur de couleur d'action</h1>
+<p>Fond blanc froid et base marine fixes (ton choix). Règle la couleur d'action : le texte du bouton, la teinte des icônes et la version lisible sur fond clair se calculent seuls. Quand une couleur te plaît, clique « Copier les valeurs » et colle-les dans le chat.</p></header>
+<div class="wrap"><div class="panel">
+ <h2>Couleur d'action</h2>
+ <label>Choisir directement<input type="color" id="pick" value="#0a8fd6"></label>
+ <label>Teinte<div class="hue"></div><input type="range" id="h" min="0" max="360" step="1"></label>
+ <label>Intensité<input type="range" id="c" min="0" max="0.26" step="0.005"></label>
+ <label>Clarté<input type="range" id="l" min="0.35" max="0.85" step="0.005"></label>
+ <button class="b" id="gen">Proposer une couleur</button>
+ <div class="chips" id="hist" title="Dernières couleurs"></div>
+ <label class="tg"><input type="checkbox" id="acc" checked> Retour et icônes des raccourcis dans la couleur d'action</label>
+ <div class="warn" id="warn"></div>
+ <div class="vals" id="vals"></div>
+ <button class="b2" id="copy">Copier les valeurs</button>
+</div><div class="opt A"><div class="pair">
 <div class="phone"><div class="scroll">
   <div class="nav">‹ Appels</div>
   <div class="chip red">● Urgence</div>
@@ -59,43 +86,56 @@
   </div>
   <div class="card"><div class="line"><div class="grow">Contenu de la conversation</div><span class="chev">›</span></div></div>
 </div><div class="bar"><button class="btn"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button></div></div>
-</div><div class="opt A" style="--ink:#141414;--primary:#ffc400;--onprimary:#141414;--surf:#f3f2ee;--tint:#efece2"><div class="label">B · Noir + jaune chantier<span class="sw"><i style="background:#141414"></i>base #141414 <i style="background:#ffc400"></i>action #ffc400</span><span>les couleurs de l'outillage (DeWalt, Stanley) : se voit de loin, très « métier »</span></div>
 <div class="phone"><div class="scroll">
-  <div class="nav">‹ Appels</div>
-  <div class="chip red">● Urgence</div>
-  <div><div class="h1">Fuite d'eau</div><div style="margin-top:4px"><span class="name">Mme Lefèvre</span> <span class="sub">· il y a 12 min</span></div></div>
-  <div class="actions"><div class="act"><svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Itinéraire</div><div class="act"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Message</div><div class="act"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Rappelé</div></div>
-  <div class="card"><div class="t">Pourquoi c'est urgent</div><div class="why">L'eau coule dans le salon.</div></div>
+  <div class="h1" style="margin-top:22px">Appels</div>
+  <div class="seg"><div class="on">À rappeler · 3</div><div>Tous</div></div>
+  <div class="gh">Aujourd'hui</div>
   <div class="card">
-    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="grow"><div class="k">Adresse</div><div>12 rue Royale, Annecy</div></div></div>
-    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="k">Téléphone</div><div>06 12 34 56 78</div></div></div>
+    <div class="line"><div class="dot red"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">Mme Lefèvre</div><div class="sub">Urgence · fuite d'eau</div></div><span class="time">14 h 32</span></div>
+    <div class="line"><div class="dot orange"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Rossi</div><div class="sub">Urgent · chaudière en panne</div></div><span class="time">13 h 05</span></div>
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="name">M. Durand</div><div class="sub">Devis salle de bain</div></div><span class="time">11 h 20</span></div>
   </div>
-  <div class="card"><div class="line"><div class="grow">Contenu de la conversation</div><span class="chev">›</span></div></div>
-</div><div class="bar"><button class="btn"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button></div></div>
-</div><div class="opt A" style="--ink:#06343a;--primary:#00838f;--onprimary:#ffffff;--surf:#f0f4f4;--tint:#e2eeee"><div class="label">C · Pétrole<span class="sw"><i style="background:#06343a"></i>base #06343a <i style="background:#00838f"></i>action #00838f</span><span>teinte des outils pros (Makita) : calme, se distingue de toutes les applis</span></div>
-<div class="phone"><div class="scroll">
-  <div class="nav">‹ Appels</div>
-  <div class="chip red">● Urgence</div>
-  <div><div class="h1">Fuite d'eau</div><div style="margin-top:4px"><span class="name">Mme Lefèvre</span> <span class="sub">· il y a 12 min</span></div></div>
-  <div class="actions"><div class="act"><svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Itinéraire</div><div class="act"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Message</div><div class="act"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Rappelé</div></div>
-  <div class="card"><div class="t">Pourquoi c'est urgent</div><div class="why">L'eau coule dans le salon.</div></div>
+  <div class="gh">Hier</div>
   <div class="card">
-    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="grow"><div class="k">Adresse</div><div>12 rue Royale, Annecy</div></div></div>
-    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="k">Téléphone</div><div>06 12 34 56 78</div></div></div>
+    <div class="line"><div class="dot gray"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div><div class="grow"><div>Mme Petit</div><div class="sub">Rappelé · robinet qui goutte</div></div><span class="time">17 h 48</span></div>
   </div>
-  <div class="card"><div class="line"><div class="grow">Contenu de la conversation</div><span class="chev">›</span></div></div>
-</div><div class="bar"><button class="btn"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button></div></div>
-</div><div class="opt A" style="--ink:#0b2545;--primary:#2e9e4f;--onprimary:#ffffff;--surf:#f1f4f6;--tint:#e5eef0"><div class="label">D · Marine + vert<span class="sw"><i style="background:#0b2545"></i>base #0b2545 <i style="background:#2e9e4f"></i>action #2e9e4f</span><span>le vert de « c'est réglé » (Jobber) sur une base marine</span></div>
-<div class="phone"><div class="scroll">
-  <div class="nav">‹ Appels</div>
-  <div class="chip red">● Urgence</div>
-  <div><div class="h1">Fuite d'eau</div><div style="margin-top:4px"><span class="name">Mme Lefèvre</span> <span class="sub">· il y a 12 min</span></div></div>
-  <div class="actions"><div class="act"><svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Itinéraire</div><div class="act"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Message</div><div class="act"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Rappelé</div></div>
-  <div class="card"><div class="t">Pourquoi c'est urgent</div><div class="why">L'eau coule dans le salon.</div></div>
-  <div class="card">
-    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="grow"><div class="k">Adresse</div><div>12 rue Royale, Annecy</div></div></div>
-    <div class="line"><div class="ic"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div><div class="grow"><div class="k">Téléphone</div><div>06 12 34 56 78</div></div></div>
-  </div>
-  <div class="card"><div class="line"><div class="grow">Contenu de la conversation</div><span class="chev">›</span></div></div>
-</div><div class="bar"><button class="btn"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg> Rappeler</button></div></div>
-</div></div></body></html>
+</div></div>
+</div></div></div>
+</div></div></div><script>
+// OKLCH -> sRGB conversion (Björn Ottosson's OKLab)
+function oklch2rgb(L,C,H){const h=H*Math.PI/180,a=C*Math.cos(h),b=C*Math.sin(h);
+ const l_=L+0.3963377774*a+0.2158037573*b,m_=L-0.1055613458*a-0.0638541728*b,s_=L-0.0894841775*a-1.2914855480*b;
+ const l=l_**3,m=m_**3,s=s_**3;
+ let r=4.0767416621*l-3.3077115913*m+0.2309699292*s,g=-1.2684380046*l+2.6097574011*m-0.3413193965*s,bb=-0.0041960863*l-0.7034186147*m+1.7076147010*s;
+ const f=x=>{x=Math.max(0,Math.min(1,x));return x<=0.0031308?12.92*x:1.055*Math.pow(x,1/2.4)-0.055};return [f(r),f(g),f(bb)]}
+function rgb2oklch(r,g,b){const lin=x=>x<=0.04045?x/12.92:Math.pow((x+0.055)/1.055,2.4);r=lin(r);g=lin(g);b=lin(b);
+ const l=Math.cbrt(0.4122214708*r+0.5363325363*g+0.0514459929*b),m=Math.cbrt(0.2119034982*r+0.6806995451*g+0.1073969566*b),s=Math.cbrt(0.0883024619*r+0.2817188376*g+0.6299787005*b);
+ const L=0.2104542553*l+0.7936177850*m-0.0040720468*s,a=1.9779984951*l-2.4285922050*m+0.4505937099*s,bb=0.0259040371*l+0.7827717662*m-0.8086757660*s;
+ let H=Math.atan2(bb,a)*180/Math.PI;if(H<0)H+=360;return [L,Math.hypot(a,bb),H]}
+const hex=([r,g,b])=>'#'+[r,g,b].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('');
+const fromHex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);
+const lum=([r,g,b])=>{const f=x=>x<=0.03928?x/12.92:Math.pow((x+0.055)/1.055,2.4);return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b)};
+const contrast=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05)};
+const $=id=>document.getElementById(id);const INK=fromHex('#0b2545'),WHITE=[1,1,1],SURF=fromHex('#f1f4f8');
+let state={L:0.62,C:0.15,H:240};const hist=[];
+function render(){const {L,C,H}=state;const p=oklch2rgb(L,C,H);const P=hex(p);
+ const onW=contrast(p,WHITE),onI=contrast(p,INK);const on=onW>=onI?'#ffffff':'#0b2545',onC=Math.max(onW,onI);
+ const tint=hex(oklch2rgb(0.95,Math.min(C,0.035),H));
+ // accent used as text on the light surface must stay readable
+ let at=p;let al=L;while(contrast(at,SURF)<4.5&&al>0.2){al-=0.02;at=oklch2rgb(al,C,H)}const AT=hex(at);
+ const r=document.documentElement.style;r.setProperty('--primary',P);r.setProperty('--onprimary',on);r.setProperty('--tint',tint);
+ r.setProperty('--accentText',$('acc').checked?AT:'#0b2545');
+ $('pick').value=P;$('h').value=H;$('c').value=C;$('l').value=L;
+ const near=(H>=10&&H<=75)&&C>0.08;$('warn').textContent=near?'Trop proche du rouge ou de l\u2019orange des urgences : le bouton risque d\u2019être confondu avec une alerte.':'';
+ $('vals').innerHTML=`<div><i style="background:${P}"></i>action ${P}</div><div><i style="background:${on}"></i>texte du bouton ${on} · contraste ${onC.toFixed(1)}:1 ${onC>=4.5?'✓':'(faible)'}</div><div><i style="background:${AT}"></i>action sur fond clair ${AT}</div><div><i style="background:${tint}"></i>teinte des icônes ${tint}</div><div><i style="background:#0b2545"></i>base #0b2545</div><div><i style="background:#f1f4f8"></i>fond #f1f4f8</div>`;
+ window._vals=`action ${P}\ntexte du bouton ${on}\naction sur fond clair ${AT}\nteinte des icônes ${tint}\nbase #0b2545\nfond #f1f4f8\nurgence #d70015\nurgent #c25e00`;
+ try{localStorage.setItem('palette',JSON.stringify(state))}catch(e){}}
+function remember(){const P=$('pick').value;if(hist[0]===P)return;hist.unshift(P);hist.splice(12);$('hist').innerHTML='';hist.forEach(h=>{const b=document.createElement('button');b.style.background=h;b.title=h;b.onclick=()=>{const [L,C,H]=rgb2oklch(...fromHex(h));state={L,C,H};render()};$('hist').appendChild(b)})}
+$('pick').oninput=e=>{const [L,C,H]=rgb2oklch(...fromHex(e.target.value));state={L,C,H};render()};$('pick').onchange=remember;
+['h','c','l'].forEach(k=>$(k).oninput=e=>{state[{h:'H',c:'C',l:'L'}[k]]=parseFloat(e.target.value);render()});['h','c','l'].forEach(k=>$(k).onchange=remember);
+$('acc').onchange=render;
+$('gen').onclick=()=>{let H;do{H=Math.random()*360}while(H>=10&&H<=80);state={H,C:0.11+Math.random()*0.1,L:0.5+Math.random()*0.2};render();remember()};
+$('copy').onclick=()=>{navigator.clipboard.writeText(window._vals);$('copy').textContent='Copié'};
+try{const s=JSON.parse(localStorage.getItem('palette'));if(s)state=s}catch(e){}
+render();remember();
+</script></body></html>
