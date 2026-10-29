@@ -44,6 +44,7 @@ const upperFirst = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 // tried from the ElevenLabs dashboard
 export const CALL_VARIABLES = {
   caller_phone: "numéro inconnu",
+  today: "jeudi 29 octobre 2026",
   slot_1: "demain à 9 h",
   slot_2: "demain à 10 h",
 } as const;
@@ -67,6 +68,7 @@ export function buildSystemPrompt(b: PromptBusiness, hours: PromptHour[], faqs: 
 
   const booking = opts.calendar
     ? `RENDEZ-VOUS (l'agenda de ${who} est connecté)
+Nous sommes le {{today}}. Si l'appelant dit « demain », « lundi » ou « le premier », comprenez de quel créneau il parle avec cette date.
 Vous pouvez prendre un rendez-vous. Les deux prochains créneaux libres de ${who} sont :
 - créneau 1 : {{slot_1}}
 - créneau 2 : {{slot_2}}

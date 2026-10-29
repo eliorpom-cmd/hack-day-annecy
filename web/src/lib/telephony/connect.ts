@@ -3,7 +3,7 @@ import { db, type Business } from "../db";
 import { telEnv } from "./env";
 import { sayAndHangup } from "./twiml";
 import { logEvent, registerElevenLabsCall } from "./providers";
-import { demoSlots, nextSlots, type Busy, type CalendarHour } from "../calendar";
+import { demoSlots, nextSlots, todayLabel, type Busy, type CalendarHour } from "../calendar";
 import { isDemoBusiness } from "../demo-voice";
 import { demoCallAgentId } from "../demo-agent";
 import { formatFrPhone } from "./postcall";
@@ -19,6 +19,7 @@ export async function callVariables(business: Business, from: string, now = Date
   const [s1, s2] = demo ? demoSlots(hours.results, busy.results, now) : nextSlots(hours.results, busy.results, now);
   return {
     caller_phone: formatFrPhone(from) || "numéro inconnu",
+    today: todayLabel(now),
     slot_1: s1?.label ?? "", slot_2: s2?.label ?? "",
     slot_1_iso: s1?.iso ?? "", slot_2_iso: s2?.iso ?? "",
   };

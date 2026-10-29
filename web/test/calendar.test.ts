@@ -45,10 +45,18 @@ test("demo accounts: the two slots of the pitch script, then the real ones once 
   const { demoSlots } = await import("../src/lib/calendar.ts");
   const before = Date.parse("2026-10-29T20:00:00Z");
   const [a, b] = demoSlots([], [], before);
-  assert.equal(a.label, "vendredi 30 octobre à 11 h");
+  assert.equal(a.label, "demain, vendredi 30 octobre à 11 h");
   assert.equal(a.iso, "2026-10-30T10:00:00.000Z");
   assert.equal(b.label, "lundi 2 novembre à 14 h");
   assert.equal(b.iso, "2026-11-02T13:00:00.000Z");
   const after = demoSlots([], [], Date.parse("2026-11-05T08:00:00Z"));
   assert.notEqual(after[0].label, "vendredi 30 octobre à 11 h");
+});
+
+test("today's date and relative days for the agent", async () => {
+  const { todayLabel, withRelativeDay } = await import("../src/lib/calendar.ts");
+  const now = Date.parse("2026-10-29T20:00:00Z");
+  assert.equal(todayLabel(now), "jeudi 29 octobre 2026");
+  assert.equal(withRelativeDay(Date.parse("2026-10-30T10:00:00Z"), now, "x"), "demain, x");
+  assert.equal(withRelativeDay(Date.parse("2026-11-02T13:00:00Z"), now, "x"), "x");
 });

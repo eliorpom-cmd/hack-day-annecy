@@ -92,10 +92,23 @@ export const DEMO_SLOTS = [
   { year: 2026, month: 11, day: 2, hour: 14, label: "lundi 2 novembre à 14 h" },
 ] as const;
 
+// « demain, vendredi 30 octobre à 11 h »: the caller may answer « demain », the agent must recognise it
+export function withRelativeDay(startMs: number, nowMs: number, label: string): string {
+  const day = (ms: number) => { const p = parisParts(ms); return Math.round(Date.UTC(p.year, p.month - 1, p.day) / 86400000); };
+  const gap = day(startMs) - day(nowMs);
+  return gap === 0 ? `aujourd’hui, ${label}` : gap === 1 ? `demain, ${label}` : gap === 2 ? `après-demain, ${label}` : label;
+}
+
+// « jeudi 29 octobre 2026 », for {{today}}: the agent knows which day « demain » is
+export function todayLabel(nowMs: number): string {
+  const p = parisParts(nowMs);
+  return `${DAYS[p.weekday]} ${p.day === 1 ? "1er" : p.day} ${MONTHS[p.month - 1]} ${p.year}`;
+}
+
 export function demoSlots(hours: CalendarHour[], busy: Busy[], nowMs: number): Slot[] {
   const fixed = DEMO_SLOTS.map((s) => {
     const start = parisTime(s.year, s.month, s.day, s.hour, 0);
-    return { start, end: start + SLOT_MINUTES * 60000, label: s.label, iso: new Date(start).toISOString() };
+    return { start, end: start + SLOT_MINUTES * 60000, label: withRelativeDay(start, nowMs, s.label), iso: new Date(start).toISOString() };
   });
   return fixed.every((s) => s.start > nowMs) ? fixed : nextSlots(hours, busy, nowMs);
 }
