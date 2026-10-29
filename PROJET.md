@@ -25,13 +25,19 @@ Specs à jour (source de vérité, écrite par l'équipe) : https://docs.google.
 - **Hors périmètre aujourd'hui** : site web, réseaux sociaux, pubs, import CRM (on les cite dans le pitch).
 
 
-## État et reprise (checkout du 29/10/2026, ~17 h 55)
+## État et reprise (29/10/2026, ~18 h 30)
 
-**En ligne** : https://hack-day-annecy.eliorpom-0bc.workers.dev (compte Cloudflare Eliorpom, base D1 `hack-day-annecy` migrée jusqu'à 0009). Lien aussi dans la description du dépôt GitHub.
+**Passage de relais** : un coéquipier reprend le projet sur Lovable. Ce dépôt (`web/`) reste la référence de ce qui marche : routes, prompts, messages (COPY.md), design (DESIGN.md).
 
-**Fait et poussé sur `main`** : landing page, connexion (« Essayer la configuration » = compte vierge, « Voir la démo » = compte Plomberie Démo), configuration en 4 étapes (lecture du site par Workers AI, prénom, clonage de voix, numéro, essai), liste des appels, page d'un appel `/a/<jeton>` (lien du WhatsApp, « Avez-vous eu … ? »), réglages, vue ordinateur (barre latérale : Appels, Site web, Fiche Google, Réseaux sociaux, Publicités, Réglages), hub « Site web » (mini-site public `/site/<slug>`), aiguillage par horaires, message après chaque appel (COPY.md), mail du lundi, schéma de pitch `docs/pitch/schema-appel.html`, design (DESIGN.md, COPY.md, `docs/design-choix/`), fiche de répétition `docs/demo-repetition.md`. Pas encore mis en ligne : la landing page et ce qui suit (republier).
+**En ligne** : https://hack-day-annecy.eliorpom-0bc.workers.dev (compte Cloudflare Eliorpom, base D1 migrée jusqu'à 0013). Publier : `bin/publier` (copie propre de `main`).
 
-**Au moment du checkout, 4 agents travaillaient sans commiter** (fichiers non suivis ou modifiés dans `web/`) : configuration v2 (tâches 24, 25, 26 : nom d'entreprise et horaires facultatifs, interview de l'artisan pour la documentation, « Garder mon numéro » par renvoi d'appel ; migrations 0010, 0011), Fiche Google (`/app/google`), Réseaux sociaux (`/app/reseaux`), Publicités (`/app/publicites`). **À la reprise** : `git status`, lancer `cd web && npm run db:local && npm test && npx astro check && npm run build`, corriger, commiter chaque lot séparément, fermer les tâches avec `bin/tache finir`.
+**Fait sur `main`** : landing, connexion, configuration v2 (nom d'entreprise et horaires facultatifs, interview de l'artisan, « Garder mon numéro » par renvoi d'appel), appels, page d'un appel, réglages, hub ordinateur (Site web, Fiche Google, Réseaux sociaux, Publicités : générateurs IA), faux site d'artisan pour la démo `/plomberie-martin/`.
+
+**En cours (sous-agents, pas encore commités)** : relais WhatsApp par le numéro GRNBL (Baileys sur le Mac, file `whatsapp_outbox`, migration 0014, dossier `relay-whatsapp/`) ; configuration de démo pré-remplie sur Plomberie Martin.
+
+**Démo décidée** : l'appel est réel ; la configuration est montrée pré-remplie (faux site Plomberie Martin, on valide seulement) ; le message WhatsApp part du second numéro d'Elior (GRNBL), plan B : envoyé à la main.
+
+**Réserves connues** : barre latérale ordinateur dont le fond s'arrête à mi-hauteur (AppShell) ; `lib/site.ts` n'utilise pas `businessDisplayName` ; un agent ElevenLabs de test a peut-être été créé en local.
 
 **Bloquant pour la démo** :
 1. Les clés : Elior les a mises dans `web/.dev.vars` (lecture interdite à Claude par ses réglages). Il doit les envoyer à Cloudflare lui-même, dans Terminal : `cd web && python3 -c "…" | npx wrangler secret bulk` (commande complète donnée le 29/10 : convertit .dev.vars en JSON sans APP_URL ni TWILIO_WEBHOOK_TOKEN). Ensuite tester en ligne : POST /api/agent (démo), GET /api/numbers, puis un vrai appel (tâche 18).
