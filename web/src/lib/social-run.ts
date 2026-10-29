@@ -43,7 +43,9 @@ type GenBusiness = PostBusiness & { id: string; artisan_phone: string | null };
 export async function generatePost(b: GenBusiness, network: Network, topic: string): Promise<SocialPost | null> {
   const [faqs, number] = await Promise.all([
     faqsOf(b.id),
-    db().prepare("SELECT e164 FROM phone_numbers WHERE business_id = ? AND status = 'live' LIMIT 1").bind(b.id).first<{ e164: string }>(),
+    db().prepare("SELECT e164 FROM phone_numbers WHERE business_id = ? AND status = 'live' LIMIT 1").bind(b.id).first<{ e164: string }>()
+      // Keeping his number: posts give his own mobile, which forwards unanswered calls to the répondeur
+      .then((n) => (n && (b as { forwarding_mode?: string | null }).forwarding_mode === "renvoi" && b.artisan_phone ? { e164: b.artisan_phone } : n)),
   ]);
   const services = faqs.map((f) => serviceLabel(f.question)).filter((s): s is string => !!s);
   const prompt = buildPostPrompt(b, topic, network, services);

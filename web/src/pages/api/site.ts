@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { db } from "../../lib/db";
 import { appUrl, requireBusiness } from "../../lib/env";
-import { handle, json } from "../../lib/http";
+import { handle, HttpError, isRecord, json, readJson } from "../../lib/http";
 import { templateHeadline } from "../../lib/site";
 import { aiHeadline, freeSlug, siteData, type SiteRow } from "../../lib/site-run";
 
@@ -33,5 +33,17 @@ export const DELETE: APIRoute = handle(async ({ locals }) => {
   const b = requireBusiness(locals) as unknown as SiteRow;
   const row = await db().prepare("UPDATE businesses SET site_published = 0 WHERE id = ? RETURNING site_slug, site_published, site_headline")
     .bind(b.id).first<SiteRow>();
+  return json({ site: view(row!) });
+});
+
+// The artisan rewrites the headline of his site himself: {headline} → {site}
+export const PATCH: APIRoute = handle(async ({ locals, request }) => {
+  const b = requireBusiness(locals) as unknown as SiteRow;
+  const body = await readJson(request);
+  const headline = isRecord(body) && typeof body.headline === "string" ? body.headline.replace(/\s+/g, " ").trim() : "";
+  if (headline.length < 10) throw new HttpError(400, "headline_too_short", "Écrivez une phrase d’au moins 10 caractères.");
+  if (headline.length > 160) throw new HttpError(400, "headline_too_long", "La phrase est trop longue\u00a0: 160 caractères au plus.");
+  const row = await db().prepare("UPDATE businesses SET site_headline = ?, site_updated_at = unixepoch() WHERE id = ? RETURNING site_slug, site_published, site_headline")
+    .bind(headline, b.id).first<SiteRow>();
   return json({ site: view(row!) });
 });

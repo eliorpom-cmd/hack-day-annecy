@@ -18,10 +18,12 @@ const trade = business.trade.trim().toLowerCase();
 const city = business.city.trim();
 const searchLine = trade && city ? `L’annonce s’affiche quand on cherche un ${trade} à ${city}.` : "L’annonce s’affiche quand on cherche votre métier près de chez vous.";
 const nb = " ";
+// Keeping his number: the ads give his own mobile, which forwards unanswered calls to the répondeur
+const kept = (business as unknown as { forwarding_mode?: string | null }).forwarding_mode === "renvoi";
 ---
 <AppShell title="Publicités" active="pubs">
   <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-6 px-4 pt-4 pb-8 lg:max-w-[1040px] lg:px-8 lg:pt-10">
-    <a href="/app/visibilite" class="-mb-4 flex items-center gap-1 font-bold text-ink lg:hidden" style="min-height:48px"><HubIcon name="chevron-left" />Visibilité</a>
+    <a href="/app/visibilite" class="-mb-4 flex items-center gap-1 font-bold text-ink lg:hidden" style="min-height:48px"><HubIcon name="chevron-left" />Site web</a>
     <div>
       <h1 class="text-title font-bold">Publicités</h1>
       <p class="mt-2 text-muted">Les annonces font appeler. Le répondeur prend chaque appel.</p>
@@ -77,7 +79,7 @@ const nb = " ";
                 <div class="min-w-0 flex-1">
                   <p class="text-small text-muted">Les appels arrivent sur</p>
                   {phone.display
-                    ? <p><b>{phone.display}</b><span class="text-muted"> · {phone.answering ? "votre répondeur" : "votre portable"}</span></p>
+                    ? <p><b>{phone.display}</b><span class="text-muted"> · {phone.answering ? (kept ? "votre numéro, renvoyé au répondeur" : "votre répondeur") : "votre portable"}</span></p>
                     : <p>Aucun numéro. <a href="/app/reglages" class="font-bold underline">Choisir un numéro</a></p>}
                 </div>
               </div>

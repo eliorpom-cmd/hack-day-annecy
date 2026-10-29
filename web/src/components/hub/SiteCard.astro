@@ -24,7 +24,19 @@ const shown = url?.replace(/^https?:\/\//, "") ?? "";
 
   {live ? (
     <div class="flex flex-col gap-2 px-[14px] pb-3">
-      {headline && <p class="rounded-block bg-page px-3 py-2 text-small italic">{headline}</p>}
+      <div class="flex flex-col gap-1" data-headline-view>
+        <p class="text-small text-muted">Accroche du site</p>
+        <p class="rounded-block bg-page px-3 py-2 italic" data-headline-text>{headline}</p>
+        <button type="button" class="flex min-h-12 items-center gap-2 self-start text-small font-bold text-ink underline underline-offset-2" data-headline-edit>Modifier l’accroche</button>
+      </div>
+      <form class="flex flex-col gap-2" data-headline-form hidden novalidate>
+        <label class="sr-only" for="site-headline">Accroche du site</label>
+        <textarea id="site-headline" rows="3" maxlength="160" class="w-full resize-none rounded-block bg-page px-3 py-2 outline-none shadow-[inset_0_0_0_1px_var(--color-line)] focus:shadow-[inset_0_0_0_2px_var(--color-ink)]">{headline}</textarea>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary flex-1">Enregistrer</button>
+          <button type="button" class="min-h-12 px-3 text-small font-bold text-muted" data-headline-cancel>Annuler</button>
+        </div>
+      </form>
       <div class="flex gap-2">
         <a href={url} target="_blank" rel="noopener" class="shortcut"><HubIcon name="external" class="text-action-ink" />Voir le site</a>
         <button type="button" class="shortcut" data-copy={url} aria-live="polite"><HubIcon name="copy" class="text-action-ink" /><span data-copy-label>Copier le lien</span></button>
@@ -62,6 +74,32 @@ const shown = url?.replace(/^https?:\/\//, "") ?? "";
       }
     });
   });
+  // Headline rewritten by the artisan; the preview reloads to show it
+  const view = card?.querySelector<HTMLElement>("[data-headline-view]");
+  const form = card?.querySelector<HTMLFormElement>("[data-headline-form]");
+  if (card && view && form) {
+    const err = card.querySelector<HTMLElement>("[data-site-error]")!;
+    const toggle = (editing: boolean) => { view.hidden = editing; form.hidden = !editing; err.classList.add("hidden"); };
+    card.querySelector("[data-headline-edit]")!.addEventListener("click", () => { toggle(true); form.querySelector("textarea")!.focus(); });
+    card.querySelector("[data-headline-cancel]")!.addEventListener("click", () => toggle(false));
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const headline = form.querySelector("textarea")!.value;
+      try {
+        const res = await fetch("/api/site", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ headline }) });
+        const data = (await res.json().catch(() => ({}))) as { site?: { headline: string }; hint?: string };
+        if (!res.ok || !data.site) throw new Error(data.hint ?? "");
+        view.querySelector("[data-headline-text]")!.textContent = data.site.headline;
+        toggle(false);
+        const frame = document.querySelector<HTMLIFrameElement>("[data-site-preview]");
+        if (frame) frame.src = frame.src;
+      } catch (e) {
+        err.textContent = (e instanceof Error && e.message) || "Enregistrement impossible. Réessayez.";
+        err.classList.remove("hidden");
+      }
+    });
+  }
+
   // Copies the public link, with a short confirmation
   card?.querySelector<HTMLButtonElement>("[data-copy]")?.addEventListener("click", async (e) => {
     const btn = e.currentTarget as HTMLButtonElement;
