@@ -27,7 +27,7 @@ Specs à jour (source de vérité, écrite par l'équipe) : https://docs.google.
 
 ## État et reprise (29/10/2026, soir) : lire d'abord `docs/reprise-29-10-soir.md`
 
-**Dernière session (Maxime + Claude, 29/10 au soir)** : tout est sur `main` et en ligne (PR #4 à #14). Déroulé de la démo, état du compte « Voir la démo » (numéro +1 863 230 2742, voix Elior, calendrier connecté, WhatsApp vers le 06 95 07 05 65), erreurs à ne pas refaire et vérifications avant la démo : `docs/reprise-29-10-soir.md`. La base de production est migrée jusqu'à 0016 par le Worker lui-même (`web/src/lib/schema-upgrade.ts`). Les paragraphes ci-dessous datent de 18 h 30 : certains points sont réglés depuis (clés posées, relais WhatsApp en ligne, barre latérale corrigée).
+**Dernière session (Maxime + Claude, 29/10 au soir)** : tout est sur `main` et en ligne (PR #4 à #14). Déroulé de la démo, état du compte « Voir la démo » (numéro +1 863 230 2742, voix Elior, calendrier connecté, WhatsApp vers le portable d’Elior), erreurs à ne pas refaire et vérifications avant la démo : `docs/reprise-29-10-soir.md`. La base de production est migrée jusqu'à 0016 par le Worker lui-même (`web/src/lib/schema-upgrade.ts`). Les paragraphes ci-dessous datent de 18 h 30 : certains points sont réglés depuis (clés posées, relais WhatsApp en ligne, barre latérale corrigée).
 
 **Passage de relais** : un coéquipier reprend le projet sur Lovable. Ce dépôt (`web/`) reste la référence de ce qui marche : routes, prompts, messages (COPY.md), design (DESIGN.md).
 
