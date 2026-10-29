@@ -23,8 +23,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 
 ## En cours
 
-- 04 · Fixer la stack, le contrat d'API et qui possède quoi (Elior)
-  - après le brainstorm ; sections Stack, Contrat d'API et Ownership de PROJET.md
 
 ## Fait
 
@@ -36,3 +34,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 - 03 · Brainstorm : choisir le métier visé et ce que montre la démo (Elior)
   - s'appuyer sur etude-marche/README.md ; remplir Problème, Démo et Hors périmètre dans PROJET.md
   - Fait : générique tous artisans, démo = onboarding + vrai appel + ce que reçoit l'artisan (PROJET.md)
+- 04 · Fixer la stack, le contrat d'API et qui possède quoi (Elior)
+  - après le brainstorm ; sections Stack, Contrat d'API et Ownership de PROJET.md
+  - Fait : Astro + Worker + D1, rôles dans PROJET.md
