@@ -7,6 +7,7 @@ import { verifyElevenLabsSignature } from "../../../lib/telephony/signature";
 import { buildCallMessage, callerSpoke, parsePostCall } from "../../../lib/telephony/postcall";
 import { logEvent, sendCallNotification } from "../../../lib/telephony/providers";
 import { enqueueWhatsApp } from "../../../lib/telephony/whatsapp-relay";
+import { finalAgent } from "../../../lib/demo-agent";
 
 // TWILIO_WHATSAPP_FROM is read here until it is declared in TelephonyEnv (env.ts)
 type PostCallEnv = TelephonyEnv & { TWILIO_WHATSAPP_FROM?: string; WHATSAPP_RELAY_TOKEN?: string };
@@ -28,19 +29,33 @@ export const POST: APIRoute = async ({ request }) => {
   // Other event types (audio, failures) are acknowledged and ignored
   if (!call) return json({ ok: true, ignored: true });
 
-  // The business that received this Twilio call first (a demo agent is shared, lib/demo-agent.ts), else the agent's
-  const business = (call.callSid
-      ? await db().prepare("SELECT b.* FROM calls c JOIN businesses b ON b.id = c.business_id WHERE c.twilio_call_sid = ? ORDER BY c.created_at DESC LIMIT 1")
-        .bind(call.callSid).first<Business>()
-      : null)
-    ?? await db().prepare("SELECT * FROM businesses WHERE elevenlabs_agent_id = ?").bind(call.agentId).first<Business>();
+  // Which business and which call row: by the Twilio CallSid; for the shared FINAL demo agent (lib/demo-agent.ts),
+  // ElevenLabs may not send it, so the latest agent call still waiting for its summary (same caller first), else the
+  // business holding the live number; last, the business whose own agent this is
+  const byBusiness = (id: string) => db().prepare("SELECT * FROM businesses WHERE id = ?").bind(id).first<Business>();
+  let matched: { id: string; business_id: string } | null = call.callSid
+    ? await db().prepare("SELECT id, business_id FROM calls WHERE twilio_call_sid = ? ORDER BY started_at DESC LIMIT 1")
+      .bind(call.callSid).first<{ id: string; business_id: string }>()
+    : null;
+  const final = await finalAgent().catch(() => null);
+  if (!matched && final?.id === call.agentId) {
+    matched = await db().prepare(
+      `SELECT id, business_id FROM calls WHERE conversation_id IS NULL AND handled_by = 'agent' AND started_at > unixepoch() - 1800
+       ORDER BY (from_number = ?) DESC, started_at DESC LIMIT 1`,
+    ).bind(call.callerNumber ?? "").first<{ id: string; business_id: string }>();
+  }
+  let business = matched ? await byBusiness(matched.business_id) : null;
+  if (!business && final?.id === call.agentId) {
+    business = await db().prepare("SELECT b.* FROM phone_numbers p JOIN businesses b ON b.id = p.business_id WHERE p.status = 'live' ORDER BY p.rowid DESC LIMIT 1").first<Business>();
+  }
+  business ??= await db().prepare("SELECT * FROM businesses WHERE elevenlabs_agent_id = ?").bind(call.agentId).first<Business>();
   if (!business) {
     logEvent("warn", "elevenlabs.unknown_agent", { agent: call.agentId });
     return json({ ok: true, ignored: true });
   }
 
   // Match the row created by the Twilio webhook, else a previous delivery, else create one
-  const existing = await db().prepare(
+  const existing = (matched && matched.business_id === business.id ? { id: matched.id } : null) ?? await db().prepare(
     `SELECT id FROM calls WHERE business_id = ?1 AND (conversation_id = ?2 OR (?3 IS NOT NULL AND twilio_call_sid = ?3))
      ORDER BY conversation_id = ?2 DESC LIMIT 1`,
   ).bind(business.id, call.conversationId, call.callSid).first<{ id: string }>();
