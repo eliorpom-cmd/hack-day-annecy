@@ -14,6 +14,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - base D1 distante + secrets + wrangler deploy ; adresse publique pour les webhooks Twilio et ElevenLabs ; accord d'Elior requis
 - 18 · Brancher les vraies clés et faire un appel de bout en bout
   - clés de Mathieu dans web/.dev.vars puis wrangler secret ; créer l'agent, acheter ou relier un numéro, webhook post-call, bac à sable WhatsApp ; appel réel
+- 19 · Clonage de la voix de l'artisan
+  - étape 2 de la configuration ; reprendre src/lib/voice/ du Lovable de Mathieu (enregistrement WAV + POST /v1/voices/add)
 
 ## En cours
 
