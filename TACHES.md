@@ -12,8 +12,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
 - 18 · Brancher les vraies clés et faire un appel de bout en bout
   - clés de Mathieu dans web/.dev.vars puis wrangler secret ; créer l'agent, acheter ou relier un numéro, webhook post-call, bac à sable WhatsApp ; appel réel
-- 19 · Clonage de la voix de l'artisan
-  - étape 2 de la configuration ; reprendre src/lib/voice/ du Lovable de Mathieu (enregistrement WAV + POST /v1/voices/add)
 - 20 · Prénom de l'artisan et accord de la voix dans l'accueil
   - champ prénom à l'étape 1 ; « l'assistant » ou « l'assistante » selon la voix ; « Marc est sur un chantier »
 - 22 · Régler le prompt du répondeur sur le scénario de démo
@@ -39,6 +37,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - deck web exportable PDF/PPTX
 - 23 · Landing page du produit (Claude)
   - web/src/pages/index.astro : pitch, comment ça marche, configuration, Visibilité, essai gratuit et démo ; COPY.md + DESIGN.md
+- 19 · Clonage de la voix de l'artisan (Claude)
+  - étape 2 de la configuration ; reprendre src/lib/voice/ du Lovable de Mathieu (enregistrement WAV + POST /v1/voices/add)
 
 ## Fait
 
