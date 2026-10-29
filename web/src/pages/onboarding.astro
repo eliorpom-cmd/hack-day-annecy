@@ -9,6 +9,7 @@ import { STEPS } from "../components/setup/steps";
 import { db } from "../lib/db";
 import { demoSetup, isDemoSetupEmail } from "../lib/demo-setup";
 import { secret } from "../lib/env";
+import { normalizeE164 } from "../lib/phone";
 
 const b = Astro.locals.business;
 if (!b) return Astro.redirect("/login");
@@ -35,6 +36,8 @@ const init = {
   hours: hours.results,
   faqs: faqs.results,
   number: numbers.results[0]?.e164 ?? null,
+  // The répondeur number already owned on the Twilio account: the only number offered on step 3
+  demo_number: normalizeE164(secret("TWILIO_SMS_FROM") ?? ""),
   demo: null as ReturnType<typeof demoSetup> | null,
 };
 // Demo setup (« Essayer la configuration »): Plomberie Martin pre-filled, no AI call, nothing bought (lib/demo-setup.ts)
@@ -179,17 +182,7 @@ init.demo = demo;
       <section data-step="3" class="flex flex-col gap-[14px]" hidden>
         <div>
           <h1 class="text-title font-bold">Votre numéro</h1>
-          <p class="mt-2 text-muted" data-number-lead></p>
-        </div>
-        <div class="panel" role="radiogroup" aria-label="Numéro donné aux clients">
-          <label class="row cursor-pointer">
-            <input type="radio" name="forwarding" value="renvoi" class="radio" data-forwarding />
-            <span class="flex flex-1 flex-col"><span class="font-bold">Garder mon numéro (recommandé)</span><span class="text-small text-muted">Rien à changer sur Google ni sur vos devis.</span></span>
-          </label>
-          <label class="row cursor-pointer">
-            <input type="radio" name="forwarding" value="numero" class="radio" data-forwarding />
-            <span class="flex flex-1 flex-col"><span class="font-bold">Prendre un nouveau numéro</span><span class="text-small text-muted">Vous donnez ce numéro à vos clients.</span></span>
-          </label>
+          <p class="mt-2 text-muted">Vos clients appellent ce numéro. Votre portable sonne d’abord, puis le répondeur décroche.</p>
         </div>
         <Field id="phone3" label="Votre portable" type="tel" inputmode="tel" autocomplete="tel" value={b.artisan_phone} help="Exemple : 06 12 34 56 78" />
 
@@ -203,18 +196,9 @@ init.demo = demo;
         </div>
         <p class="-mt-2 mx-4 text-small text-muted">Ensuite, le répondeur décroche.</p>
 
-        <h2 class="mt-2 text-small font-bold text-muted" data-numbers-title>Choisissez votre numéro</h2>
+        <h2 class="mt-2 text-small font-bold text-muted">Choisissez votre numéro</h2>
         <p data-numbers-status class="text-muted" role="status">Recherche des numéros…</p>
         <div class="panel" data-numbers role="radiogroup" aria-label="Numéros" hidden></div>
-        <p data-renvoi-note class="mx-4 text-small text-muted" hidden>Le numéro du répondeur est choisi pour vous. Continuez pour voir les codes à composer.</p>
-
-        <!-- Call forwarding codes, once the répondeur number is live (mode « Garder mon numéro ») -->
-        <div data-codes class="flex flex-col gap-[14px]" hidden>
-          <h2 class="mt-2 text-small font-bold text-muted">Activez le renvoi sur votre portable</h2>
-          <p class="-mt-2">Composez ces 3 codes depuis votre portable, un par un. Ils renvoient vers le répondeur, au <span class="font-bold" data-codes-number></span>.</p>
-          <div class="panel" data-codes-list></div>
-          <p class="mx-4 -mt-2 text-small text-muted">Pour arrêter : <a class="font-bold text-ink underline underline-offset-2" data-codes-stop href="tel:%23%23002%23">##002#</a></p>
-        </div>
         <p data-numbers-error class="panel flex items-start gap-3 px-[14px] py-3" hidden>
           <span class="icon-tile"><Icon name="alert" size={18} /></span>
           <span data-numbers-error-text></span>
@@ -281,7 +265,6 @@ init.demo = demo;
   <script>
     import { DAYS } from "../components/setup/steps";
     import { businessDisplayName, defaultGreeting, isDefaultGreeting, type GreetingVoice } from "../lib/greeting";
-    import { forwardingCodes, forwardingDelay } from "../lib/forwarding";
     import { CLONE_LIMITS, CLONE_SENTENCES, CLONED_VOICE_NAME, encodeWav } from "../lib/voice-clone";
     import { pickDemoVoice, type DemoSetup } from "../lib/demo-setup";
 
@@ -294,7 +277,7 @@ init.demo = demo;
       business: { name: string; trade: string; city: string; description: string; website: string | null; artisan_phone: string | null;
         ring_seconds: number; greeting: string; voice_id: string | null; voice_name: string | null;
         first_name: string; last_name: string; voice_gender: "female" | "male" | null; forwarding_mode: "renvoi" | "numero" | null };
-      hours: Hour[]; faqs: (Faq & { id: string })[]; number: string | null;
+      hours: Hour[]; faqs: (Faq & { id: string })[]; number: string | null; demo_number: string | null;
       demo: DemoSetup | null; // « Essayer la configuration »: pre-filled with Plomberie Martin
     };
     const init = JSON.parse(document.getElementById("setup-init")!.textContent!) as Init;
@@ -938,56 +921,16 @@ init.demo = demo;
     }
 
     // ---------- Step 3 · Votre numéro ----------
-    // « Garder mon numéro » (recommended, preselected) or « Prendre un nouveau numéro »
-    let mode: "renvoi" | "numero" = biz.forwarding_mode ?? "renvoi";
-    // Forwarding on no answer accepts 5 to 30 s; 20 s by default the first time
-    let ring = Math.min(40, Math.max(5, biz.forwarding_mode === null && (biz.ring_seconds || 15) === 15 ? 20 : biz.ring_seconds || 15));
-    const ringMax = () => (mode === "renvoi" ? 30 : 40);
+    // Always « nouveau numéro »: clients call the répondeur number, the artisan's mobile rings first
+    const mode = "numero";
+    let ring = Math.min(40, Math.max(5, biz.ring_seconds || 15));
     const ringOut = $("[data-ring]");
     ringOut.textContent = String(ring);
     for (const btn of $$<HTMLButtonElement>("[data-ring-step]")) {
       btn.addEventListener("click", () => {
-        ring = Math.min(ringMax(), Math.max(5, ring + Number(btn.dataset.ringStep)));
+        ring = Math.min(40, Math.max(5, ring + Number(btn.dataset.ringStep)));
         ringOut.textContent = String(ring);
-        renderCodes();
       });
-    }
-    for (const r of $$<HTMLInputElement>("[data-forwarding]")) {
-      r.addEventListener("change", () => { mode = r.value as typeof mode; renderMode(); });
-    }
-    // renvoi: the codes are shown once the répondeur number is live (at once when coming back to this step)
-    let codesShown = biz.forwarding_mode === "renvoi" && !!init.number;
-    function renderMode() {
-      for (const r of $$<HTMLInputElement>("[data-forwarding]")) r.checked = r.value === mode;
-      const renvoi = mode === "renvoi";
-      if (renvoi) { ring = forwardingDelay(Math.min(ring, 30)); ringOut.textContent = String(ring); }
-      $("[data-number-lead]").textContent = renvoi
-        ? "Vos clients appellent votre numéro habituel. Si vous ne répondez pas, l’appel passe au répondeur."
-        : "Vos clients appellent ce numéro. Votre portable sonne d’abord, puis le répondeur décroche.";
-      $("[data-numbers-title]").hidden = renvoi;
-      numbersBox.hidden = renvoi || !numbersBox.childElementCount;
-      $("[data-renvoi-note]").hidden = !renvoi || codesShown || numbersEmpty || !numbersBox.childElementCount;
-      $("[data-codes]").hidden = !(renvoi && codesShown && attached);
-      if (current === 3) numberError($("[data-numbers-error-text]").textContent || null);
-      renderCodes();
-    }
-
-    // The 3 codes with the répondeur number filled in, each with « Composer » (tel: link) and « Copier »
-    function renderCodes() {
-      if (!attached) return;
-      $("[data-codes-number]").textContent = frPhone(attached);
-      $("[data-codes-list]").replaceChildren(...forwardingCodes(attached, ring).map((c) => {
-        const copy = el("button", { type: "button", class: "link-btn" }, "Copier") as HTMLButtonElement;
-        copy.addEventListener("click", async () => {
-          try { await navigator.clipboard.writeText(c.code); copy.textContent = "Copié"; }
-          catch { copy.textContent = "Copie impossible"; }
-          setTimeout(() => { copy.textContent = "Copier"; }, 2000);
-        });
-        return el("div", { class: "row flex-col items-stretch gap-0" },
-          el("span", { class: "text-small text-muted" }, c.label),
-          el("span", { class: "font-bold break-all" }, c.code),
-          el("div", { class: "-mb-2 flex gap-4" }, el("a", { href: c.href, class: "link-btn grid place-items-center" }, "Composer"), copy));
-      }));
     }
     const numbersBox = $("[data-numbers]");
     let chosenNumber: string | null = init.number;
@@ -998,9 +941,8 @@ init.demo = demo;
     function numberError(msg: string | null) {
       $("[data-numbers-error]").hidden = !msg;
       $("[data-numbers-error-text]").textContent = msg ?? "";
-      const codes = mode === "renvoi" && codesShown && !!attached;
-      bar(numbersEmpty ? "Réessayer" : codes ? "C’est fait" : "Continuer", null, msg ? "Continuer sans numéro" : null);
-      onPrimary = numbersEmpty ? retryNumbers : codes ? () => go(4) : () => saveNumber(true);
+      bar(numbersEmpty ? "Réessayer" : "Continuer", null, msg ? "Continuer sans numéro" : null);
+      onPrimary = numbersEmpty ? retryNumbers : () => saveNumber(true);
     }
     function retryNumbers() {
       numbersEmpty = false;
@@ -1010,33 +952,42 @@ init.demo = demo;
       loadNumbers();
     }
 
-    async function loadNumbers() {
-      if (numbersLoaded) return;
-      numbersLoaded = true;
-      const status = $("[data-numbers-status]");
+    type Choice = { e164: string; sub: string };
+    // The répondeur number set on the server (TWILIO_SMS_FROM) is the only one offered: nothing is searched or bought
+    async function searchChoices(): Promise<{ list: Choice[]; ok: boolean }> {
+      const list: Choice[] = [];
+      const seen = new Set<string>();
+      const add = (e164: string, sub: string) => { if (!seen.has(e164)) { seen.add(e164); list.push({ e164, sub }); } };
+      if (init.demo_number) {
+        add(init.demo_number, init.demo_number === attached ? "Votre numéro actuel" : "Disponible tout de suite");
+        return { list, ok: true };
+      }
       const [mine, search] = await Promise.all([
         api<{ numbers: { e164: string }[] }>("GET", "/api/numbers"),
         api<{ details: { e164: string; locality: string | null; type: "local" | "mobile" }[]; owned: { e164: string }[] }>("GET", "/api/numbers/search?country=FR"),
       ]);
-      type Choice = { e164: string; sub: string };
-      const list: Choice[] = [];
-      const seen = new Set<string>();
-      const add = (e164: string, sub: string) => { if (!seen.has(e164)) { seen.add(e164); list.push({ e164, sub }); } };
       for (const n of mine.ok ? mine.data.numbers : []) add(n.e164, "Votre numéro actuel");
       if (search.ok) {
         for (const n of search.data.owned ?? []) add(n.e164, "Disponible tout de suite");
         // Demo: only numbers the account already owns, so nothing is ever bought
         if (!demo) for (const n of search.data.details ?? []) add(n.e164, [n.type === "mobile" ? "Portable" : "Fixe", n.locality].filter(Boolean).join(" · "));
       }
-      status.hidden = true;
+      return { list, ok: search.ok };
+    }
+
+    async function loadNumbers() {
+      if (numbersLoaded) return;
+      numbersLoaded = true;
+      const { list, ok } = await searchChoices();
+      $("[data-numbers-status]").hidden = true;
       if (!list.length) {
         numbersEmpty = true;
-        numberError(search.ok
+        numberError(ok
           ? "Aucun numéro disponible pour l’instant. Réessayez plus tard ou continuez sans numéro."
           : "Impossible d’afficher les numéros pour l’instant. Réessayez plus tard ou continuez sans numéro.");
         return;
       }
-      if (!chosenNumber) chosenNumber = list[0].e164;
+      if (!chosenNumber || !list.some((n) => n.e164 === chosenNumber)) chosenNumber = list[0].e164;
       numbersBox.replaceChildren(...list.map((n) => {
         const radio = el("input", { type: "radio", name: "number", value: n.e164, class: "radio" }) as HTMLInputElement;
         radio.checked = n.e164 === chosenNumber;
@@ -1044,15 +995,15 @@ init.demo = demo;
         return el("label", { class: "row cursor-pointer" }, radio,
           el("span", { class: "flex flex-col" }, el("span", { class: "font-bold" }, frPhone(n.e164)), el("span", { class: "text-small text-muted" }, n.sub)));
       }));
-      renderMode();
+      numbersBox.hidden = false;
     }
 
     async function saveRouting(): Promise<boolean> {
       const phone = input("phone3").value.trim();
-      if (!phone) { fieldHelp("phone3", "Indiquez votre portable : il sonne en premier.", true); input("phone3").focus(); return false; }
+      if (!phone) { fieldHelp("phone3", "Indiquez votre portable : il sonne en premier.", true); input("phone3").focus(); return false; }
       const r = await api<{ business: Init["business"] }>("PUT", "/api/business", { artisan_phone: phone, ring_seconds: ring, forwarding_mode: mode });
       if (!r.ok) {
-        if (/portable/i.test(r.data.hint ?? "")) { fieldHelp("phone3", "Ce numéro ne marche pas. Exemple : 06 12 34 56 78", true); input("phone3").focus(); }
+        if (/portable/i.test(r.data.hint ?? "")) { fieldHelp("phone3", "Ce numéro ne marche pas. Exemple : 06 12 34 56 78", true); input("phone3").focus(); }
         else showError(r.data.hint ?? "Enregistrement impossible. Réessayez.");
         return false;
       }
@@ -1080,8 +1031,6 @@ init.demo = demo;
         storedStep = "done";
       }
       busy(false);
-      // Keeping his number: show the forwarding codes before the test step
-      if (withNumber && mode === "renvoi" && attached) { codesShown = true; renderMode(); $("[data-codes]").scrollIntoView({ block: "start" }); return; }
       go(4);
     }
 
@@ -1090,18 +1039,9 @@ init.demo = demo;
       $("[data-has-number]").hidden = !attached;
       $("[data-no-number]").hidden = !!attached;
       $("[data-ready]").hidden = !attached;
-      // Keeping his number: the test is a call to his own mobile, left unanswered
-      const renvoi = mode === "renvoi" && !!biz.artisan_phone;
-      const testNumber = renvoi ? biz.artisan_phone! : attached;
-      $("[data-test-label]").textContent = renvoi ? "Appelez votre portable pour l’essayer" : "Appelez ce numéro pour l’essayer";
-      $("[data-test-help]").textContent = renvoi
-        ? "Depuis un autre téléphone. Ne décrochez pas : le répondeur prend l’appel."
-        : "Appelez depuis un autre téléphone que votre portable.";
-      $("[data-give-title]").hidden = renvoi;
-      $("[data-give]").hidden = renvoi;
-      if (attached && testNumber) {
-        $("[data-test-number]").textContent = frPhone(testNumber);
-        $<HTMLAnchorElement>("[data-test-link]").href = `tel:${testNumber}`;
+      if (attached) {
+        $("[data-test-number]").textContent = frPhone(attached);
+        $<HTMLAnchorElement>("[data-test-link]").href = `tel:${attached}`;
       }
       bar("Terminer", "check", null);
       onPrimary = async () => {
@@ -1124,7 +1064,6 @@ init.demo = demo;
       },
       3: () => {
         if (!input("phone3").value) input("phone3").value = frPhone(biz.artisan_phone);
-        renderMode();
         numberError($("[data-numbers-error-text]").textContent || null);
         onSecondary = () => saveNumber(false);
         loadNumbers();
