@@ -22,6 +22,7 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - aperçu audio de chaque voix (ElevenLabs preview_url, ou phrase d'accueil générée en TTS) ; nécessite la clé
 - 28 · Publicités Meta : étudier l'intégration
   - API Marketing de Meta : accès, validation de l'app, coût ; v2, pour le pitch
+- 29 · Hub Visibilité + site web généré
 
 ## En cours
 
