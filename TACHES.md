@@ -18,6 +18,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - après le brainstorm ; sections Stack, Contrat d'API et Ownership de PROJET.md
 - 05 · Refaire l'onboarding (mode simple)
   - scan du site ou saisie, voix, numéro, dashboard ; voir PROJET.md « Onboarding » ; référence reception.ai
+- 06 · Refaire le dashboard : leads, appels, mode avancé
+  - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
 
 ## En cours
 
