@@ -9,8 +9,7 @@ import { demoVoiceId, isDemoAccount, saveDemoVoiceId } from "../../../lib/demo-v
 
 // Creates the artisan's own voice on ElevenLabs from his recorded sentences (multipart: files[] WAV, consent=true).
 // The audio goes straight to ElevenLabs and is never stored on our side.
-// Demo accounts: once the team's voice is cloned (lib/demo-voice.ts), one sentence is enough and that voice is used
-// without calling ElevenLabs; field demo_record=true records the team's voice again.
+// Demo accounts: once the team's voice is cloned (lib/demo-voice.ts), that voice is used without calling ElevenLabs.
 export const POST: APIRoute = handle(async ({ request, locals }) => {
   const b = requireBusiness(locals);
   const demo = isDemoAccount(locals.user);
@@ -27,7 +26,7 @@ export const POST: APIRoute = handle(async ({ request, locals }) => {
   const files = form.getAll("files").filter((f): f is File => typeof f !== "string");
   if (!files.length || files.length > CLONE_LIMITS.maxFiles) throw new HttpError(400, "invalid_files", "Enregistrez les 3 phrases avant de continuer.");
 
-  if (demoVoice && form.get("demo_record") !== "true") {
+  if (demoVoice) {
     for (const f of files) {
       const check = checkWav(new Uint8Array(await f.arrayBuffer()));
       if (!check.ok) throw new HttpError(400, "invalid_audio", check.hint);
