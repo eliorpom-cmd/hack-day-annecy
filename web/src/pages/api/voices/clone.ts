@@ -4,7 +4,7 @@ import { elRequest } from "../../../lib/elevenlabs";
 import { requireBusiness, secret } from "../../../lib/env";
 import { businessDisplayName, defaultGreeting, isDefaultGreeting } from "../../../lib/greeting";
 import { fail, handle, HttpError, json } from "../../../lib/http";
-import { CLONE_LIMITS, CLONED_VOICE_NAME, checkWav } from "../../../lib/voice-clone";
+import { CLONE_LIMITS, CLONE_REFUSED_HINT, CLONED_VOICE_NAME, checkWav } from "../../../lib/voice-clone";
 
 // Creates the artisan's own voice on ElevenLabs from his recorded sentences (multipart: files[] WAV, consent=true).
 // The audio goes straight to ElevenLabs and is never stored on our side.
@@ -36,7 +36,12 @@ export const POST: APIRoute = handle(async ({ request, locals }) => {
   }
   if (total < CLONE_LIMITS.minTotalSeconds) throw new HttpError(400, "too_short", "Les enregistrements sont trop courts. Lisez chaque phrase en entier.");
 
-  const res = await elRequest<{ voice_id?: string; requires_verification?: boolean }>("/v1/voices/add", { method: "POST", body: upload, timeoutMs: 90000 });
+  const res = await elRequest<{ voice_id?: string; requires_verification?: boolean }>("/v1/voices/add", { method: "POST", body: upload, timeoutMs: 90000 })
+    .catch((e: unknown) => {
+      // The artisan gets a way forward; ElevenLabs' reason stays in `detail` (and the log) for us
+      if (e instanceof HttpError && e.code === "elevenlabs_error") throw new HttpError(e.status, e.code, CLONE_REFUSED_HINT, e.extra);
+      throw e;
+    });
   if (!res.voice_id) throw new HttpError(502, "elevenlabs_error", "Votre voix n'a pas pu être créée. Réessayez dans un instant.");
   if (res.requires_verification) {
     await elRequest(`/v1/voices/${encodeURIComponent(res.voice_id)}`, { method: "DELETE" }).catch(() => {});

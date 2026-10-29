@@ -12,6 +12,9 @@ export const CLONE_SENTENCES = [
 // Name shown in the app for the artisan's own voice (stored in businesses.voice_name)
 export const CLONED_VOICE_NAME = "Ma voix";
 
+// Shown when ElevenLabs refuses the recordings (plan without cloning, voice quota reached, audio rejected)
+export const CLONE_REFUSED_HINT = "Votre voix n'a pas pu être créée. Enregistrez les phrases à nouveau, ou choisissez une voix de la liste.";
+
 export const CLONE_LIMITS = {
   minSeconds: 3, // one sentence read in full
   maxSeconds: 60, // per recording (the recorder stops at 30 s)
