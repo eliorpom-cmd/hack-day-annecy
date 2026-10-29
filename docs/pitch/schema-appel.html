@@ -154,7 +154,7 @@ footer code { font: 400 12px var(--mono); }
   <header>
     <div class="eyebrow">Hack Day Annecy · le répondeur de l'artisan</div>
     <h1>Un client appelle. <mark>Personne ne le perd.</mark></h1>
-    <p class="lede">Le portable de l'artisan sonne d'abord. S'il est sur un chantier, son assistante IA décroche, répond avec ses infos et ses prix, puis lui envoie le client sur WhatsApp.</p>
+    <p class="lede">Le portable de l'artisan sonne d'abord. S'il est sur un chantier, son répondeur IA décroche, répond avec ses infos et ses prix, puis lui envoie le client sur WhatsApp.</p>
     <nav aria-label="Sections">
       <a href="#onboarding">Avant le premier appel</a>
       <a href="#metier">Vue métier</a>
@@ -165,12 +165,12 @@ footer code { font: 400 12px var(--mono); }
   <section id="onboarding" aria-labelledby="onb-title">
     <div class="section-head">
       <h2 id="onb-title">Avant le premier appel : 5 minutes</h2>
-      <p>L'artisan configure tout depuis son téléphone. Sans agenda, l'assistante prend le contact ; avec, elle prendra le rendez-vous (v2).</p>
+      <p>L'artisan configure tout depuis son téléphone. Sans agenda, le répondeur prend le contact ; avec, il prendra le rendez-vous (v2).</p>
     </div>
     <ol class="steps">
       <li><b>Votre activité</b><span>On scanne votre site, ou vous remplissez la fiche : métier, zone, horaires, prix.</span></li>
       <li><b>Votre voix</b><span>Une voix de la bibliothèque, ou la vôtre, clonée.</span></li>
-      <li><b>Votre numéro</b><span>Un numéro local (04…) qui fait sonner vers votre portable puis l'assistante.</span></li>
+      <li><b>Votre numéro</b><span>Un numéro local (04…) qui fait sonner vers votre portable puis le répondeur.</span></li>
       <li><b>C'est prêt</b><span>Appelez-le pour tester, puis donnez-le à vos clients.</span></li>
     </ol>
   </section>
@@ -182,7 +182,7 @@ footer code { font: 400 12px var(--mono); }
     </div>
     <div class="sheet">
       <svg class="diagram" viewBox="0 72 1240 556" role="img" aria-labelledby="metier-svg-title">
-        <title id="metier-svg-title">Un client appelle ; pendant les horaires le portable de l'artisan sonne 15 secondes, sinon l'assistante IA répond ; après l'appel l'artisan reçoit un WhatsApp, une fiche client et un mail le lundi.</title>
+        <title id="metier-svg-title">Un client appelle ; pendant les horaires le portable de l'artisan sonne 15 secondes, sinon le répondeur répond ; après l'appel l'artisan reçoit un WhatsApp, une fiche client et un mail le lundi.</title>
 
         <!-- arrows first, boxes on top -->
         <path class="flow" d="M234 345 H248" marker-end="url(#p-head)"/>
@@ -234,13 +234,13 @@ footer code { font: 400 12px var(--mono); }
         <rect class="box v2" x="1005" y="90" width="215" height="100" rx="14"/>
         <text class="k muted" x="1023" y="114">BIENTÔT · V2</text>
         <text class="t sm" x="1023" y="138">Filtrage d'appel</text>
-        <text class="s" x="1023" y="160">L'assistante vous annonce</text>
+        <text class="s" x="1023" y="160">Le répondeur vous annonce</text>
         <text class="s" x="1023" y="177">qui appelle, vous choisissez.</text>
 
         <!-- agent -->
         <rect class="box agent" x="480" y="260" width="300" height="260" rx="14"/>
         <path class="band" d="M494 260 H766 A14 14 0 0 1 780 274 V318 H480 V274 A14 14 0 0 1 494 260 Z"/>
-        <text class="t inv" x="500" y="287">Votre assistante IA répond</text>
+        <text class="t inv" x="500" y="287">Votre répondeur répond</text>
         <text class="s inv" x="500" y="307">avec la voix que vous avez choisie</text>
         <circle class="dot" cx="503" cy="346" r="3.5"/><text class="s ink" x="516" y="350">Répond avec vos infos et vos prix</text>
         <circle class="dot" cx="503" cy="374" r="3.5"/><text class="s ink" x="516" y="378">Sinon une fourchette, « sur devis »</text>
@@ -283,93 +283,65 @@ footer code { font: 400 12px var(--mono); }
       </svg>
     </div>
     <div class="facts">
-      <div class="fact"><b>15 s</b><span>votre portable sonne d'abord, l'assistante ne prend que les appels que vous ratez</span></div>
+      <div class="fact"><b>15 s</b><span>votre portable sonne d'abord, le répondeur ne prend que les appels que vous ratez</span></div>
       <div class="fact"><b>0</b><span>prix inventé : prix exact, fourchette « sur devis », ou « l'artisan vous rappelle »</span></div>
       <div class="fact"><b>1</b><span>WhatsApp par appel, avec le numéro à rappeler ; les urgences arrivent en tête</span></div>
     </div>
   </section>
 
   <section id="technique" aria-labelledby="tech-title-h">
-    <div class="section-head">
-      <h2 id="tech-title-h">Vue technique : qui appelle quoi</h2>
-      <div class="legend"><span><i></i>codé</span><span><i class="voice"></i>conversation vocale</span><span><i class="todo"></i>à faire</span></div>
+    <div class="head">
+      <h2 id="tech-title-h">Vue technique : les pièces et ce qu'elles s'échangent</h2>
     </div>
-    <div class="sheet">
-<!-- TECH:start -->
-<svg class="diagram tech" viewBox="0 0 1240 800" role="img" aria-labelledby="tech-title">
-<title id="tech-title">Séquence technique d'un appel : Twilio, Worker Cloudflare, ElevenLabs, D1, artisan</title>
-<rect class="phase" x="0" y="92" width="1240" height="140"/>
-<text class="phase-label" x="12" y="110">1 · Appel entrant</text>
-<rect class="phase alt" x="0" y="232" width="1240" height="160"/>
-<text class="phase-label" x="12" y="250">2 · Cascade, pendant les horaires</text>
-<rect class="phase" x="0" y="392" width="1240" height="140"/>
-<text class="phase-label" x="12" y="410">3 · L'agent répond</text>
-<rect class="phase alt" x="0" y="532" width="1240" height="160"/>
-<text class="phase-label" x="12" y="550">4 · Après l'appel</text>
-<rect class="phase" x="0" y="692" width="1240" height="98"/>
-<text class="phase-label" x="12" y="710">5 · Ensuite</text>
-<line class="lifeline" x1="90" y1="80" x2="90" y2="792"/>
-<rect class="lane-head" x="15" y="18" width="150" height="58" rx="10"/>
-<text class="lane-name" x="90" y="43">Client</text>
-<text class="lane-sub" x="90" y="62">l'appelant</text>
-<line class="lifeline" x1="300" y1="80" x2="300" y2="792"/>
-<rect class="lane-head" x="225" y="18" width="150" height="58" rx="10"/>
-<text class="lane-name" x="300" y="43">Twilio</text>
-<text class="lane-sub" x="300" y="62">numéro +33</text>
-<line class="lifeline" x1="560" y1="80" x2="560" y2="792"/>
-<rect class="lane-head ours" x="460" y="18" width="200" height="58" rx="10"/>
-<text class="lane-name ours" x="560" y="43">Worker</text>
-<text class="lane-sub ours" x="560" y="62">Cloudflare · web/</text>
-<line class="lifeline" x1="820" y1="80" x2="820" y2="792"/>
-<rect class="lane-head" x="745" y="18" width="150" height="58" rx="10"/>
-<text class="lane-name" x="820" y="43">ElevenLabs</text>
-<text class="lane-sub" x="820" y="62">agent vocal</text>
-<line class="lifeline" x1="1000" y1="80" x2="1000" y2="792"/>
-<rect class="lane-head" x="925" y="18" width="150" height="58" rx="10"/>
-<text class="lane-name" x="1000" y="43">D1</text>
-<text class="lane-sub" x="1000" y="62">base SQLite</text>
-<line class="lifeline" x1="1160" y1="80" x2="1160" y2="792"/>
-<rect class="lane-head" x="1085" y="18" width="150" height="58" rx="10"/>
-<text class="lane-name" x="1160" y="43">Artisan</text>
-<text class="lane-sub" x="1160" y="62">portable + WhatsApp</text>
-<rect class="note" x="435" y="246" width="250" height="28" rx="6"/>
-<text class="note-text" x="560" y="265">isWithinHours() · heure de Paris</text>
-<text class="note-muted" x="860" y="679">aujourd'hui : SMS seulement si urgence · tâche 15</text>
-<line class="msg" x1="90" y1="142" x2="296" y2="142" marker-end="url(#head)"/>
-<text class="msg-label" x="195" y="134">compose le numéro de l'artisan</text>
-<line class="msg" x1="300" y1="172" x2="556" y2="172" marker-end="url(#head)"/>
-<text class="msg-label" x="430" y="164">POST /api/twilio/voice?token=…</text>
-<line class="msg" x1="560" y1="212" x2="996" y2="212" marker-end="url(#head)"/>
-<text class="msg-label" x="780" y="204">SELECT businesses, business_hours · INSERT calls</text>
-<line class="msg" x1="560" y1="300" x2="304" y2="300" marker-end="url(#head)"/>
-<text class="msg-label" x="430" y="292">TwiML &lt;Dial timeout=15&gt; vers le portable</text>
-<line class="msg" x1="300" y1="336" x2="1156" y2="336" marker-end="url(#head)"/>
-<text class="msg-label" x="730" y="328">fait sonner le portable 15 s</text>
-<line class="msg" x1="300" y1="372" x2="556" y2="372" marker-end="url(#head)"/>
-<text class="msg-label" x="430" y="364">POST /api/twilio/fallback · no-answer / busy</text>
-<line class="msg" x1="560" y1="430" x2="816" y2="430" marker-end="url(#head)"/>
-<text class="msg-label" x="690" y="422">register_call(agent_id) · direct si hors horaires</text>
-<line class="msg" x1="560" y1="466" x2="304" y2="466" marker-end="url(#head)"/>
-<text class="msg-label" x="430" y="458">TwiML qui relie l'appel à l'agent</text>
-<line class="msg voice" x1="94" y1="508" x2="816" y2="508" marker-end="url(#head-voice)" marker-start="url(#head-voice)"/>
-<text class="msg-label" x="455" y="500">conversation en direct : FAQ, prix, nom, numéro, adresse, besoin, urgence</text>
-<line class="msg" x1="820" y1="572" x2="564" y2="572" marker-end="url(#head)"/>
-<text class="msg-label" x="690" y="564">POST /api/elevenlabs/post-call · signé HMAC · résumé + données</text>
-<line class="msg" x1="560" y1="610" x2="996" y2="610" marker-end="url(#head)"/>
-<text class="msg-label" x="780" y="602">UPDATE calls · INSERT leads</text>
-<line class="msg todo" x1="560" y1="650" x2="1156" y2="650" marker-end="url(#head-todo)"/>
-<text class="msg-label todo" x="860" y="642">WhatsApp récap à chaque appel (via Twilio)</text>
-<line class="msg" x1="560" y1="730" x2="1156" y2="730" marker-end="url(#head)"/>
-<text class="msg-label" x="860" y="722">cron du lundi : mail récap (Resend)</text>
-<line class="msg" x1="1160" y1="766" x2="564" y2="766" marker-end="url(#head)"/>
-<text class="msg-label" x="860" y="758">tableau de bord : GET /api/calls, /api/leads, /api/stats</text>
-</svg>
-<!-- TECH:end -->
+    <div class="carte">
+<pre class="mermaid">
+flowchart TB
+  Client["<b>Client qui appelle</b><br/><small>compose le numéro de l'artisan</small><br/><code>son téléphone</code>"]
+  Twilio["<b>Standard téléphonique</b><br/><small>reçoit l'appel, fait sonner, envoie WhatsApp et SMS</small><br/><code>Twilio</code>"]
+  Routage["<b>Aiguillage des appels</b><br/><small>choisit : portable de l'artisan pendant ses horaires, sinon le répondeur</small><br/><code>web/src/pages/api/twilio/</code>"]
+  EL["<b>Voix du répondeur</b><br/><small>parle avec le client, note la demande et l'urgence, résume l'appel</small><br/><code>ElevenLabs</code>"]
+  Compte["<b>Réception du compte rendu</b><br/><small>enregistre l'appel et le client, prépare le WhatsApp</small><br/><code>web/src/pages/api/elevenlabs/post-call.ts</code>"]
+  DB[("<b>Base de données</b><br/><small>artisans, horaires, documentation, appels, clients</small><br/><code>D1 · web/migrations/</code>")]
+  Artisan["<b>Portable de l'artisan</b><br/><small>sonne en premier, reçoit le WhatsApp avec le lien</small><br/><code>son téléphone</code>"]
+  Pages["<b>Pages de l'app</b><br/><small>connexion, configuration, liste des appels, page d'un appel</small><br/><code>web/src/pages/</code>"]
+  Lundi["<b>Mail du lundi</b><br/><small>résume la semaine de l'artisan</small><br/><code>web/src/lib/recap.ts · Resend</code>"]
+  Client -->|appelle| Twilio
+  Twilio -->|demande quoi faire| Routage
+  Routage -.->|"sonner 15 s, ou passer au répondeur"| Twilio
+  Routage -->|lit les horaires| DB
+  Twilio -->|passe l'appel| EL
+  EL -->|envoie le compte rendu| Compte
+  Compte -->|enregistre| DB
+  Compte -->|fait partir le WhatsApp| Twilio
+  Twilio -->|"fait sonner, puis envoie le WhatsApp"| Artisan
+  Artisan -->|ouvre le lien| Pages
+  Pages <-->|lit et modifie| DB
+  Pages -->|crée l'agent : voix et documentation| EL
+  Lundi -->|lit la semaine| DB
+  Lundi -->|envoie le mail| Artisan
+</pre>
+<ul class="who">
+  <li><b>Standard téléphonique</b> (Twilio) : reçoit chaque appel et demande à l'<b>aiguillage</b> s'il faut faire sonner le portable ou passer au répondeur.</li>
+  <li><b>Voix du répondeur</b> (ElevenLabs) : parle avec le client, puis envoie un compte rendu à l'app.</li>
+  <li><b>Réception du compte rendu</b> : range l'appel et le client dans la <b>base de données</b>, puis fait partir le WhatsApp.</li>
+  <li><b>Pages de l'app</b> : ce que l'artisan ouvre sur son téléphone, depuis le lien du WhatsApp.</li>
+</ul>
     </div>
   </section>
 
   <footer>
     <span>Routes du contrat d'API de <code>PROJET.md</code>, code dans <code>web/src/pages/api/twilio/</code> et <code>web/src/pages/api/elevenlabs/</code>.</span>
-    <span>Vue technique générée par <code>docs/pitch/schema.mjs</code>, qui écrit aussi <code>schema-appel.excalidraw</code>. Mis à jour le 29 octobre 2026.</span>
+    <span>Vue technique dessinée en Mermaid (carte du projet) ; <code>docs/pitch/schema.mjs</code> écrit toujours <code>schema-appel.excalidraw</code>. Mis à jour le 29 octobre 2026.</span>
   </footer>
 </div>
+<style>
+  .carte{background:#fff;border:1px solid #dbe2ea;border-radius:14px;padding:16px}
+  .carte .mermaid{text-align:center} .carte .mermaid small{font-size:16px;opacity:.8} .carte .mermaid code{font:14px ui-monospace,Menlo,monospace;opacity:.85}
+  .carte ul.who{margin:12px 0 0 20px;line-height:1.6}
+</style>
+<script type="module">
+  // Draws the technical map (Mermaid) in place of the <pre class="mermaid"> block
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({ startOnLoad: false, theme: "default", themeVariables: { fontSize: "20px" }, flowchart: { curve: "basis", nodeSpacing: 40, rankSpacing: 60, wrappingWidth: 240 } });
+  await mermaid.run({ querySelector: ".mermaid" });
+</script>

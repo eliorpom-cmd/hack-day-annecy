@@ -39,13 +39,12 @@ const MESSAGES = [
   { y: 508, from: "client", to: "el", both: true, voice: true, label: "conversation en direct : FAQ, prix, nom, numéro, adresse, besoin, urgence" },
   { y: 572, from: "el", to: "worker", label: "POST /api/elevenlabs/post-call · signé HMAC · résumé + données" },
   { y: 610, from: "worker", to: "d1", label: "UPDATE calls · INSERT leads" },
-  { y: 650, from: "worker", to: "artisan", todo: true, label: "WhatsApp récap à chaque appel (via Twilio)" },
+  { y: 650, from: "worker", to: "artisan", label: "WhatsApp récap à chaque appel (via Twilio)" },
   { y: 730, from: "worker", to: "artisan", label: "cron du lundi : mail récap (Resend)" },
   { y: 766, from: "artisan", to: "worker", label: "tableau de bord : GET /api/calls, /api/leads, /api/stats" },
 ];
 const NOTES = [
   { y: 246, lane: "worker", w: 250, text: "isWithinHours() · heure de Paris" },
-  { y: 666, lane: "worker", at: 860, w: 330, text: "aujourd'hui : SMS seulement si urgence · tâche 15", muted: true },
 ];
 const W = 1240, H = 800;
 const laneX = (id) => LANES.find((l) => l.id === id).x;
@@ -125,9 +124,9 @@ function metierElements(oy) {
   el.push(text(320, oy + 330, "Pendant vos\nhoraires ?", 15, { textAlign: "center" }));
   box(480, 90, 240, 100, "Votre portable sonne\n15 secondes (réglable)");
   box(780, 90, 200, 100, "Vous décrochez :\nvous parlez au client", { box: { strokeColor: GREY } });
-  box(1005, 90, 215, 100, "v2 · Filtrage d'appel\nl'assistante annonce\nqui appelle, vous\nchoisissez", { box: { strokeStyle: "dashed", strokeColor: GREY }, size: 14 });
-  box(480, 260, 300, 260, "Votre assistante IA répond\n(la voix que vous avez choisie)\n\n• répond avec vos infos et vos prix\n• sinon une fourchette « sur devis »\n• jamais de prix inventé\n• note nom, numéro, adresse,\n  besoin, urgence", { box: { strokeColor: BLUE, backgroundColor: SOFT }, size: 15 });
-  box(480, 550, 300, 58, "v2 · Agenda Google :\nl'assistante prend le RDV", { box: { strokeStyle: "dashed", strokeColor: GREY }, size: 14 });
+  box(1005, 90, 215, 100, "v2 · Filtrage d'appel\nle répondeur annonce\nqui appelle, vous\nchoisissez", { box: { strokeStyle: "dashed", strokeColor: GREY }, size: 14 });
+  box(480, 260, 300, 260, "Votre répondeur répond\n(la voix que vous avez choisie)\n\n• répond avec vos infos et vos prix\n• sinon une fourchette « sur devis »\n• jamais de prix inventé\n• note nom, numéro, adresse,\n  besoin, urgence", { box: { strokeColor: BLUE, backgroundColor: SOFT }, size: 15 });
+  box(480, 550, 300, 58, "v2 · Agenda Google :\nle répondeur prend le RDV", { box: { strokeStyle: "dashed", strokeColor: GREY }, size: 14 });
   box(840, 232, 220, 134, "WhatsApp, tout de suite\nNouveau client : Mme Durand\nDevis chauffe-eau 200 L\nAnnecy · pas urgent\nRappeler : 06 12 34 56 78", { box: { strokeColor: GREEN, backgroundColor: "#dcf5e4" }, size: 14 });
   box(840, 384, 220, 80, "La fiche client\nnouveau → rappelé → devis", { size: 14 });
   box(840, 482, 220, 62, "Mail récap du lundi", { size: 15 });
@@ -192,6 +191,6 @@ fs.writeFileSync(path.join(here, "schema-appel.excalidraw"), JSON.stringify(scen
 const htmlPath = path.join(here, "schema-appel.html");
 const html = fs.readFileSync(htmlPath, "utf8");
 const re = /(<!-- TECH:start -->)[\s\S]*?(<!-- TECH:end -->)/;
-if (!re.test(html)) throw new Error("TECH markers missing in schema-appel.html");
+if (!re.test(html)) console.log("schema-appel.html: no TECH markers (technical view is a Mermaid map), HTML left as is");
 fs.writeFileSync(htmlPath, html.replace(re, `$1\n${techSvg()}\n$2`));
 console.log("ok : schema-appel.excalidraw + vue technique de schema-appel.html");
