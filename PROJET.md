@@ -23,13 +23,26 @@ Specs à jour (source de vérité, écrite par l'équipe) : https://docs.google.
 - **Hors périmètre aujourd'hui** : site web, réseaux sociaux, pubs, import CRM (on les cite dans le pitch).
 
 
-## État et suite (29/10, 17 h 30)
+## État et reprise (checkout du 29/10/2026, ~17 h 55)
 
-**Fait** : brief, étude de marché, design (DESIGN.md, COPY.md, Figma), page d'un appel (lien du WhatsApp) avec la question « Avez-vous eu … ? », liste des appels, connexion, configuration en 4 étapes, routage par horaires, compte rendu + message WhatsApp/SMS après chaque appel, mail du lundi, schéma du parcours (docs/pitch/).
+**En ligne** : https://hack-day-annecy.eliorpom-0bc.workers.dev (compte Cloudflare Eliorpom, base D1 `hack-day-annecy` migrée jusqu'à 0009). Lien aussi dans la description du dépôt GitHub.
 
-**Bloquant** : les clés ElevenLabs et Twilio de Mathieu (absentes de `web/.dev.vars`), puis la mise en ligne sur Cloudflare (adresse publique pour Twilio).
+**Fait et poussé sur `main`** : landing page, connexion (« Essayer la configuration » = compte vierge, « Voir la démo » = compte Plomberie Démo), configuration en 4 étapes (lecture du site par Workers AI, prénom, clonage de voix, numéro, essai), liste des appels, page d'un appel `/a/<jeton>` (lien du WhatsApp, « Avez-vous eu … ? »), réglages, vue ordinateur (barre latérale : Appels, Site web, Fiche Google, Réseaux sociaux, Publicités, Réglages), hub « Site web » (mini-site public `/site/<slug>`), aiguillage par horaires, message après chaque appel (COPY.md), mail du lundi, schéma de pitch `docs/pitch/schema-appel.html`, design (DESIGN.md, COPY.md, `docs/design-choix/`), fiche de répétition `docs/demo-repetition.md`. Pas encore mis en ligne : la landing page et ce qui suit (republier).
 
-**Reste** (voir TACHES.md) : mise en ligne, appel réel de bout en bout, clonage de voix, prénom + accord de la voix dans l'accueil, réglages (mode avancé), prompt réglé sur le scénario de démo, script et slides (Maxime). Plus tard : vue ordinateur, page d'accueil du produit.
+**Au moment du checkout, 4 agents travaillaient sans commiter** (fichiers non suivis ou modifiés dans `web/`) : configuration v2 (tâches 24, 25, 26 : nom d'entreprise et horaires facultatifs, interview de l'artisan pour la documentation, « Garder mon numéro » par renvoi d'appel ; migrations 0010, 0011), Fiche Google (`/app/google`), Réseaux sociaux (`/app/reseaux`), Publicités (`/app/publicites`). **À la reprise** : `git status`, lancer `cd web && npm run db:local && npm test && npx astro check && npm run build`, corriger, commiter chaque lot séparément, fermer les tâches avec `bin/tache finir`.
+
+**Bloquant pour la démo** :
+1. Les clés : Elior les a mises dans `web/.dev.vars` (lecture interdite à Claude par ses réglages). Il doit les envoyer à Cloudflare lui-même, dans Terminal : `cd web && python3 -c "…" | npx wrangler secret bulk` (commande complète donnée le 29/10 : convertit .dev.vars en JSON sans APP_URL ni TWILIO_WEBHOOK_TOKEN). Ensuite tester en ligne : POST /api/agent (démo), GET /api/numbers, puis un vrai appel (tâche 18).
+2. Webhook post-call à créer dans ElevenLabs vers `https://hack-day-annecy.eliorpom-0bc.workers.dev/api/elevenlabs/post-call`, puis son secret en `ELEVENLABS_WEBHOOK_SECRET`.
+3. Bac à sable WhatsApp Twilio activé, téléphone d'Elior inscrit.
+
+**Figma** (https://www.figma.com/design/MBwpM4E1rVdPEZgHL1qWBt) : fondations, composants et page d'un appel faits ; les autres écrans (mobile + ordinateur) restent à ajouter. Le connecteur claude.ai Figma ne marche pas sur le compte bruno ; le serveur MCP `figma` a été ajouté à Claude Code (`claude mcp add … https://mcp.figma.com/mcp`) mais doit être autorisé par Elior (`/mcp` → figma → Authenticate). Plan de l'agent : `/private/tmp/claude-501/-Users-elior-Documents-Code/15fcdd9f-3a8b-4963-8458-975568b2a716/scratchpad/figma/plan-ecrans.md` (peut disparaître au redémarrage du Mac).
+
+**Publier** (toujours depuis une copie propre de `main`, jamais depuis le dossier où des agents travaillent) : `git worktree add --detach <dossier> origin/main`, lien `node_modules`, `npx wrangler d1 migrations apply hack-day-annecy --remote`, `npx astro build`, `npx wrangler deploy`.
+
+**Reste** (TACHES.md) : 18 appel réel, 22 prompt réglé sur le scénario de Maxime, 27 écoute des voix, 28 étude Meta Ads, Figma, puis répéter la démo (`docs/demo-repetition.md`). Maxime : script (13) et slides (14). Mathieu : retours de l'entretien plombier.
+
+**Décisions de la journée** : mobile d'abord (l'ordinateur ensuite), surface principale = le message WhatsApp ; « le répondeur » (jamais « assistante ») ; légal ignoré pour la démo ; Lovable abandonné, stack Cloudflare ; fonctions Google, réseaux et pubs = générateurs IA qui marchent, publication directe « Bientôt ».
 
 ## Persona et voix (décidé le 29/10)
 
