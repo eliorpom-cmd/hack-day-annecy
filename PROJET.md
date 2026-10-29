@@ -5,6 +5,7 @@
 Specs à jour (source de vérité, écrite par l'équipe) : https://docs.google.com/document/d/1BAAv4wFGkR5YkEVe2x0vCBMw6svuSBUsX_zLp5dOAqw/edit
 
 - **Entreprise** : pas de client. Idée de l'équipe.
+- **Nom du produit** : AlloPro (choisi par Elior le 29/10 au soir ; remplace le nom provisoire « Répondeur »). Dans les phrases, « le répondeur » reste le nom commun du service.
 - **Idée** : un répondeur téléphonique IA avec CRM pour un type d'artisan.
 - **Base** : l'agent vocal ElevenLabs que Mathieu a déjà construit (code à ajouter au dépôt).
 - **Cible** : générique, tous les artisans. Étude des métiers en 73/74 : `etude-marche/README.md`.

@@ -1,4 +1,4 @@
-# Répondeur artisans — Design
+# AlloPro — Design
 
 > Fond blanc froid #f1f4f8, blocs blancs à bordure fine, texte marine, une icône par information. Un seul bouton vert menthe à texte marine en bas de l'écran. Le rouge et l'orange ne servent qu'à la priorité d'un appel.
 
@@ -118,7 +118,7 @@ La page publique (`web/src/pages/index.astro`, `web/src/components/landing/`) ga
 | Titre de carte | 22 px | 22 px | 700 | 1.2 | 0 |
 | Accroche sous un titre | 19 px | 21 px | 400, `--muted` (`--line` sur `--ink`) | 1.45 | 0 |
 
-- **Logo provisoire** : tuile 34 px, arrondi 10 px, fond `--action`, bord 1 px `--action-line`, icône Lucide `phone` 18 px `--ink`, puis « Répondeur » 17 px / 700.
+- **Logo provisoire** : tuile 34 px, arrondi 10 px, fond `--action`, bord 1 px `--action-line`, icône Lucide `phone` 18 px `--ink`, puis « AlloPro » 17 px / 700.
 - **Mise en page** : conteneur 1200 px max, marges 20 px (mobile) et 40 px (bureau) ; sections espacées de 64 px (mobile) et 112 px (bureau) en haut et en bas ; fonds alternés `--page` / `--surface`, une seule section `--ink`.
 - **Cartes** : arrondi 28 px (`--radius-dialog`), bord 1 px `--line`, intérieur 20 px (mobile) et 28 px (bureau) ; visuel en tête de carte à arrondi 20 px.
 - **Maquettes d'écran** : écrans de l'app reconstruits en HTML avec les classes de l'app, dans un cadre de téléphone `--ink` (arrondi 58 px) mis à l'échelle avec `zoom` (0,78 mobile, 0,86 à 1 bureau). Aucune image.

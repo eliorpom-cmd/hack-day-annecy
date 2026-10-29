@@ -29,7 +29,7 @@ const item = "flex min-h-12 items-center gap-3 rounded-call px-3 font-bold";
     <button type="button" class="grid size-12 place-items-center rounded-call text-ink" aria-label="Ouvrir le menu" aria-controls="app-menu" aria-expanded="false" data-menu-open><Icon name="menu" /></button>
     <a href="/app" class="flex items-center gap-2 text-[17px] font-bold">
       <span class="grid size-[30px] place-items-center rounded-filter bg-action text-ink shadow-[inset_0_0_0_1px_var(--color-action-line)]"><Icon name="phone" size={16} /></span>
-      Répondeur
+      AlloPro
     </a>
     {urgent > 0 && <a href="/app" class="chip chip-urgence ml-auto mr-2 self-center" aria-label={`${urgent} urgence${urgent > 1 ? "s" : ""} à rappeler`}>{urgent}</a>}
   </header>
@@ -39,7 +39,7 @@ const item = "flex min-h-12 items-center gap-3 rounded-call px-3 font-bold";
       <div class="mb-4 flex items-center justify-between">
         <a href="/app" class="flex items-center gap-3 px-1 text-[17px] font-bold">
           <span class="grid size-[34px] place-items-center rounded-filter bg-action text-ink shadow-[inset_0_0_0_1px_var(--color-action-line)]"><Icon name="phone" size={18} /></span>
-          Répondeur
+          AlloPro
         </a>
         <button type="button" class="grid size-12 place-items-center rounded-call text-ink" aria-label="Fermer le menu" data-menu-close><Icon name="x" /></button>
       </div>
@@ -63,7 +63,7 @@ const item = "flex min-h-12 items-center gap-3 rounded-call px-3 font-bold";
     <aside class="sticky top-0 hidden h-dvh w-[240px] shrink-0 flex-col gap-1 border-r border-line bg-surface px-4 py-6 lg:flex">
       <a href="/app" class="mb-6 flex items-center gap-3 px-1 text-[17px] font-bold">
         <span class="grid size-[34px] place-items-center rounded-filter bg-action text-ink shadow-[inset_0_0_0_1px_var(--color-action-line)]"><Icon name="phone" size={18} /></span>
-        Répondeur
+        AlloPro
       </a>
       <nav class="flex flex-col gap-1" aria-label="Menu">
         {nav.map((n) => (

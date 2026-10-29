@@ -1,8 +1,8 @@
-# Répondeur: an AI phone answering service for tradespeople
+# AlloPro: an AI phone answering service for tradespeople
 
 Built in one day at **Hacktoberfest Hack Day Annecy** (October 29, 2026) by Elior, Maxime and Mathieu.
 
-Plumbers, electricians and other tradespeople miss calls all day: they are on a ladder, under a sink, driving. Each missed call is a lost job, and ads are wasted money if nobody picks up. Répondeur answers those calls in the artisan's name, books the job in their calendar, and sends them a WhatsApp summary a few seconds after the caller hangs up.
+Plumbers, electricians and other tradespeople miss calls all day: they are on a ladder, under a sink, driving. Each missed call is a lost job, and ads are wasted money if nobody picks up. AlloPro answers those calls in the artisan's name, books the job in their calendar, and sends them a WhatsApp summary a few seconds after the caller hangs up.
 
 **Live demo:** https://hack-day-annecy.eliorpom-0bc.workers.dev ("Voir la démo" opens a pre-filled account, "Essayer la configuration" runs the setup on a fake plumber's website).
 

@@ -4,9 +4,9 @@ import Icon from "../Icon.astro";
 interface Props { href?: string }
 const { href = "/" } = Astro.props;
 ---
-<a href={href} class="flex items-center gap-[10px] font-bold text-ink" aria-label="Répondeur, accueil">
+<a href={href} class="flex items-center gap-[10px] font-bold text-ink" aria-label="AlloPro, accueil">
   <span class="grid size-[34px] place-items-center rounded-[10px] bg-action shadow-[inset_0_0_0_1px_var(--color-action-line)]">
     <Icon name="phone" size={18} />
   </span>
-  <span class="text-body">Répondeur</span>
+  <span class="text-body">AlloPro</span>
 </a>

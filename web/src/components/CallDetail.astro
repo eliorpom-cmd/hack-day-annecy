@@ -80,7 +80,7 @@ try { turns = call.transcript ? (JSON.parse(call.transcript) as Turn[]).filter((
           <div class="flex flex-col gap-2 px-[14px] pb-3">
             {turns.map((t) => (
               <p class={t.role === "user" ? "self-end rounded-block bg-tint px-3 py-2" : "self-start rounded-block bg-neutral-bg px-3 py-2"}>
-                <span class="block text-small font-bold text-muted">{t.role === "user" ? name : "Répondeur"}</span>{t.message}
+                <span class="block text-small font-bold text-muted">{t.role === "user" ? name : "AlloPro"}</span>{t.message}
               </p>
             ))}
           </div>
@@ -150,7 +150,7 @@ try { turns = call.transcript ? (JSON.parse(call.transcript) as Turn[]).filter((
         <div class="flex flex-col gap-2 px-[14px] pb-3">
           {turns.map((t) => (
             <p class={t.role === "user" ? "max-w-[75%] self-end rounded-block bg-tint px-3 py-2" : "max-w-[75%] self-start rounded-block bg-neutral-bg px-3 py-2"}>
-              <span class="block text-small font-bold text-muted">{t.role === "user" ? name : "Répondeur"}</span>{t.message}
+              <span class="block text-small font-bold text-muted">{t.role === "user" ? name : "AlloPro"}</span>{t.message}
             </p>
           ))}
         </div>
