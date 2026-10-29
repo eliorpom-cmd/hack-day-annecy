@@ -113,3 +113,26 @@ export function pickDemoVoice(voices: { id: string; name?: string; gender?: stri
 export function isFinalAgentName(name: string): boolean {
   return /plomberie\s+martin/i.test(name) && /\bfinal\b/i.test(name);
 }
+
+// What the app needs from the FINAL agent (GET /v1/convai/agents/{id}), as plain checks for /app/agent-demo
+export const REQUIRED_FIELDS = ["name", "phone", "address", "subject", "need", "urgency", "appointment", "urgency_reason"] as const;
+export type AgentCheck = { ok: boolean; label: string; detail: string };
+export function checkFinalAgent(agent: unknown): AgentCheck[] {
+  const o = (v: unknown): Record<string, unknown> => (v && typeof v === "object" ? (v as Record<string, unknown>) : {});
+  const cc = o(o(agent).conversation_config);
+  const input = String(o(cc.asr).user_input_audio_format ?? "");
+  const output = String(o(cc.tts).agent_output_audio_format ?? "");
+  const prompt = o(o(cc.agent).prompt);
+  const text = String(prompt.prompt ?? "");
+  const fields = Object.keys(o(o(o(agent).platform_settings).data_collection));
+  const missing = REQUIRED_FIELDS.filter((f) => !fields.includes(f));
+  const tools = [...Object.keys(o(prompt.built_in_tools)).filter((k) => o(prompt.built_in_tools)[k]),
+    ...(Array.isArray(prompt.tools) ? prompt.tools.map((t) => String(o(t).name ?? o(o(t).params).system_tool_type ?? "")) : [])];
+  const vars = ["slot_1", "slot_2", "caller_phone"].filter((v) => !text.includes(`{{${v}}}`));
+  return [
+    { ok: input === "ulaw_8000" && output === "ulaw_8000", label: "Audio μ-law 8000 Hz", detail: `entrée : ${input || "?"} · sortie : ${output || "?"}` },
+    { ok: !missing.length, label: "Champs d’analyse", detail: missing.length ? `manquants : ${missing.join(", ")}` : "les 8 sont là" },
+    { ok: !vars.length, label: "Créneaux et numéro dans le prompt", detail: vars.length ? `absents : ${vars.map((v) => `{{${v}}}`).join(", ")}` : "{{slot_1}}, {{slot_2}}, {{caller_phone}}" },
+    { ok: tools.includes("end_call"), label: "Raccrocher seul (End call)", detail: tools.includes("end_call") ? "activé" : "pas activé" },
+  ];
+}

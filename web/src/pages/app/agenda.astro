@@ -90,9 +90,13 @@ const latestLabel = latest ? `${new Intl.DateTimeFormat("fr-FR", { timeZone: "Eu
                     {item.place && <span class="ev-place">{item.place}</span>}
                   </>
                 );
-                return item.link_token
-                  ? <a href={`/a/${item.link_token}`} class={cls} style={style}>{body}</a>
-                  : <div class={cls} style={style}>{body}</div>;
+                // Tap: the block opens over the ones below with its full text (and « Voir l'appel » when booked)
+                return (
+                  <div role="button" tabindex="0" class={cls} style={style} data-ev aria-expanded="false">
+                    {body}
+                    {item.link_token && <a href={`/a/${item.link_token}`} class="ev-open">Voir l’appel</a>}
+                  </div>
+                );
               })}
             </div>
           ))}
@@ -122,6 +126,7 @@ const latestLabel = latest ? `${new Intl.DateTimeFormat("fr-FR", { timeZone: "Eu
     background-size: 100% var(--hour);
   }
   .ev {
+    text-align: left; cursor: pointer; font: inherit;
     position: absolute; left: 3px; right: 3px; overflow: hidden; display: flex; flex-direction: column; gap: 1px;
     padding: 4px 6px; border-radius: 8px; font-size: 12px; line-height: 1.25;
   }
@@ -141,6 +146,30 @@ const latestLabel = latest ? `${new Intl.DateTimeFormat("fr-FR", { timeZone: "Eu
   .ev-new { align-self: flex-start; border-radius: 6px; background: var(--color-ink); color: #fff; padding: 0 6px; font-size: 11px; font-weight: 700; }
   @keyframes pop { 0%, 100% { box-shadow: inset 0 0 0 1px var(--color-action-line), 0 0 0 3px rgba(78, 228, 148, 0.35), 0 6px 18px rgba(0, 125, 53, 0.28); } 50% { box-shadow: inset 0 0 0 1px var(--color-action-line), 0 0 0 6px rgba(78, 228, 148, 0.18), 0 6px 18px rgba(0, 125, 53, 0.28); } }
   @media (prefers-reduced-motion: reduce) { .ev-latest { animation: none; } }
+  .ev-open { display: none; margin-top: 4px; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+  /* Opened block: full text, over its neighbours */
+  .ev[aria-expanded="true"] { z-index: 5; height: auto !important; min-height: var(--min-h); overflow: visible; }
+  .ev[aria-expanded="true"] .ev-title, .ev[aria-expanded="true"] .ev-place { white-space: normal; overflow: visible; }
+  .ev[aria-expanded="true"] .ev-open { display: inline; }
+  .ev-job[aria-expanded="true"], .ev-booked[aria-expanded="true"] { box-shadow: inset 3px 0 0 var(--color-action-line), 0 8px 24px rgba(11, 37, 69, 0.22); }
   .legend { display: inline-block; width: 14px; height: 14px; border-radius: 4px; }
   .legend.ev-latest { animation: none; box-shadow: inset 0 0 0 1px var(--color-action-line); }
 </style>
+
+<script>
+  // One block open at a time; a tap elsewhere closes it
+  const blocks = [...document.querySelectorAll<HTMLElement>("[data-ev]")];
+  for (const b of blocks) {
+    b.style.setProperty("--min-h", b.style.height);
+    const toggle = () => {
+      const open = b.getAttribute("aria-expanded") !== "true";
+      for (const o of blocks) o.setAttribute("aria-expanded", "false");
+      b.setAttribute("aria-expanded", String(open));
+    };
+    b.addEventListener("click", (e) => { if (!(e.target as HTMLElement).closest(".ev-open")) toggle(); });
+    b.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+  }
+  document.addEventListener("click", (e) => {
+    if (!(e.target as HTMLElement).closest("[data-ev]")) for (const o of blocks) o.setAttribute("aria-expanded", "false");
+  });
+</script>

@@ -4,6 +4,8 @@
 import AppShell from "../../layouts/AppShell.astro";
 import { isDemoAccount } from "../../lib/demo-voice";
 import { demoAgentMode, finalAgent, setDemoAgentMode } from "../../lib/demo-agent";
+import { checkFinalAgent, type AgentCheck } from "../../lib/demo-setup";
+import { elRequest } from "../../lib/elevenlabs";
 
 if (!isDemoAccount(Astro.locals.user)) return Astro.redirect("/app");
 const { business } = Astro.locals;
@@ -17,6 +19,10 @@ if (Astro.request.method === "POST") {
 }
 const mode = await demoAgentMode();
 const final = await finalAgent(refresh).catch(() => null);
+// The 4 things the app needs from the FINAL agent, read on ElevenLabs
+const checks: AgentCheck[] | null = final
+  ? await elRequest<unknown>(`/v1/convai/agents/${encodeURIComponent(final.id)}`, { timeoutMs: 8000 }).then(checkFinalAgent).catch(() => null)
+  : null;
 const btn = "flex min-h-12 flex-1 items-center justify-center rounded-button px-4 font-bold";
 ---
 <AppShell title="Agent de démo" active="reglages">
@@ -35,6 +41,19 @@ const btn = "flex min-h-12 flex-1 items-center justify-center rounded-button px-
       <button name="mode" value="final" class={`${btn} ${mode === "final" ? "bg-action text-ink" : "shadow-[inset_0_0_0_1px_var(--color-line)]"}`}>Agent FINAL</button>
       <button name="mode" value="app" class={`${btn} ${mode === "app" ? "bg-action text-ink" : "shadow-[inset_0_0_0_1px_var(--color-line)]"}`}>Agent de l’app</button>
     </form>
+    <h2 class="mt-2 text-small font-bold text-muted">Vérification de l’agent FINAL</h2>
+    {checks ? (
+      <ul class="panel">
+        {checks.map((c) => (
+          <li class="row">
+            <span class={`grid size-[30px] shrink-0 place-items-center rounded-chip font-bold ${c.ok ? "bg-tint text-action-ink" : "bg-urgence-bg text-urgence"}`}>{c.ok ? "✓" : "✕"}</span>
+            <div class="min-w-0"><p class="font-bold">{c.label}</p><p class="text-small text-muted break-words">{c.detail}</p></div>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="panel px-[14px] py-3 text-small text-muted">Impossible de lire l’agent sur ElevenLabs pour l’instant.</p>
+    )}
     <form method="post">
       <input type="hidden" name="mode" value={mode} />
       <button name="refresh" value="1" class="min-h-12 text-small text-muted underline underline-offset-2">Chercher de nouveau l’agent FINAL sur ElevenLabs</button>
