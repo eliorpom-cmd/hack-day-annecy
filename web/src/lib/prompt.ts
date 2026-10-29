@@ -122,7 +122,9 @@ export function buildAgentPayload(opts: {
   dataCollection: Record<string, DataCollectionField>; platformExtras?: Record<string, unknown>;
 }) {
   // ElevenLabs rejects (400) a non-English agent whose TTS model is not a v2.5 turbo/flash: same choice as the MVP
-  const tts: Record<string, unknown> = { model_id: "eleven_flash_v2_5" };
+  // Calls arrive through Twilio register-call, which streams μ-law 8 kHz both ways: with the default PCM
+  // input the agent says its first message, then never hears the caller
+  const tts: Record<string, unknown> = { model_id: "eleven_flash_v2_5", agent_output_audio_format: "ulaw_8000" };
   if (opts.voiceId) tts.voice_id = opts.voiceId;
   return {
     name: `Assistant – ${businessDisplayName(opts.business) || "Artisan"}`.slice(0, 100),
@@ -132,6 +134,7 @@ export function buildAgentPayload(opts: {
         language: "fr",
         prompt: { prompt: opts.prompt, llm: "gemini-2.5-flash", temperature: 0.3 },
       },
+      asr: { user_input_audio_format: "ulaw_8000" },
       tts,
       conversation: { max_duration_seconds: 600 },
     },
