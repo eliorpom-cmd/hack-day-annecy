@@ -1,64 +1,77 @@
-# Hack Day Annecy
+# Répondeur: an AI phone answering service for tradespeople
 
-Projet de l'équipe au Hacktoberfest Hack Day Annecy (29/10). Spec, stack, contrat d'API et ownership : [`PROJET.md`](PROJET.md).
+Built in one day at **Hacktoberfest Hack Day Annecy** (October 29, 2026) by Elior, Maxime and Mathieu.
 
-## Qui fait quoi
+Plumbers, electricians and other tradespeople miss calls all day: they are on a ladder, under a sink, driving. Each missed call is a lost job, and ads are wasted money if nobody picks up. Répondeur answers those calls in the artisan's name, books the job in their calendar, and sends them a WhatsApp summary a few seconds after the caller hangs up.
 
-Le projet : un répondeur téléphonique IA + CRM pour les artisans. Brief complet et contrat d'API : `PROJET.md`. Specs : [Google Doc](https://docs.google.com/document/d/1BAAv4wFGkR5YkEVe2x0vCBMw6svuSBUsX_zLp5dOAqw/edit).
+**Live demo:** https://hack-day-annecy.eliorpom-0bc.workers.dev ("Voir la démo" opens a pre-filled account, "Essayer la configuration" runs the setup on a fake plumber's website).
 
-| Qui | Rôle | Maintenant | Pour |
-|---|---|---|---|
-| **Mathieu** | Utilisateurs et connecteurs | Entretien avec un plombier ; dire quel numéro Twilio marche avec son agent ; donner les clés ElevenLabs et Twilio (dans `web/.dev.vars` sur le Mac d'Elior, jamais dans le chat ni dans git) ; ensuite Google Ads, Meta Ads, réseaux sociaux | 16 h 30 |
-| **Maxime** | Product manager | Schéma Excalidraw du parcours d'un appel ; script de la démo de 3 min ; slides du pitch | 20 h |
-| **Elior** | Design UI/UX, tests | Maquettes de l'onboarding (05) et du dashboard (06), web et mobile ; tester chaque fonction livrée | 18 h |
-| **Claude** (agents d'Elior) | Code | Routage des appels par horaires (07), SMS d'urgence (08), API de l'onboarding et du dashboard (11), puis mail récap (09) et intégration des maquettes | 18 h 30 |
+## What it does
 
-Démo (3 min) : 1) l'onboarding, 2) un vrai appel d'un client, 3) ce que reçoit l'artisan (SMS, fiche dans le dashboard).
+1. **Setup in about 2 minutes.** The artisan gives their website; the app reads it (services, prices, hours, area) and asks only the questions the site does not answer. They pick a voice and get a phone number.
+2. **A caller rings the number.** A voice agent answers in French, answers questions from the artisan's own documentation (prices only if the artisan wrote them, never invented), and offers two free slots from the calendar. The caller picks one; the agent repeats day, time and address once, then hangs up.
+3. **The artisan gets a WhatsApp message** with the priority (urgent, priority, normal), what the client needs, the address, the booked slot and a link to the call page.
+4. **The web app** lists every call (with a "Rendez-vous pris" tag when a slot was booked) and shows a week calendar where the latest booking stands out.
 
-Code freeze à 22 h.
+Also in the app: AI generators for a simple website, a Google Business Profile, social posts and Google Ads, all written from the artisan's data.
 
-## Setup
+## How it works
 
 ```
-gh repo clone eliorpom-cmd/hack-day-annecy && cd hack-day-annecy
-git config user.name "Prénom Nom"
+Caller ──► Twilio number ──► Cloudflare Worker ──► ElevenLabs voice agent
+                               │  (picks the agent, passes the caller's number
+                               │   and the two free slots as call variables)
+                               ▼
+              ElevenLabs post-call webhook (signed) ──► Worker
+                               │  saves the call, the client and the booking (D1)
+                               ▼
+                  WhatsApp outbox ──► relay on a Mac (Baileys) ──► artisan's phone
+                               (falls back to SMS through Twilio)
 ```
 
-Agents : Claude Code → `/equipe` ; les autres → « lis AGENTS.md et suis-le ».
+- **One Cloudflare Worker** serves the Astro site and the API, runs the Twilio and ElevenLabs webhooks and a weekly cron (Monday recap e-mail).
+- **D1 (SQLite)** stores businesses, calls, clients, appointments and the WhatsApp queue. Migrations are in `web/migrations/`.
+- **ElevenLabs Conversational AI** runs the voice agent. The app builds the agent's prompt from the artisan's data (`web/src/lib/prompt.ts`) and extracts structured fields after each call (name, need, urgency, booked slot).
+- **WhatsApp relay** (`relay-whatsapp/`): a small Node process polls the Worker's outbox every 2 s and sends messages from a WhatsApp account, with a backup mode that only sends what the main relay missed.
 
-## Tâches
+## Tech stack
 
-[`TACHES.md`](TACHES.md), trois sections : À faire / En cours / Fait. Le fichier vit sur `main`.
+Cloudflare Workers, D1, Workers AI · Astro 7 (server rendering) · Tailwind CSS 4 · TypeScript · ElevenLabs Conversational AI · Twilio Voice and Messaging · Baileys (WhatsApp) · `node --test`
 
-- À la main (GitHub ou éditeur après `git pull`) : ajouter `- Titre` sous « À faire » ; pour prendre, déplacer la ligne sous « En cours » avec `(prénom)` et pousser tout de suite ; pour finir, la déplacer sous « Fait » avec `  - Fait : …`.
-- En CLI (Node ; `node bin/tache` sous Windows). Écrit directement sur `origin/main` depuis n'importe quelle branche, sans toucher au working tree :
+## Repository
 
-```
-bin/tache liste
-bin/tache nouvelle "Titre" "détails"
-bin/tache prendre 03 prenom      # ou quelques mots du titre
-bin/tache finir 03 "note : fichiers, routes, ce qui reste"
-```
-
-Pas de code sans tâche prise. On finit une tâche après avoir poussé le code.
-
-## Git
-
-| Changement | Workflow |
+| Path | What is inside |
 |---|---|
-| Son dossier (ownership dans `PROJET.md`), `TACHES.md` | Push direct sur `main`, `git pull --rebase` avant, au moins toutes les 30 min |
-| Fichiers communs (contrat d'API, types partagés, `package.json`/lockfile, config) ou dossier d'un autre | Branche + PR, relue et mergée par l'intégrateur |
+| `web/` | The app: pages (`src/pages`), API routes (`src/pages/api`), logic (`src/lib`), tests (`test/`) |
+| `relay-whatsapp/` | The WhatsApp relay and its backup launcher |
+| `etude-marche/` | Market study of trades around Annecy (in French) |
+| `docs/` | Demo script, call-flow diagram for the pitch, team notes |
+| `DESIGN.md`, `COPY.md` | Design system and writing rules of the interface |
+| `PROJET.md` | Full spec and API contract (in French) |
 
-Pas de `push --force`, pas de secret commité (`.env`).
+## Run it locally
 
-## Tests et CI
+Requires Node 22.23 or later and a Cloudflare account (the website reader uses Workers AI).
 
-Chaque tâche livre ses tests quand c'est testable (logique, routes d'API, parsing des réponses de l'IA). La CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) lance `lint`, `build` et `test` sur chaque push et chaque PR. Un `main` rouge se répare avant toute autre chose.
+```sh
+cd web
+npm install
+cp .dev.vars.example .dev.vars    # then add your ElevenLabs and Twilio keys
+npm run db:local                  # local D1 database with demo data
+npm run dev                       # http://localhost:4321
+npm test                          # unit and API tests
+```
 
-## Discord
+Without keys, the app runs with demo data and pre-written AI answers; real calls need the ElevenLabs and Twilio keys.
 
-https://discord.gg/4QHYUJeZ5j · notifications en mentions uniquement.
+## Team
 
-- `#💬-général` : annonces ; `@everyone` si c'est urgent
-- `#🔗-liens-importants` : URL de démo, maquettes, accès, docs
-- `#🤖-github-log` : pushs et PR, automatique
+- **Elior**: product design (web and mobile), development, testing
+- **Maxime**: product management, pitch and demo script
+- **Mathieu**: user interview with a plumber, ElevenLabs and Twilio setup
+
+The interface is in French: the first users are tradespeople in Haute-Savoie.
+
+## License
+
+Copyright © 2026 Elior, Maxime and Mathieu. All rights reserved. The code is public for the hackathon judging; see [LICENSE](LICENSE).

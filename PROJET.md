@@ -50,7 +50,7 @@ Specs à jour (source de vérité, écrite par l'équipe) : https://docs.google.
 2. Webhook post-call à créer dans ElevenLabs vers `https://hack-day-annecy.eliorpom-0bc.workers.dev/api/elevenlabs/post-call`, puis son secret en `ELEVENLABS_WEBHOOK_SECRET`.
 3. Bac à sable WhatsApp Twilio activé, téléphone d'Elior inscrit.
 
-**Figma** (https://www.figma.com/design/MBwpM4E1rVdPEZgHL1qWBt) : fondations, composants et page d'un appel faits ; les autres écrans (mobile + ordinateur) restent à ajouter. Le connecteur claude.ai Figma ne marche pas sur le compte bruno ; le serveur MCP `figma` a été ajouté à Claude Code (`claude mcp add … https://mcp.figma.com/mcp`) mais doit être autorisé par Elior (`/mcp` → figma → Authenticate). Plan de l'agent : `/private/tmp/claude-501/-Users-elior-Documents-Code/15fcdd9f-3a8b-4963-8458-975568b2a716/scratchpad/figma/plan-ecrans.md` (peut disparaître au redémarrage du Mac).
+**Figma** (https://www.figma.com/design/MBwpM4E1rVdPEZgHL1qWBt) : fondations, composants et page d'un appel faits ; les autres écrans (mobile + ordinateur) restent à ajouter.
 
 **Publier** (toujours depuis une copie propre de `main`, jamais depuis le dossier où des agents travaillent) : `git worktree add --detach <dossier> origin/main`, lien `node_modules`, `npx wrangler d1 migrations apply hack-day-annecy --remote`, `npx astro build`, `npx wrangler deploy`.
 
@@ -92,7 +92,7 @@ Décision du 29/10 (15 h) : **on quitte Lovable / Supabase** et on passe sur la 
 - **À remplacer** : l'auth Lovable Cloud, la base Supabase (20 tables → D1), la passerelle IA de Lovable utilisée par le scan du site.
 - **Secrets** : `wrangler secret put` / `.dev.vars`, jamais commités.
 
-`app/` (le MVP Lovable importé) sert de **référence** pendant le portage, puis il partira.
+Le MVP Lovable (`app/`) a servi de référence pendant le portage ; il a été retiré du dépôt le 29/10.
 
 ## Contrat d'API
 

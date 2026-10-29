@@ -17,7 +17,7 @@ https://hack-day-annecy.eliorpom-0bc.workers.dev (PR #4 à #14, toutes fusionné
 - Nom « Plomberie Martin », artisan Marc Martin, voix **Elior** (`EMGF1gEbaSmJMCwU3Sne`), accueil
   « Bonjour, ici l'assistant de Plomberie Martin. Marc est sur un chantier, que puis-je faire pour vous ? ».
 - Numéro du répondeur **+1 863 230 2742** relié à ce compte ; mode renvoi : un appel direct va tout de suite à l'agent.
-- Calendrier connecté (simulé) ; portable / WhatsApp : **06 95 07 05 65** ; écran du renvoi d'appel marqué fait.
+- Calendrier connecté (simulé) ; portable / WhatsApp : le portable d'Elior (secret `DEMO_MOBILE`) ; écran du renvoi d'appel marqué fait.
 - Agent ElevenLabs `agent_8101m64ax62cfassb9r49rkgcb6z`, mis à jour avec les dernières instructions.
 
 ## Ce qui a été fait ce soir

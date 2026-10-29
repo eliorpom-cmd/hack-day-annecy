@@ -4,7 +4,7 @@
 
 - **Surface** : app web mobile d'abord (page d'un appel ouverte depuis le message WhatsApp, liste des appels, configuration), Astro 7 + Tailwind 4 dans `web/`
 - **Base** : Material Design 3 ; écarts listés en fin de fichier
-- **Origine** : créé le 2026-10-29, chaque valeur choisie par Elior étape par étape (`docs/design-choix/`, pages 1 à 5)
+- **Origine** : créé le 2026-10-29, chaque valeur choisie par Elior étape par étape (pages de choix retirées du dépôt le 29/10)
 - **Mis à jour** : 2026-10-29 (vue ordinateur, étape 6 option C)
 - **Fichiers de tokens** : `web/src/styles/global.css`
 - **Textes** : `COPY.md`
