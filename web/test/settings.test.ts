@@ -14,7 +14,7 @@ test("hoursSummary: same slots on consecutive days", () => {
 });
 
 test("hoursSummary: split days, gaps and empty", () => {
-  assert.equal(hoursSummary([]), "Aucun horaire");
+  assert.equal(hoursSummary([]), "Pas d’horaires fixes");
   assert.equal(hoursSummary([
     { weekday: 0, opens: "08:00", closes: "12:00" }, { weekday: 0, opens: "14:00", closes: "18:00" },
     { weekday: 1, opens: "08:00", closes: "12:00" }, { weekday: 1, opens: "14:00", closes: "18:00" },

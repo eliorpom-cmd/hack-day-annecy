@@ -27,3 +27,14 @@ export function isDefaultGreeting(text: string | null | undefined): boolean {
   if (/^Oui allô, .+\.$/.test(g)) return true;
   return /^Bonjour, ici l[’']assistante? de .+\. .+ est sur un chantier, que puis-je faire pour vous\s?\?$/.test(g);
 }
+
+// Name the répondeur says and shows for the business. A self-employed artisan without a company name
+// is « {prénom} {nom}, {métier} » (« Marc Durand, plombier »). Used by the greeting, the prompt and the messages.
+export function businessDisplayName(b: { name?: string | null; first_name?: string | null; last_name?: string | null; trade?: string | null }): string {
+  const company = (b.name ?? "").trim().replace(/\s+/g, " ");
+  if (company) return company;
+  const person = [cleanFirstName(b.first_name), cleanFirstName(b.last_name)].filter(Boolean).join(" ");
+  const trade = (b.trade ?? "").trim().replace(/\s+/g, " ");
+  if (person && trade) return `${person}, ${trade.charAt(0).toLowerCase()}${trade.slice(1)}`;
+  return person || (trade ? trade.charAt(0).toUpperCase() + trade.slice(1) : "");
+}

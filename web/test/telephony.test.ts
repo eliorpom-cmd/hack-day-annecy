@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { isWithinHours, localParts } from "../src/lib/telephony/hours.ts";
+import { isForwardedCall, shouldRingArtisan } from "../src/lib/telephony/routing.ts";
 import { artisanMissed, dialArtisan, sayAndHangup } from "../src/lib/telephony/twiml.ts";
 import { checkToken, signElevenLabsPayload, verifyElevenLabsSignature } from "../src/lib/telephony/signature.ts";
 import { buildCallMessage, formatFrPhone, MESSAGE_MAX, normalizeUrgency, parsePostCall } from "../src/lib/telephony/postcall.ts";
@@ -152,4 +153,30 @@ test("agent config", () => {
   assert.deepEqual(Object.keys(DATA_COLLECTION), ["name", "phone", "address", "subject", "need", "urgency", "urgency_reason"]);
   assert.deepEqual(DATA_COLLECTION.urgency.enum, ["urgence", "urgent", "normal"]);
   assert.equal(postCallWebhookUrl("https://x.dev/"), "https://x.dev/api/elevenlabs/post-call");
+});
+
+test("routing: ring the artisan during his hours, at any time without fixed hours, never on a forwarded call", () => {
+  const base = { artisanPhone: "+33612345678", hours: week, forwardingMode: null, forwarded: false } as const;
+  const friday1430 = new Date("2026-10-30T13:30:00Z");
+  const saturday = new Date("2026-10-31T09:00:00Z");
+  assert.ok(shouldRingArtisan({ ...base, now: friday1430 }));
+  assert.ok(!shouldRingArtisan({ ...base, now: saturday }));
+  // « Pas d'horaires fixes »: no rows, his phone rings first at any time
+  assert.ok(shouldRingArtisan({ ...base, hours: [], now: saturday }));
+  assert.ok(shouldRingArtisan({ ...base, hours: [], now: new Date("2026-11-01T02:00:00Z") }));
+  // No phone: always the agent
+  assert.ok(!shouldRingArtisan({ ...base, artisanPhone: null, hours: [], now: friday1430 }));
+  // He keeps his number: calls arrive forwarded, his phone already rang
+  assert.ok(!shouldRingArtisan({ ...base, forwardingMode: "renvoi", now: friday1430 }));
+  assert.ok(!shouldRingArtisan({ ...base, forwardingMode: "renvoi", hours: [], now: friday1430 }));
+  assert.ok(!shouldRingArtisan({ ...base, forwarded: true, now: friday1430 }));
+  assert.ok(shouldRingArtisan({ ...base, forwardingMode: "numero", now: friday1430 }));
+});
+
+test("forwarded call detected from Twilio's ForwardedFrom or a Diversion header", () => {
+  const form = (o: Record<string, string>) => ({ get: (k: string) => o[k] ?? null });
+  assert.ok(isForwardedCall(form({ ForwardedFrom: "+33612345678" })));
+  assert.ok(isForwardedCall(form({ SipHeader_Diversion: "<sip:+33612345678@x>;reason=no-answer" })));
+  assert.ok(!isForwardedCall(form({ From: "+33611111111" })));
+  assert.ok(!isForwardedCall(form({ ForwardedFrom: " " })));
 });

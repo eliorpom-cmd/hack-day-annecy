@@ -1,11 +1,12 @@
 // Weekly recap e-mail: one message per business with an onboarded owner, sent by the cron.
 import { env } from "cloudflare:workers";
 import { db } from "./db";
+import { businessDisplayName } from "./greeting";
 import { buildRecap, type RecapContent, type RecapLead } from "./recap-format";
 
 const WEEK_SECONDS = 7 * 86400;
 
-type BusinessRow = { id: string; name: string; email: string };
+type BusinessRow = { id: string; name: string; first_name: string; last_name: string; trade: string; email: string };
 
 // Reads the counters and the new leads of the last 7 days for one business
 async function loadRecapInput(businessId: string, businessName: string, nowSec: number) {
@@ -41,11 +42,11 @@ async function loadRecapInput(businessId: string, businessName: string, nowSec: 
 // Builds the recap of one business for the last 7 days; null when the business does not exist
 export async function recapPreview(businessId: string): Promise<RecapContent | null> {
   const row = await db()
-    .prepare("SELECT name FROM businesses WHERE id = ?")
+    .prepare("SELECT name, first_name, last_name, trade FROM businesses WHERE id = ?")
     .bind(businessId)
-    .first<{ name: string }>();
+    .first<{ name: string; first_name: string; last_name: string; trade: string }>();
   if (!row) return null;
-  const input = await loadRecapInput(businessId, row.name, Math.floor(Date.now() / 1000));
+  const input = await loadRecapInput(businessId, businessDisplayName(row), Math.floor(Date.now() / 1000));
   return buildRecap(input);
 }
 
@@ -63,7 +64,7 @@ export async function sendWeeklyRecaps(): Promise<void> {
   try {
     const res = await db()
       .prepare(
-        `SELECT b.id, b.name, u.email FROM businesses b
+        `SELECT b.id, b.name, b.first_name, b.last_name, b.trade, u.email FROM businesses b
            JOIN users u ON u.id = b.owner_id
           WHERE b.onboarding_step = 'done'`,
       )
@@ -77,7 +78,7 @@ export async function sendWeeklyRecaps(): Promise<void> {
   const nowSec = Math.floor(Date.now() / 1000);
   for (const business of businesses) {
     try {
-      const input = await loadRecapInput(business.id, business.name, nowSec);
+      const input = await loadRecapInput(business.id, businessDisplayName(business), nowSec);
       if (input.calls === 0 && input.leads.length === 0) {
         console.log(JSON.stringify({ event: "recap.empty", businessId: business.id }));
         continue;

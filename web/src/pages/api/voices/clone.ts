@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import { db, type Business } from "../../../lib/db";
 import { elRequest } from "../../../lib/elevenlabs";
 import { requireBusiness, secret } from "../../../lib/env";
-import { defaultGreeting, isDefaultGreeting } from "../../../lib/greeting";
+import { businessDisplayName, defaultGreeting, isDefaultGreeting } from "../../../lib/greeting";
 import { fail, handle, HttpError, json } from "../../../lib/http";
 import { CLONE_LIMITS, CLONED_VOICE_NAME, checkWav } from "../../../lib/voice-clone";
 
@@ -45,7 +45,7 @@ export const POST: APIRoute = handle(async ({ request, locals }) => {
 
   // The previous own voice of this artisan is replaced (ElevenLabs limits the number of voices per account)
   const previous = b.voice_name === CLONED_VOICE_NAME && b.voice_id && b.voice_id !== res.voice_id ? b.voice_id : null;
-  const greeting = isDefaultGreeting(b.greeting) ? defaultGreeting({ name: b.name, first_name: b.first_name, voice: "cloned" }) : b.greeting;
+  const greeting = isDefaultGreeting(b.greeting) ? defaultGreeting({ name: businessDisplayName(b), first_name: b.first_name, voice: "cloned" }) : b.greeting;
   const updated = await db().prepare("UPDATE businesses SET voice_id = ?, voice_name = ?, voice_gender = NULL, greeting = ? WHERE id = ? RETURNING *")
     .bind(res.voice_id, CLONED_VOICE_NAME, greeting, b.id).first<Business>();
   if (previous) await elRequest(`/v1/voices/${encodeURIComponent(previous)}`, { method: "DELETE" }).catch(() => {});

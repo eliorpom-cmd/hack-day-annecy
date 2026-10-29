@@ -19,7 +19,7 @@ test("prompt uses the first name for the callback and keeps the rules", () => {
   assert.match(p, /L'artisan s'appelle Marc\./);
   assert.match(p, /« Marc vous rappelle pour le prix\. »/);
   assert.match(p, /« Marc vous rappelle rapidement\. »/);
-  assert.match(p, /dites que Marc vous rappellera pour préciser/);
+  assert.match(p, /Pas d.horaires fixes : Marc s.organise/);
   assert.match(p, /ne dites jamais où en est son dossier/);
   assert.match(p, /N'inventez jamais un prix/);
 });
@@ -53,7 +53,7 @@ test("prompt carries business facts and the price rule", () => {
   assert.doesNotMatch(p, /\n{3,}/);
   const none = buildSystemPrompt({ ...biz, city: "" }, [], []);
   assert.match(none, /Aucun tarif renseigné/);
-  assert.match(none, /Horaires non renseignés/);
+  assert.match(none, /Pas d'horaires fixes/);
 });
 
 test("agent payload is French with data collection", () => {
@@ -99,4 +99,10 @@ test("Twilio parsing and French error hints", () => {
   assert.match(twilioErrorHint(400, JSON.stringify({ code: 21649, message: "Bundle required" })), /dossier réglementaire/);
   assert.match(twilioErrorHint(401, "{}"), /identifiants/);
   assert.match(twilioErrorHint(500, "boom"), /Twilio a refusé la demande \(500\) : boom/);
+});
+
+test("self-employed without a company name: « prénom nom, métier » in the greeting and the prompt", () => {
+  const solo = { ...biz, name: "", first_name: "Marc", last_name: "Durand", trade: "plombier", greeting: "" };
+  assert.equal(firstMessage(solo), "Bonjour, ici l’assistant de Marc Durand, plombier. Marc est sur un chantier, que puis-je faire pour vous\u00a0?");
+  assert.match(buildSystemPrompt(solo, [], []), /téléphonique de Marc Durand, plombier à Annecy\./);
 });

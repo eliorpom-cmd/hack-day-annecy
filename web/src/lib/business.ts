@@ -4,8 +4,13 @@ import { normalizeE164 } from "./phone.ts";
 export type BusinessPatch = Partial<{
   name: string; trade: string; city: string; website: string | null; description: string;
   artisan_phone: string | null; ring_seconds: number; greeting: string; voice_id: string | null;
-  voice_name: string | null; first_name: string; voice_gender: "female" | "male" | null; onboarding_step: "business" | "voice" | "number" | "done"; advanced_mode: number;
+  voice_name: string | null; first_name: string; last_name: string; voice_gender: "female" | "male" | null; onboarding_step: "business" | "voice" | "number" | "done"; advanced_mode: number;
+  forwarding_mode: ForwardingMode | null;
 }>;
+
+// How clients reach the répondeur: « renvoi » = the artisan keeps his number and forwards unanswered calls to it,
+// « numero » = clients call the répondeur number, which rings the artisan first
+export type ForwardingMode = "renvoi" | "numero";
 
 export type Hour = { weekday: number; opens: string; closes: string };
 export type FaqKind = "info" | "price";
@@ -13,7 +18,7 @@ export type FaqInput = { question: string; answer: string; kind: FaqKind };
 
 type Result<T> = { ok: true; value: T } | { ok: false; hint: string };
 
-const TEXT_LIMITS = { name: 120, trade: 80, city: 80, description: 2000, greeting: 300, voice_name: 120, first_name: 60 } as const;
+const TEXT_LIMITS = { name: 120, trade: 80, city: 80, description: 2000, greeting: 300, voice_name: 120, first_name: 60, last_name: 60 } as const;
 const STEPS = ["business", "voice", "number", "done"] as const;
 
 export function normalizeWebsite(raw: string): string | null {
@@ -38,7 +43,7 @@ export function sanitizeBusinessPatch(input: Record<string, unknown>): Result<Bu
     if (key === "voice_name" && v === null) { out.voice_name = null; continue; }
     if (typeof v !== "string") return { ok: false, hint: `Le champ « ${key} » doit être un texte.` };
     if (v.length > TEXT_LIMITS[key]) return { ok: false, hint: `Le champ « ${key} » est trop long (${TEXT_LIMITS[key]} caractères max).` };
-    out[key] = key === "first_name" ? v.trim().replace(/\s+/g, " ") : v.trim();
+    out[key] = key === "first_name" || key === "last_name" ? v.trim().replace(/\s+/g, " ") : v.trim();
   }
   if ("website" in input) {
     const v = input.website;
@@ -74,6 +79,12 @@ export function sanitizeBusinessPatch(input: Record<string, unknown>): Result<Bu
     const v = input.onboarding_step;
     if (!STEPS.includes(v as (typeof STEPS)[number])) return { ok: false, hint: "Étape d'onboarding inconnue." };
     out.onboarding_step = v as (typeof STEPS)[number];
+  }
+  if ("forwarding_mode" in input) {
+    const v = input.forwarding_mode;
+    if (v === null || v === "") out.forwarding_mode = null;
+    else if (v === "renvoi" || v === "numero") out.forwarding_mode = v;
+    else return { ok: false, hint: "Le mode doit être « renvoi » ou « numero »." };
   }
   if ("advanced_mode" in input) out.advanced_mode = input.advanced_mode === true || input.advanced_mode === 1 ? 1 : 0;
   return { ok: true, value: out };

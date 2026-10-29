@@ -4,6 +4,7 @@ import { requireBusiness } from "../../../lib/env";
 import { handle, HttpError, json, readJson } from "../../../lib/http";
 import { normalizeE164 } from "../../../lib/phone";
 import { newId } from "../../../lib/tokens";
+import { businessDisplayName } from "../../../lib/greeting";
 import { configureNumber, listOwnedNumbers, purchaseNumber, voiceWebhook } from "../../../lib/twilio";
 
 type PhoneRow = { id: string; e164: string; twilio_sid: string | null; status: string };
@@ -28,7 +29,7 @@ export const POST: APIRoute = handle(async ({ request, locals }) => {
 
   const hook = voiceWebhook();
   const owned = (await listOwnedNumbers()).find((n) => n.e164 === e164);
-  const twilioNumber = owned ? await configureNumber(owned.sid, hook.url) : await purchaseNumber(e164, hook.url, b.name || "Assistant artisan");
+  const twilioNumber = owned ? await configureNumber(owned.sid, hook.url) : await purchaseNumber(e164, hook.url, businessDisplayName(b) || "Assistant artisan");
 
   const number = await db().prepare(
     `INSERT INTO phone_numbers (id, business_id, e164, twilio_sid, status) VALUES (?, ?, ?, ?, 'live')

@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { businessDisplayName } from "./greeting";
 
 export type CallPage = {
   lead_id: string; subject: string | null; name: string | null; phone: string | null; address: string | null; need: string | null;
@@ -10,12 +11,17 @@ export type CallPage = {
 // Public page opened from the WhatsApp/SMS link: the secret token is the only key
 export async function callPageByToken(token: string): Promise<CallPage | null> {
   if (!/^[A-Za-z0-9_-]{6,64}$/.test(token)) return null;
-  return db().prepare(
+  const row = await db().prepare(
     `SELECT l.id AS lead_id, l.subject, l.name, l.phone, l.address, l.need, l.urgency, l.urgency_reason, l.status,
-            l.recall_started_at, l.called_back_at, l.created_at, c.summary, c.transcript, b.name AS business_name
+            l.recall_started_at, l.called_back_at, l.created_at, c.summary, c.transcript, b.name AS business_name,
+            b.first_name AS business_first_name, b.last_name AS business_last_name, b.trade AS business_trade
      FROM leads l LEFT JOIN calls c ON c.id = l.call_id JOIN businesses b ON b.id = l.business_id
      WHERE l.link_token = ?`,
-  ).bind(token).first<CallPage>();
+  ).bind(token).first<CallPage & { business_first_name: string; business_last_name: string; business_trade: string }>();
+  if (!row) return null;
+  // Self-employed without a company name: « Marc Durand, plombier »
+  const { business_first_name, business_last_name, business_trade, ...page } = row;
+  return { ...page, business_name: businessDisplayName({ name: row.business_name, first_name: business_first_name, last_name: business_last_name, trade: business_trade }) };
 }
 
 // « il y a 12 min », « il y a 3 h », « hier », « il y a 4 jours »

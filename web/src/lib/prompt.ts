@@ -1,11 +1,11 @@
 // French system prompt of the phone agent, built from the business record.
 // Ported from app/src/lib/receptionist/prompt.server.ts, rewritten for French artisans.
 // Pure: no Cloudflare import, tested in test/prompt.test.ts.
-import { cleanFirstName, defaultGreeting } from "./greeting.ts";
+import { businessDisplayName, cleanFirstName, defaultGreeting } from "./greeting.ts";
 
 export type PromptBusiness = {
   name: string; trade: string; city: string; description: string; greeting: string; website?: string | null;
-  first_name?: string | null; voice_gender?: "female" | "male" | null;
+  first_name?: string | null; last_name?: string | null; voice_gender?: "female" | "male" | null;
 };
 export type PromptHour = { weekday: number; opens: string; closes: string };
 export type PromptFaq = { question: string; answer: string; kind: string };
@@ -18,7 +18,8 @@ function fmtTime(t: string): string {
 }
 
 export function formatHoursFr(hours: PromptHour[], who = "l'artisan"): string {
-  if (!hours.length) return `Horaires non renseignés. Si on vous les demande, dites que ${who} vous rappellera pour préciser.`;
+  // No rows = « Pas d'horaires fixes »: the artisan works on demand, his phone rings first at any time
+  if (!hours.length) return `Pas d'horaires fixes : ${who} s'organise selon ses chantiers. Si on vous demande ses horaires, dites que ${who} vous rappelle pour convenir d'un moment.`;
   return WEEKDAYS_FR.map((day, i) => {
     const slots = hours.filter((h) => h.weekday === i).sort((a, b) => a.opens.localeCompare(b.opens));
     return `- ${day} : ${slots.length ? slots.map((s) => `${fmtTime(s.opens)} – ${fmtTime(s.closes)}`).join(", ") : "fermé"}`;
@@ -34,14 +35,16 @@ export function isPriceRange(answer: string): boolean {
 // else the library-voice default with the first name and the voice's gender (COPY.md « Répondeur au téléphone »)
 export function firstMessage(b: PromptBusiness): string {
   const g = b.greeting.trim();
-  return g || defaultGreeting({ name: b.name, first_name: b.first_name, voice: b.voice_gender ?? null });
+  return g || defaultGreeting({ name: businessDisplayName(b), first_name: b.first_name, voice: b.voice_gender ?? null });
 }
 
 const upperFirst = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export function buildSystemPrompt(b: PromptBusiness, hours: PromptHour[], faqs: PromptFaq[]): string {
-  const name = b.name.trim() || "l'entreprise";
+  const name = businessDisplayName(b) || "l'entreprise";
   const trade = b.trade.trim() || "artisan";
+  // Without a company name, the display name already ends with the trade (« Marc Durand, plombier »)
+  const identity = b.name.trim() || !b.trade.trim() ? `${name}, ${trade}` : name;
   const first = cleanFirstName(b.first_name);
   // Who calls the client back: the first name when known (« Marc vous rappelle »)
   const who = first || "l'artisan";
@@ -55,7 +58,7 @@ export function buildSystemPrompt(b: PromptBusiness, hours: PromptHour[], faqs: 
   const infoBlock = infos.length ? infos.map((f) => `Q : ${f.question}\nR : ${f.answer}`).join("\n") : "Aucune question fréquente renseignée.";
 
   return `IDENTITÉ
-Vous êtes ${assistant} téléphonique de ${name}, ${trade}${b.city.trim() ? ` à ${b.city.trim()}` : ""}.${first ? ` L'artisan s'appelle ${first}.` : ""} Vous répondez au téléphone quand ${who} n'est pas disponible (sur un chantier ou hors de ses horaires). Vous parlez français, vous vouvoyez l'appelant, avec un ton chaleureux, simple et professionnel. Vous n'êtes pas l'artisan : c'est ${who} qui rappellera le client.
+Vous êtes ${assistant} téléphonique de ${identity}${b.city.trim() ? ` à ${b.city.trim()}` : ""}.${first ? ` L'artisan s'appelle ${first}.` : ""} Vous répondez au téléphone quand ${who} n'est pas disponible (sur un chantier ou hors de ses horaires). Vous parlez français, vous vouvoyez l'appelant, avec un ton chaleureux, simple et professionnel. Vous n'êtes pas l'artisan : c'est ${who} qui rappellera le client.
 
 L'ENTREPRISE
 Nom : ${name}
@@ -122,7 +125,7 @@ export function buildAgentPayload(opts: {
   const tts: Record<string, unknown> = { model_id: "eleven_v4_turbo" };
   if (opts.voiceId) tts.voice_id = opts.voiceId;
   return {
-    name: `Assistant – ${opts.business.name.trim() || "Artisan"}`.slice(0, 100),
+    name: `Assistant – ${businessDisplayName(opts.business) || "Artisan"}`.slice(0, 100),
     conversation_config: {
       agent: {
         first_message: firstMessage(opts.business),

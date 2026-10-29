@@ -1,12 +1,23 @@
 ---
-// « Horaires » edit view body: one row per weekday, slots editable, « Fermé » when none.
+// « Horaires » edit view body: « Horaires fixes » (one row per weekday, slots editable, « Fermé » when none)
+// or « Pas d’horaires fixes » (no rows saved: his phone rings first at any time).
 // Saves with PUT /api/business/hours, then updates the répondeur (POST /api/agent).
 import type { SettingsHour } from "../../lib/settings";
 interface Props { hours: SettingsHour[] }
 const { hours } = Astro.props;
 ---
+<div class="panel" role="radiogroup" aria-label="Horaires">
+  <label class="row cursor-pointer">
+    <input type="radio" name="hours-mode" value="fixed" class="radio" data-hours-mode checked={hours.length > 0} />
+    <span class="flex flex-1 flex-col"><span class="font-bold">Horaires fixes</span><span class="text-small text-muted">Hors horaires, le répondeur décroche tout de suite.</span></span>
+  </label>
+  <label class="row cursor-pointer">
+    <input type="radio" name="hours-mode" value="none" class="radio" data-hours-mode checked={hours.length === 0} />
+    <span class="flex flex-1 flex-col"><span class="font-bold">Pas d’horaires fixes</span><span class="text-small text-muted">Votre portable sonne d’abord, à toute heure.</span></span>
+  </label>
+</div>
 <div class="panel" data-hours-editor></div>
-<p class="-mt-2 mx-4 text-small text-muted">Pendant vos horaires, votre portable sonne d’abord.</p>
+<p class="-mt-2 mx-4 text-small text-muted" data-hours-note>Pendant vos horaires, votre portable sonne d’abord.</p>
 <script type="application/json" id="hours-init" set:html={JSON.stringify(hours)} />
 
 <script>
@@ -17,7 +28,16 @@ const { hours } = Astro.props;
   const box = document.querySelector<HTMLElement>("[data-hours-editor]");
   if (box) {
     let hours = readInit<Hour[]>("hours-init").map((h) => ({ ...h }));
+    let noFixed = !hours.length;
     clearOnInput(box);
+    for (const r of document.querySelectorAll<HTMLInputElement>("[data-hours-mode]")) {
+      r.addEventListener("change", () => {
+        noFixed = r.value === "none";
+        if (!noFixed && !hours.length) hours = [0, 1, 2, 3, 4].map((weekday) => ({ weekday, opens: "08:00", closes: "18:00" }));
+        status(null);
+        render();
+      });
+    }
 
     const timeInput = (value: string, label: string, onChange: (v: string) => void) => {
       const t = el("input", { type: "time", class: "time-input", "aria-label": label, step: "900" }) as HTMLInputElement;
@@ -27,6 +47,9 @@ const { hours } = Astro.props;
     };
 
     const render = () => {
+      box.hidden = noFixed;
+      const note = document.querySelector<HTMLElement>("[data-hours-note]");
+      if (note) note.hidden = noFixed;
       box.replaceChildren(...DAYS.map((day, weekday) => {
         const slots = hours.filter((h) => h.weekday === weekday);
         const add = el("button", { type: "button", class: "step-btn", "aria-label": `Ajouter un créneau le ${day.toLowerCase()}` }, icon("plus"));
@@ -61,12 +84,13 @@ const { hours } = Astro.props;
 
     const save = document.querySelector<HTMLButtonElement>("[data-save]");
     save?.addEventListener("click", async () => {
-      const bad = hours.find((h) => !h.opens || !h.closes || h.opens >= h.closes);
+      const sent = noFixed ? [] : hours;
+      const bad = sent.find((h) => !h.opens || !h.closes || h.opens >= h.closes);
       if (bad) { status("error", `${DAYS[bad.weekday]} : l’heure de fermeture doit être après l’ouverture.`); return; }
       busy(save, true);
-      const r = await api<{ hours: Hour[] }>("PUT", "/api/business/hours", hours);
+      const r = await api<{ hours: Hour[] }>("PUT", "/api/business/hours", sent);
       if (!r.ok) { busy(save, false); status("error", r.data.hint); return; }
-      hours = r.data.hours.map((h) => ({ ...h }));
+      if (!noFixed) hours = r.data.hours.map((h) => ({ ...h }));
       render();
       status("saved");
       await refreshAgent();
@@ -74,3 +98,11 @@ const { hours } = Astro.props;
     });
   }
 </script>
+
+<style is:global>
+  /* Radio: 22 px ring in ink, filled dot when chosen (same as the setup page) */
+  .radio { appearance: none; flex: none; width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--color-ink); display: grid; place-items: center; }
+  .radio::after { content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--color-ink); transform: scale(0); transition: transform 120ms; }
+  .radio:checked::after { transform: scale(1); }
+  .radio:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+</style>

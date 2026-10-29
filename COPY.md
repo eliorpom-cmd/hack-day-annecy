@@ -107,6 +107,10 @@ Le moins de texte possible : l'artisan ne lit pas, il regarde. Priorité, panne,
 - Titre d'étape = ce que l'artisan donne : « Votre activité », « La voix », « Votre numéro ».
 - Une phrase qui dit à quoi sert l'information, en action concrète (« Le répondeur les donne aux clients qui appellent. »), jamais un but vague (« Pour répondre à vos clients »). Puis le champ, puis « Continuer ».
 - Progression : « Lecture de votre site… » ; fin : « Votre répondeur est prêt. »
+- Champ facultatif : « (facultatif) » à la fin du nom du champ (« Nom de l’entreprise (facultatif) »).
+- Choix entre deux options : un titre court en gras (« Garder mon numéro (recommandé) », « Pas d’horaires fixes ») et une ligne qui dit la conséquence concrète (« Votre portable sonne d’abord, à toute heure. »).
+- Questions à l’artisan : « Question 2 sur 6 », « Le répondeur aimerait savoir : », puis la question telle qu’un client la pose. Boutons « Suivant » et « Passer ».
+- Codes à composer : le code seul sur sa ligne, en gras, avec « Composer » et « Copier » ; « Pour arrêter : ##002# ».
 
 ### Répondeur au téléphone
 

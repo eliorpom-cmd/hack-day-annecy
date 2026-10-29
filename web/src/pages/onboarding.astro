@@ -27,13 +27,15 @@ const init = {
   business: {
     name: b.name, trade: b.trade, city: b.city, description: b.description, website: b.website,
     artisan_phone: b.artisan_phone, ring_seconds: b.ring_seconds, greeting: b.greeting, voice_id: b.voice_id, voice_name: b.voice_name,
-    first_name: b.first_name ?? "", voice_gender: b.voice_gender ?? null,
+    first_name: b.first_name ?? "", last_name: b.last_name ?? "", voice_gender: b.voice_gender ?? null,
+    forwarding_mode: b.forwarding_mode ?? null,
   },
   hours: hours.results,
   faqs: faqs.results,
   number: numbers.results[0]?.e164 ?? null,
 };
-const filled = !!b.name;
+// Filled once: a company name, or the name of a self-employed artisan
+const filled = !!(b.name || b.last_name);
 ---
 <Base title="Configuration">
   <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col">
@@ -62,20 +64,57 @@ const filled = !!b.name;
 
         <div data-phase="form" class="flex flex-col gap-[14px]" hidden={!filled}>
           <p data-scan-note-box class="panel flex items-start gap-3 px-[14px] py-3" hidden><span class="icon-tile"><Icon name="check" size={18} /></span><span data-scan-note></span></p>
-          <Field id="name" label="Nom de votre entreprise" value={b.name} maxlength={120} autocomplete="organization" />
+          <Field id="name" label="Nom de l’entreprise (facultatif)" value={b.name} maxlength={120} autocomplete="organization" help="Sans nom d’entreprise, le répondeur dit votre prénom, votre nom et votre métier." />
           <Field id="first_name" label="Votre prénom" value={b.first_name} maxlength={60} autocomplete="given-name" help="Le répondeur le dit aux clients : « Marc vous rappelle. »" />
+          <Field id="last_name" label="Votre nom" value={b.last_name} maxlength={60} autocomplete="family-name" />
           <Field id="trade" label="Votre métier" value={b.trade} maxlength={80} />
           <Field id="city" label="Ville" value={b.city} maxlength={80} autocomplete="address-level2" />
           <Field id="description" label="Ce que vous faites" value={b.description} multiline maxlength={2000} />
           <Field id="phone1" label="Votre portable" type="tel" inputmode="tel" autocomplete="tel" value={b.artisan_phone} help="Il sonne en premier quand un client appelle." />
 
           <h2 class="mt-2 text-small font-bold text-muted">Horaires</h2>
+          <div class="panel" role="radiogroup" aria-label="Horaires">
+            <label class="row cursor-pointer">
+              <input type="radio" name="hours-mode" value="fixed" class="radio" data-hours-mode />
+              <span class="flex flex-1 flex-col"><span class="font-bold">Horaires fixes</span><span class="text-small text-muted">Hors horaires, le répondeur décroche tout de suite.</span></span>
+            </label>
+            <label class="row cursor-pointer">
+              <input type="radio" name="hours-mode" value="none" class="radio" data-hours-mode />
+              <span class="flex flex-1 flex-col"><span class="font-bold">Pas d’horaires fixes</span><span class="text-small text-muted">Votre portable sonne d’abord, à toute heure.</span></span>
+            </label>
+          </div>
           <div class="panel" data-hours></div>
-          <p class="-mt-2 mx-4 text-small text-muted">Pendant vos horaires, votre portable sonne d’abord.</p>
+          <p class="-mt-2 mx-4 text-small text-muted" data-hours-note>Pendant vos horaires, votre portable sonne d’abord.</p>
 
           <h2 class="mt-2 text-small font-bold text-muted">Questions et prix</h2>
           <div class="panel" data-faqs></div>
+          <div class="panel flex flex-col gap-[14px] p-[14px]" data-faq-add hidden>
+            <p class="font-bold" data-faq-add-title>Ajouter une question</p>
+            <Field id="faq-q" label="Question" multiline maxlength={300} />
+            <Field id="faq-a" label="Réponse" multiline maxlength={2000} />
+            <button type="button" class="btn btn-secondary w-full" data-faq-add-save>Ajouter</button>
+            <button type="button" class="min-h-12 text-small font-bold text-muted" data-faq-add-cancel>Annuler</button>
+          </div>
           <p class="-mt-2 mx-4 text-small text-muted">Le répondeur s’en sert pour répondre aux clients.</p>
+        </div>
+
+        <!-- Interview: the questions clients ask that the site did not answer, one at a time -->
+        <div data-phase="interview" class="flex flex-col gap-[14px]" hidden>
+          <p data-interview-loading class="text-muted" role="status">Préparation des questions…</p>
+          <div data-interview-card class="flex flex-col gap-[14px]" hidden>
+            <div class="panel">
+              <div class="row items-start">
+                <span class="icon-tile" data-interview-icon></span>
+                <div class="flex-1">
+                  <p class="text-small text-muted" data-interview-count></p>
+                  <p class="text-small text-muted">Le répondeur aimerait savoir :</p>
+                  <p class="font-bold" data-interview-question></p>
+                </div>
+              </div>
+            </div>
+            <Field id="interview-answer" label="Votre réponse" multiline maxlength={2000} />
+            <button type="button" class="link-btn self-start" data-interview-stop>Passer toutes les questions</button>
+          </div>
         </div>
       </section>
 
@@ -134,7 +173,17 @@ const filled = !!b.name;
       <section data-step="3" class="flex flex-col gap-[14px]" hidden>
         <div>
           <h1 class="text-title font-bold">Votre numéro</h1>
-          <p class="mt-2 text-muted">Vos clients appellent ce numéro. Votre portable sonne d’abord, puis le répondeur décroche.</p>
+          <p class="mt-2 text-muted" data-number-lead></p>
+        </div>
+        <div class="panel" role="radiogroup" aria-label="Numéro donné aux clients">
+          <label class="row cursor-pointer">
+            <input type="radio" name="forwarding" value="renvoi" class="radio" data-forwarding />
+            <span class="flex flex-1 flex-col"><span class="font-bold">Garder mon numéro (recommandé)</span><span class="text-small text-muted">Rien à changer sur Google ni sur vos devis.</span></span>
+          </label>
+          <label class="row cursor-pointer">
+            <input type="radio" name="forwarding" value="numero" class="radio" data-forwarding />
+            <span class="flex flex-1 flex-col"><span class="font-bold">Prendre un nouveau numéro</span><span class="text-small text-muted">Vous donnez ce numéro à vos clients.</span></span>
+          </label>
         </div>
         <Field id="phone3" label="Votre portable" type="tel" inputmode="tel" autocomplete="tel" value={b.artisan_phone} help="Exemple : 06 12 34 56 78" />
 
@@ -148,9 +197,18 @@ const filled = !!b.name;
         </div>
         <p class="-mt-2 mx-4 text-small text-muted">Ensuite, le répondeur décroche.</p>
 
-        <h2 class="mt-2 text-small font-bold text-muted">Choisissez votre numéro</h2>
+        <h2 class="mt-2 text-small font-bold text-muted" data-numbers-title>Choisissez votre numéro</h2>
         <p data-numbers-status class="text-muted" role="status">Recherche des numéros…</p>
         <div class="panel" data-numbers role="radiogroup" aria-label="Numéros" hidden></div>
+        <p data-renvoi-note class="mx-4 text-small text-muted" hidden>Le numéro du répondeur est choisi pour vous. Continuez pour voir les codes à composer.</p>
+
+        <!-- Call forwarding codes, once the répondeur number is live (mode « Garder mon numéro ») -->
+        <div data-codes class="flex flex-col gap-[14px]" hidden>
+          <h2 class="mt-2 text-small font-bold text-muted">Activez le renvoi sur votre portable</h2>
+          <p class="-mt-2">Composez ces 3 codes depuis votre portable, un par un. Ils renvoient vers le répondeur, au <span class="font-bold" data-codes-number></span>.</p>
+          <div class="panel" data-codes-list></div>
+          <p class="mx-4 -mt-2 text-small text-muted">Pour arrêter : <a class="font-bold text-ink underline underline-offset-2" data-codes-stop href="tel:%23%23002%23">##002#</a></p>
+        </div>
         <p data-numbers-error class="panel flex items-start gap-3 px-[14px] py-3" hidden>
           <span class="icon-tile"><Icon name="alert" size={18} /></span>
           <span data-numbers-error-text></span>
@@ -165,13 +223,13 @@ const filled = !!b.name;
         </div>
         <div data-has-number class="flex flex-col gap-[14px]">
           <a data-test-link href="#" class="panel flex flex-col gap-1 px-[14px] py-4">
-            <span class="text-small text-muted">Appelez ce numéro pour l’essayer</span>
+            <span class="text-small text-muted" data-test-label>Appelez ce numéro pour l’essayer</span>
             <span data-test-number class="text-title font-bold"></span>
           </a>
-          <p class="mx-4 -mt-1 text-small text-muted">Appelez depuis un autre téléphone que votre portable.</p>
+          <p class="mx-4 -mt-1 text-small text-muted" data-test-help>Appelez depuis un autre téléphone que votre portable.</p>
 
-          <h2 class="mt-2 text-small font-bold text-muted">Donnez ce numéro à vos clients</h2>
-          <div class="panel">
+          <h2 class="mt-2 text-small font-bold text-muted" data-give-title>Donnez ce numéro à vos clients</h2>
+          <div class="panel" data-give>
             <div class="row"><span class="icon-tile"><Icon name="globe" size={18} /></span><p>Sur votre site et votre fiche Google</p></div>
             <div class="row"><span class="icon-tile"><Icon name="file-text" size={18} /></span><p>Sur vos devis et vos factures</p></div>
             <div class="row"><span class="icon-tile"><Icon name="truck" size={18} /></span><p>Sur votre camion et vos cartes de visite</p></div>
@@ -194,6 +252,8 @@ const filled = !!b.name;
 
     <!-- Icons cloned by the client script into rows it builds -->
     <template data-icon="euro"><span class="icon-tile"><Icon name="euro" size={18} /></span></template>
+    <template data-icon="euro-sm"><Icon name="euro" size={18} /></template>
+    <template data-icon="help-sm"><Icon name="help" size={18} /></template>
     <template data-icon="help"><span class="icon-tile"><Icon name="help" size={18} /></span></template>
     <template data-icon="clock"><span class="icon-tile"><Icon name="clock" size={18} /></span></template>
     <template data-icon="phone"><span class="icon-tile"><Icon name="phone" size={18} /></span></template>
@@ -214,7 +274,8 @@ const filled = !!b.name;
 
   <script>
     import { DAYS } from "../components/setup/steps";
-    import { defaultGreeting, isDefaultGreeting, type GreetingVoice } from "../lib/greeting";
+    import { businessDisplayName, defaultGreeting, isDefaultGreeting, type GreetingVoice } from "../lib/greeting";
+    import { forwardingCodes, forwardingDelay } from "../lib/forwarding";
     import { CLONE_LIMITS, CLONE_SENTENCES, CLONED_VOICE_NAME, encodeWav } from "../lib/voice-clone";
 
     // ---------- Types and initial state (rendered by the server) ----------
@@ -225,7 +286,7 @@ const filled = !!b.name;
       step: number;
       business: { name: string; trade: string; city: string; description: string; website: string | null; artisan_phone: string | null;
         ring_seconds: number; greeting: string; voice_id: string | null; voice_name: string | null;
-        first_name: string; voice_gender: "female" | "male" | null };
+        first_name: string; last_name: string; voice_gender: "female" | "male" | null; forwarding_mode: "renvoi" | "numero" | null };
       hours: Hour[]; faqs: (Faq & { id: string })[]; number: string | null;
     };
     const init = JSON.parse(document.getElementById("setup-init")!.textContent!) as Init;
@@ -328,22 +389,41 @@ const filled = !!b.name;
     const formPhase = $("[data-phase=form]");
     const scanning = $("[data-scanning]");
     let hours: Hour[] = init.hours.length ? init.hours.map((h) => ({ ...h })) : [];
+    // « Pas d’horaires fixes »: no rows saved, his phone rings first at any time. A saved record without hours is that choice.
+    let noFixedHours = !init.hours.length && !!(biz.name || biz.last_name);
+    const defaultHours = () => [0, 1, 2, 3, 4].map((weekday) => ({ weekday, opens: "08:00", closes: "18:00" }));
+    for (const r of $$<HTMLInputElement>("[data-hours-mode]")) {
+      r.addEventListener("change", () => {
+        noFixedHours = r.value === "none";
+        if (!noFixedHours && !hours.length) hours = defaultHours();
+        renderHours();
+      });
+    }
     let faqs: Faq[] = init.faqs.map((f) => ({ ...f }));
     const deletedFaqs = new Set<string>();
     let scannedUrl: string | null = null;
 
-    function showPhase(phase: "site" | "form") {
-      sitePhase.hidden = phase !== "site";
-      formPhase.hidden = phase !== "form";
-      $("[data-lead-site]").hidden = phase !== "site";
-      $("[data-lead-form]").hidden = phase !== "form";
+    const interviewPhase = $("[data-phase=interview]");
+    let phase: "site" | "form" | "interview" = formPhase.hidden ? "site" : "form";
+    function showPhase(p: "site" | "form" | "interview") {
+      phase = p;
+      sitePhase.hidden = p !== "site";
+      formPhase.hidden = p !== "form";
+      interviewPhase.hidden = p !== "interview";
+      $("[data-lead-site]").hidden = p !== "site";
+      $("[data-lead-form]").hidden = p === "site";
+      $("[data-lead-form]").textContent = p === "interview"
+        ? "Vos clients posent souvent ces questions. Le répondeur s’en sert pour leur répondre."
+        : "Le répondeur donne ces informations aux clients qui appellent.";
+      if (p === "interview") return;
       if (phase === "site") {
         bar("Continuer", null, "Je n’ai pas de site");
         onPrimary = scan;
         onSecondary = () => {
           scannedUrl = null;
-          if (!hours.length) hours = [0, 1, 2, 3, 4].map((weekday) => ({ weekday, opens: "08:00", closes: "18:00" }));
+          if (!hours.length) hours = defaultHours();
           renderHours(); renderFaqs(); showPhase("form");
+          prepareQuestions();
           input("name").focus();
         };
       } else {
@@ -377,7 +457,8 @@ const filled = !!b.name;
         if (v && v.trim()) { input(id).value = v.trim(); fieldHelp(id, "Trouvé sur votre site. Corrigez si besoin."); }
       }
       if (r.data.hours?.length) hours = r.data.hours.map((h) => ({ ...h }));
-      else if (!hours.length) hours = [0, 1, 2, 3, 4].map((weekday) => ({ weekday, opens: "08:00", closes: "18:00" }));
+      else if (!hours.length) hours = defaultHours();
+      noFixedHours = false;
       // Scanned FAQs are added after the ones already saved (going back and scanning again must not duplicate them)
       const known = new Set(faqs.map((f) => f.question.trim().toLowerCase()));
       for (const f of r.data.faqs ?? []) if (!known.has(f.question.trim().toLowerCase())) faqs.push({ ...f });
@@ -389,6 +470,7 @@ const filled = !!b.name;
         : `${count ? `${count} question${count > 1 ? "s" : ""} trouvée${count > 1 ? "s" : ""}` : "Aucune question trouvée"} sur votre site. Vérifiez chaque ligne.`;
       $("[data-scan-note-box]").hidden = false;
       renderHours(); renderFaqs(); showPhase("form");
+      prepareQuestions();
     }
 
     // Hours: one row per weekday, each slot editable, « Fermé » when no slot
@@ -400,6 +482,9 @@ const filled = !!b.name;
       return t;
     }
     function renderHours() {
+      for (const r of $$<HTMLInputElement>("[data-hours-mode]")) r.checked = r.value === (noFixedHours ? "none" : "fixed");
+      hoursBox.hidden = noFixedHours;
+      $("[data-hours-note]").hidden = noFixedHours;
       hoursBox.replaceChildren(...DAYS.map((day, weekday) => {
         const slots = hours.filter((h) => h.weekday === weekday);
         const add = el("button", { type: "button", class: "step-btn", "aria-label": `Ajouter un créneau le ${day.toLowerCase()}` }, icon("plus"));
@@ -448,21 +533,52 @@ const filled = !!b.name;
       });
       const adder = (kind: "info" | "price", label: string) => {
         const b = el("button", { type: "button", class: "row w-full text-left font-bold" }, icon(kind === "price" ? "euro" : "help"), label);
-        b.addEventListener("click", () => {
-          faqs.push({ question: "", answer: "", kind });
-          renderFaqs();
-          const areas = $$<HTMLTextAreaElement>("textarea", faqsBox);
-          areas[areas.length - 2]?.focus();
-        });
+        b.addEventListener("click", () => openFaqForm(kind));
         return b;
       };
       faqsBox.replaceChildren(...rows, adder("info", "Ajouter une question"), adder("price", "Ajouter un prix"));
     }
 
+    // « Ajouter une question » opens a question + answer form; the row is added only once both are written
+    const faqForm = $("[data-faq-add]");
+    let faqFormKind: "info" | "price" = "info";
+    const fieldLabel = (id: string) => $(`[data-field="${id}"] .field-label`);
+    function openFaqForm(kind: "info" | "price") {
+      faqFormKind = kind;
+      const price = kind === "price";
+      $("[data-faq-add-title]").textContent = price ? "Ajouter un prix" : "Ajouter une question";
+      fieldLabel("faq-q").textContent = price ? "Prestation" : "Question";
+      fieldLabel("faq-a").textContent = price ? "Prix" : "Réponse";
+      input("faq-q").value = ""; input("faq-a").value = "";
+      fieldHelp("faq-a", null);
+      faqForm.hidden = false;
+      input("faq-q").focus();
+    }
+    $("[data-faq-add-cancel]").addEventListener("click", () => { faqForm.hidden = true; });
+    $("[data-faq-add-save]").addEventListener("click", () => {
+      const question = input("faq-q").value.trim(), answer = input("faq-a").value.trim();
+      if (!question || !answer) {
+        fieldHelp("faq-a", faqFormKind === "price" ? "Indiquez la prestation et son prix." : "Indiquez la question et sa réponse.", true);
+        return;
+      }
+      faqs.push({ question, answer, kind: faqFormKind });
+      faqForm.hidden = true;
+      renderFaqs();
+    });
+
     async function saveActivity() {
       const name = input("name").value.trim();
-      if (!name) { fieldHelp("name", "Indiquez le nom de votre entreprise.", true); input("name").focus(); return; }
-      for (const h of hours) if (!h.opens || !h.closes || h.opens >= h.closes) {
+      // Company name optional: a self-employed artisan gives his first and last name instead
+      if (!name && !(input("first_name").value.trim() && input("last_name").value.trim())) {
+        const missing = input("first_name").value.trim() ? "last_name" : "first_name";
+        fieldHelp(missing, "Indiquez votre prénom et votre nom, ou le nom de votre entreprise.", true);
+        input(missing).focus();
+        return;
+      }
+      if (!faqForm.hidden && (input("faq-q").value.trim() || input("faq-a").value.trim())) {
+        showError("Ajoutez ou annulez la question en cours."); return;
+      }
+      if (!noFixedHours) for (const h of hours) if (!h.opens || !h.closes || h.opens >= h.closes) {
         showError(`${DAYS[h.weekday]} : l’heure de fermeture doit être après l’ouverture.`); return;
       }
       const incomplete = faqs.find((f) => !f.question.trim() !== !f.answer.trim());
@@ -471,7 +587,7 @@ const filled = !!b.name;
       busy(true, "Enregistrement…");
       const phone = input("phone1").value.trim();
       const r = await api<{ business: Init["business"] }>("PUT", "/api/business", {
-        name, first_name: input("first_name").value, trade: input("trade").value, city: input("city").value, description: input("description").value,
+        name, first_name: input("first_name").value, last_name: input("last_name").value, trade: input("trade").value, city: input("city").value, description: input("description").value,
         artisan_phone: phone, ...(scannedUrl ? { website: scannedUrl } : {}),
       });
       if (!r.ok) {
@@ -481,7 +597,7 @@ const filled = !!b.name;
         return;
       }
       Object.assign(biz, r.data.business);
-      const steps: Promise<ApiResult<unknown>>[] = [api("PUT", "/api/business/hours", hours)];
+      const steps: Promise<ApiResult<unknown>>[] = [api("PUT", "/api/business/hours", noFixedHours ? [] : hours)];
       for (const id of deletedFaqs) steps.push(api("DELETE", `/api/faqs/${id}`));
       for (const f of faqs.filter((x) => x.id && x.question.trim())) steps.push(api("PUT", `/api/faqs/${f.id}`, f));
       const fresh = faqs.filter((x) => !x.id && x.question.trim() && x.answer.trim());
@@ -498,8 +614,84 @@ const filled = !!b.name;
       busy(false);
       // The portable typed here is reused on the number step
       input("phone3").value = frPhone(biz.artisan_phone);
+      if (interviewDone) { go(2); return; }
+      startInterview();
+    }
+
+    // An emptied company name no longer comes from the site: back to the default help
+    input("name").addEventListener("input", () => { if (!input("name").value.trim()) fieldHelp("name", null); });
+
+    // ---------- Step 1 · Interview: « Le répondeur aimerait savoir : … » ----------
+    // Asked as soon as the form is shown (after the scan or « Je n’ai pas de site »), answered after « Continuer ».
+    // Each answer becomes a FAQ (POST /api/faqs). The API falls back to a fixed list when the AI is unavailable.
+    type Question = { question: string; kind: "info" | "price" };
+    let questionsReq: Promise<Question[]> | null = null;
+    let interviewDone = false;
+    let questions: Question[] = [];
+    let qIndex = 0;
+    function prepareQuestions() {
+      if (interviewDone) return;
+      questionsReq = api<{ questions: Question[] }>("POST", "/api/onboarding/questions", {
+        business: { name: input("name").value, trade: input("trade").value, city: input("city").value, description: input("description").value },
+        faqs: faqs.filter((f) => f.question.trim()).map((f) => ({ question: f.question, answer: f.answer })),
+      }).then((r) => (r.ok ? r.data.questions ?? [] : []));
+    }
+    async function startInterview() {
+      showPhase("interview");
+      window.scrollTo(0, 0);
+      $("[data-interview-loading]").hidden = false;
+      $("[data-interview-card]").hidden = true;
+      busy(true);
+      if (!questionsReq) prepareQuestions();
+      questions = await questionsReq!;
+      busy(false);
+      // Questions answered meanwhile (manual add) are not asked again
+      const known = new Set(faqs.map((f) => f.question.trim().toLowerCase()));
+      questions = questions.filter((q) => !known.has(q.question.trim().toLowerCase()));
+      $("[data-interview-loading]").hidden = true;
+      if (!questions.length) { finishInterview(); return; }
+      qIndex = 0;
+      showQuestion();
+    }
+    function showQuestion() {
+      const q = questions[qIndex];
+      $("[data-interview-card]").hidden = false;
+      $("[data-interview-count]").textContent = `Question ${qIndex + 1} sur ${questions.length}`;
+      $("[data-interview-question]").textContent = q.question;
+      $("[data-interview-icon]").replaceChildren(...icon(q.kind === "price" ? "euro-sm" : "help-sm").childNodes);
+      const a = input("interview-answer");
+      a.value = "";
+      const help = $("#interview-answer-help");
+      help.dataset.default = q.kind === "price" ? "Un prix ou une fourchette. Exemple : 40 € TTC." : "En une phrase, comme vous le diriez au téléphone.";
+      fieldHelp("interview-answer", null);
+      showError(null);
+      bar("Suivant", null, "Passer");
+      onPrimary = answerQuestion;
+      onSecondary = nextQuestion;
+      a.focus();
+    }
+    async function answerQuestion() {
+      const q = questions[qIndex];
+      const answer = input("interview-answer").value.trim();
+      if (!answer) { fieldHelp("interview-answer", "Écrivez une réponse, ou appuyez sur Passer.", true); input("interview-answer").focus(); return; }
+      busy(true, "Enregistrement…");
+      const r = await api<{ faq: Faq & { id: string } }>("POST", "/api/faqs", { question: q.question, answer, kind: q.kind });
+      busy(false);
+      if (!r.ok) { bar("Suivant", null, "Passer"); showError(r.data.hint ?? "Enregistrement impossible. Réessayez."); return; }
+      faqs.push(r.data.faq);
+      nextQuestion();
+    }
+    function nextQuestion() {
+      qIndex++;
+      if (qIndex < questions.length) showQuestion(); else finishInterview();
+    }
+    function finishInterview() {
+      interviewDone = true;
+      renderFaqs();
+      showPhase("form");
       go(2);
     }
+    $("[data-interview-stop]").addEventListener("click", finishInterview);
 
     // Never move the stored step backwards when the artisan goes back and continues again
     const ORDER = ["business", "voice", "number", "done"] as const;
@@ -542,7 +734,7 @@ const filled = !!b.name;
     }
     function syncGreeting() {
       const g = input("greeting");
-      if (isDefaultGreeting(g.value)) g.value = defaultGreeting({ name: biz.name, first_name: biz.first_name, voice: voiceKind() });
+      if (isDefaultGreeting(g.value)) g.value = defaultGreeting({ name: businessDisplayName(biz), first_name: biz.first_name, voice: voiceKind() });
     }
 
     async function loadVoices() {
@@ -706,7 +898,7 @@ const filled = !!b.name;
       if (agentFailed) { go(3); return; }
       const voice = useOwn ? ownVoice : voices?.find((v) => v.id === chosenVoice);
       if (!voice) { showError("Choisissez une voix."); return; }
-      const greeting = input("greeting").value.trim() || defaultGreeting({ name: biz.name, first_name: biz.first_name, voice: voiceKind() });
+      const greeting = input("greeting").value.trim() || defaultGreeting({ name: businessDisplayName(biz), first_name: biz.first_name, voice: voiceKind() });
       const voice_gender = useOwn ? null : voice.gender ?? null;
       const voice_name = useOwn ? CLONED_VOICE_NAME : voice.name;
       busy(true, "Enregistrement…");
@@ -728,13 +920,56 @@ const filled = !!b.name;
     }
 
     // ---------- Step 3 · Votre numéro ----------
-    let ring = Math.min(40, Math.max(5, biz.ring_seconds || 15));
+    // « Garder mon numéro » (recommended, preselected) or « Prendre un nouveau numéro »
+    let mode: "renvoi" | "numero" = biz.forwarding_mode ?? "renvoi";
+    // Forwarding on no answer accepts 5 to 30 s; 20 s by default the first time
+    let ring = Math.min(40, Math.max(5, biz.forwarding_mode === null && (biz.ring_seconds || 15) === 15 ? 20 : biz.ring_seconds || 15));
+    const ringMax = () => (mode === "renvoi" ? 30 : 40);
     const ringOut = $("[data-ring]");
+    ringOut.textContent = String(ring);
     for (const btn of $$<HTMLButtonElement>("[data-ring-step]")) {
       btn.addEventListener("click", () => {
-        ring = Math.min(40, Math.max(5, ring + Number(btn.dataset.ringStep)));
+        ring = Math.min(ringMax(), Math.max(5, ring + Number(btn.dataset.ringStep)));
         ringOut.textContent = String(ring);
+        renderCodes();
       });
+    }
+    for (const r of $$<HTMLInputElement>("[data-forwarding]")) {
+      r.addEventListener("change", () => { mode = r.value as typeof mode; renderMode(); });
+    }
+    // renvoi: the codes are shown once the répondeur number is live (at once when coming back to this step)
+    let codesShown = biz.forwarding_mode === "renvoi" && !!init.number;
+    function renderMode() {
+      for (const r of $$<HTMLInputElement>("[data-forwarding]")) r.checked = r.value === mode;
+      const renvoi = mode === "renvoi";
+      if (renvoi) { ring = forwardingDelay(Math.min(ring, 30)); ringOut.textContent = String(ring); }
+      $("[data-number-lead]").textContent = renvoi
+        ? "Vos clients appellent votre numéro habituel. Si vous ne répondez pas, l’appel passe au répondeur."
+        : "Vos clients appellent ce numéro. Votre portable sonne d’abord, puis le répondeur décroche.";
+      $("[data-numbers-title]").hidden = renvoi;
+      numbersBox.hidden = renvoi || !numbersBox.childElementCount;
+      $("[data-renvoi-note]").hidden = !renvoi || codesShown || numbersEmpty || !numbersBox.childElementCount;
+      $("[data-codes]").hidden = !(renvoi && codesShown && attached);
+      if (current === 3) numberError($("[data-numbers-error-text]").textContent || null);
+      renderCodes();
+    }
+
+    // The 3 codes with the répondeur number filled in, each with « Composer » (tel: link) and « Copier »
+    function renderCodes() {
+      if (!attached) return;
+      $("[data-codes-number]").textContent = frPhone(attached);
+      $("[data-codes-list]").replaceChildren(...forwardingCodes(attached, ring).map((c) => {
+        const copy = el("button", { type: "button", class: "link-btn" }, "Copier") as HTMLButtonElement;
+        copy.addEventListener("click", async () => {
+          try { await navigator.clipboard.writeText(c.code); copy.textContent = "Copié"; }
+          catch { copy.textContent = "Copie impossible"; }
+          setTimeout(() => { copy.textContent = "Copier"; }, 2000);
+        });
+        return el("div", { class: "row flex-col items-stretch gap-0" },
+          el("span", { class: "text-small text-muted" }, c.label),
+          el("span", { class: "font-bold break-all" }, c.code),
+          el("div", { class: "-mb-2 flex gap-4" }, el("a", { href: c.href, class: "link-btn grid place-items-center" }, "Composer"), copy));
+      }));
     }
     const numbersBox = $("[data-numbers]");
     let chosenNumber: string | null = init.number;
@@ -745,8 +980,9 @@ const filled = !!b.name;
     function numberError(msg: string | null) {
       $("[data-numbers-error]").hidden = !msg;
       $("[data-numbers-error-text]").textContent = msg ?? "";
-      bar(numbersEmpty ? "Réessayer" : "Continuer", null, msg ? "Continuer sans numéro" : null);
-      onPrimary = numbersEmpty ? retryNumbers : () => saveNumber(true);
+      const codes = mode === "renvoi" && codesShown && !!attached;
+      bar(numbersEmpty ? "Réessayer" : codes ? "C’est fait" : "Continuer", null, msg ? "Continuer sans numéro" : null);
+      onPrimary = numbersEmpty ? retryNumbers : codes ? () => go(4) : () => saveNumber(true);
     }
     function retryNumbers() {
       numbersEmpty = false;
@@ -782,7 +1018,6 @@ const filled = !!b.name;
         return;
       }
       if (!chosenNumber) chosenNumber = list[0].e164;
-      numbersBox.hidden = false;
       numbersBox.replaceChildren(...list.map((n) => {
         const radio = el("input", { type: "radio", name: "number", value: n.e164, class: "radio" }) as HTMLInputElement;
         radio.checked = n.e164 === chosenNumber;
@@ -790,12 +1025,13 @@ const filled = !!b.name;
         return el("label", { class: "row cursor-pointer" }, radio,
           el("span", { class: "flex flex-col" }, el("span", { class: "font-bold" }, frPhone(n.e164)), el("span", { class: "text-small text-muted" }, n.sub)));
       }));
+      renderMode();
     }
 
     async function saveRouting(): Promise<boolean> {
       const phone = input("phone3").value.trim();
       if (!phone) { fieldHelp("phone3", "Indiquez votre portable : il sonne en premier.", true); input("phone3").focus(); return false; }
-      const r = await api<{ business: Init["business"] }>("PUT", "/api/business", { artisan_phone: phone, ring_seconds: ring });
+      const r = await api<{ business: Init["business"] }>("PUT", "/api/business", { artisan_phone: phone, ring_seconds: ring, forwarding_mode: mode });
       if (!r.ok) {
         if (/portable/i.test(r.data.hint ?? "")) { fieldHelp("phone3", "Ce numéro ne marche pas. Exemple : 06 12 34 56 78", true); input("phone3").focus(); }
         else showError(r.data.hint ?? "Enregistrement impossible. Réessayez.");
@@ -825,6 +1061,8 @@ const filled = !!b.name;
         storedStep = "done";
       }
       busy(false);
+      // Keeping his number: show the forwarding codes before the test step
+      if (withNumber && mode === "renvoi" && attached) { codesShown = true; renderMode(); $("[data-codes]").scrollIntoView({ block: "start" }); return; }
       go(4);
     }
 
@@ -833,9 +1071,18 @@ const filled = !!b.name;
       $("[data-has-number]").hidden = !attached;
       $("[data-no-number]").hidden = !!attached;
       $("[data-ready]").hidden = !attached;
-      if (attached) {
-        $("[data-test-number]").textContent = frPhone(attached);
-        $<HTMLAnchorElement>("[data-test-link]").href = `tel:${attached}`;
+      // Keeping his number: the test is a call to his own mobile, left unanswered
+      const renvoi = mode === "renvoi" && !!biz.artisan_phone;
+      const testNumber = renvoi ? biz.artisan_phone! : attached;
+      $("[data-test-label]").textContent = renvoi ? "Appelez votre portable pour l’essayer" : "Appelez ce numéro pour l’essayer";
+      $("[data-test-help]").textContent = renvoi
+        ? "Depuis un autre téléphone. Ne décrochez pas : le répondeur prend l’appel."
+        : "Appelez depuis un autre téléphone que votre portable.";
+      $("[data-give-title]").hidden = renvoi;
+      $("[data-give]").hidden = renvoi;
+      if (attached && testNumber) {
+        $("[data-test-number]").textContent = frPhone(testNumber);
+        $<HTMLAnchorElement>("[data-test-link]").href = `tel:${testNumber}`;
       }
       bar("Terminer", "check", null);
       onPrimary = async () => {
@@ -848,7 +1095,7 @@ const filled = !!b.name;
 
     // ---------- What each step does when it is shown ----------
     const enter: Record<number, () => void> = {
-      1: () => { renderHours(); renderFaqs(); showPhase(formPhase.hidden ? "site" : "form"); },
+      1: () => { renderHours(); renderFaqs(); showPhase(phase === "site" ? "site" : "form"); },
       2: () => {
         // The first name may have changed on step 1: a generated greeting follows it
         syncGreeting();
@@ -858,6 +1105,7 @@ const filled = !!b.name;
       },
       3: () => {
         if (!input("phone3").value) input("phone3").value = frPhone(biz.artisan_phone);
+        renderMode();
         numberError($("[data-numbers-error-text]").textContent || null);
         onSecondary = () => saveNumber(false);
         loadNumbers();

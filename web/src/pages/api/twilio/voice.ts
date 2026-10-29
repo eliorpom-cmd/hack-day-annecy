@@ -1,9 +1,11 @@
-// Twilio incoming-call webhook: ring the artisan during working hours, otherwise the AI agent.
+// Twilio incoming-call webhook: ring the artisan first (during his hours, or at any time without fixed hours),
+// otherwise the AI agent. A forwarded call (he kept his own number) already rang his phone: straight to the agent.
 import type { APIRoute } from "astro";
 import { db, type Business } from "../../../lib/db";
 import { newId } from "../../../lib/tokens";
 import { telEnv } from "../../../lib/telephony/env";
-import { isWithinHours, type HoursRow } from "../../../lib/telephony/hours";
+import type { HoursRow } from "../../../lib/telephony/hours";
+import { isForwardedCall, shouldRingArtisan } from "../../../lib/telephony/routing";
 import { checkToken } from "../../../lib/telephony/signature";
 import { dialArtisan, sayAndHangup, twimlResponse } from "../../../lib/telephony/twiml";
 import { logEvent } from "../../../lib/telephony/providers";
@@ -29,7 +31,11 @@ export const POST: APIRoute = async ({ request, url }) => {
   const { results: hours } = await db().prepare(
     "SELECT weekday, opens, closes FROM business_hours WHERE business_id = ?",
   ).bind(business.id).all<HoursRow>();
-  const ringArtisan = !!business.artisan_phone && isWithinHours(hours, new Date());
+  const forwarded = isForwardedCall(form);
+  const ringArtisan = shouldRingArtisan({
+    artisanPhone: business.artisan_phone, hours, forwardingMode: business.forwarding_mode ?? null, forwarded, now: new Date(),
+  });
+  if (forwarded || business.forwarding_mode === "renvoi") logEvent("info", "twilio.forwarded_call", { business: business.id, forwarded });
 
   // 'missed' until the dial outcome (fallback) or the agent says otherwise
   const callId = newId();

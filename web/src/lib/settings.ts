@@ -16,7 +16,7 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 // « Lundi au vendredi, 8 h à 18 h » when every open day has the same slots, else « 5 jours par semaine »
 export function hoursSummary(hours: SettingsHour[]): string {
-  if (!hours.length) return "Aucun horaire";
+  if (!hours.length) return "Pas d’horaires fixes";
   const byDay = new Map<number, string>();
   for (const h of [...hours].sort((a, b) => a.weekday - b.weekday || a.opens.localeCompare(b.opens))) {
     const slot = `${frTime(h.opens)} à ${frTime(h.closes)}`;

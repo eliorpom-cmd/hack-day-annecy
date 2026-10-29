@@ -13,8 +13,10 @@ Specs à jour (source de vérité, écrite par l'équipe) : https://docs.google.
 - **Point de départ** : le MVP de Mathieu, qui marche déjà. On reprend son code, on l'optimise et on **refait toute l'interface et l'onboarding**. Référence d'interface et d'onboarding : reception.ai.
 - **Surface principale** (décidé le 29/10) : le **message WhatsApp/SMS** reçu après chaque appel, avec un lien vers la page web de l'appel. Le tableau de bord sert peu. Textes : `COPY.md`.
 - **Produit** : un mode simple par défaut, et un mode avancé (connecter son agenda, enrichir la base de connaissances, personnaliser l'accueil, etc.).
+- **Nom** : sans nom d'entreprise (auto-entrepreneur), le répondeur, le prompt et les messages disent « {prénom} {nom}, {métier} » (`businessDisplayName`, `lib/greeting.ts`).
+- **Documentation par questions** : après la lecture du site (ou la saisie), le répondeur pose à l'artisan, une par une, les questions que le site ne couvre pas (« Le répondeur aimerait savoir : … ») ; chaque réponse devient une question de la documentation.
 - **Onboarding** : scanner le site de l'artisan s'il en a un, sinon saisie à la main → choisir une voix (clonage de sa voix ou voix de la bibliothèque) → acheter un numéro → dashboard. Agenda Google proposé mais facultatif : sans agenda, pas de prise de rendez-vous, juste un lead.
-- **Routage des appels** : le client appelle le numéro de l'artisan. Pendant les horaires de travail, son portable sonne ~15 s ; s'il ne décroche pas ou refuse, l'agent prend l'appel. Hors horaires, l'agent répond tout de suite.
+- **Routage des appels** (tâches 24 et 26) : deux façons, choisies à l'étape « Votre numéro » (`businesses.forwarding_mode`). **Garder mon numéro** (`renvoi`, recommandé) : l'artisan garde son numéro (rien à changer sur Google) et compose sur son portable les codes de renvoi vers le numéro du répondeur (`**61*+33…**20#` sans réponse, `**67*+33…#` refus/occupé, `**62*+33…#` injoignable, `##002#` pour arrêter ; `lib/forwarding.ts`) ; un appel renvoyé (mode `renvoi` ou `ForwardedFrom` Twilio) va directement à l'agent, son portable a déjà sonné. **Nouveau numéro** (`numero`, ou non choisi) : les clients appellent le numéro du répondeur ; pendant les horaires, son portable sonne ~15 s, puis l'agent ; hors horaires, l'agent tout de suite ; **sans horaires fixes** (aucune ligne `business_hours`), son portable sonne d'abord à toute heure. Décision : `lib/telephony/routing.ts` `shouldRingArtisan`.
 - **Urgence** : SMS instantané à l'artisan (+ transfert de l'appel si possible).
 - **Prix au téléphone** : prix exact s'il est dans la base, sinon fourchette + « sur devis », sinon « l'artisan vous rappelle ». Jamais de prix inventé.
 - **CRM** : rempli par les appels, pas d'import des clients existants pour l'instant.
@@ -91,11 +93,12 @@ Code dans `web/`. Tables : `web/migrations/0001_init.sql`. Toutes les routes `/a
 | GET | /auth/verify?token= | – | session, redirige vers /app ou /onboarding |
 | POST | /api/auth/logout | – | redirige vers / |
 | GET | /api/me | – | `{user, business}` |
-| PUT | /api/business | champs de `businesses` | `{business}` |
-| PUT | /api/business/hours | `[{weekday, opens, closes}]` | `{hours}` |
+| PUT | /api/business | champs de `businesses` (dont `last_name`, `forwarding_mode` : `renvoi` \| `numero`) | `{business}` |
+| PUT | /api/business/hours | `[{weekday, opens, closes}]` (`[]` = pas d'horaires fixes) | `{hours}` |
 | GET/POST | /api/faqs | `{question, answer, kind}` | `{faqs}` / `{faq}` |
 | PUT/DELETE | /api/faqs/:id | idem | `{faq}` / 204 |
 | POST | /api/onboarding/scan | `{url}` | `{business, faqs}` proposés (pas encore enregistrés) |
+| POST | /api/onboarding/questions | `{business:{name, trade, city, description}, faqs:[{question, answer}]}` (facultatif, sinon la fiche enregistrée) | `{questions:[{question, kind}], source:{ai_model}}` : 5 à 7 questions que le site ne couvre pas (Workers AI, liste fixe en secours) |
 | GET | /api/voices | – | `{voices:[{id, name, preview_url}]}` |
 | POST | /api/agent | – | crée ou met à jour l'agent ElevenLabs depuis la fiche → `{agent_id}` |
 | GET | /api/numbers/search?country=FR | – | `{numbers:[e164]}` |
@@ -107,7 +110,7 @@ Code dans `web/`. Tables : `web/migrations/0001_init.sql`. Toutes les routes `/a
 | GET | /api/agent | – | aperçu du prompt de l'agent |
 | GET | /api/numbers | – | numéros déjà possédés sur le compte Twilio |
 | GET | /api/business/hours | – | `{hours}` |
-| POST | /api/twilio/voice?token= | webhook Twilio (appel entrant) | TwiML : sonne chez l'artisan pendant ses horaires, sinon l'agent |
+| POST | /api/twilio/voice?token= | webhook Twilio (appel entrant) | TwiML : sonne chez l'artisan pendant ses horaires (ou toujours sans horaires fixes), sinon l'agent ; appel renvoyé → l'agent direct |
 | POST | /api/twilio/fallback?token= | webhook Twilio (fin du `<Dial>`) | TwiML : l'agent si pas de réponse / refus |
 | POST | /api/elevenlabs/post-call | webhook ElevenLabs (fin d'appel) | enregistre l'appel + le lead, SMS si urgence |
 
