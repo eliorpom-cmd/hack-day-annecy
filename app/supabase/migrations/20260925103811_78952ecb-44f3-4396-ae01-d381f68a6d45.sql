@@ -1,0 +1,1 @@
+UPDATE public.plans SET included_numbers = 1 WHERE id = 'pro';
