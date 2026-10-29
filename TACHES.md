@@ -33,8 +33,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - deck web exportable PDF/PPTX
 - 23 · Landing page du produit (Claude)
   - web/src/pages/index.astro : pitch, comment ça marche, configuration, Visibilité, essai gratuit et démo ; COPY.md + DESIGN.md
-- 06 · Refaire le dashboard : leads, appels, mode avancé (Claude)
-  - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
 
 ## Fait
 
@@ -85,3 +83,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 - 20 · Prénom de l'artisan et accord de la voix dans l'accueil (Claude)
   - champ prénom à l'étape 1 ; « l'assistant » ou « l'assistante » selon la voix ; « Marc est sur un chantier »
   - Fait : champ prénom (étape 1), accueil « l'assistant(e) de … Marc est sur un chantier » ou « Oui allô » pour la voix clonée (lib/greeting.ts)
+- 06 · Refaire le dashboard : leads, appels, mode avancé (Claude)
+  - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
+  - Fait : liste + appel côte à côte sur ordinateur, barre latérale (Appels, Visibilité, Réglages), chiffres de la semaine ; mobile inchangé
