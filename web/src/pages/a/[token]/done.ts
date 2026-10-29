@@ -16,5 +16,7 @@ export const POST: APIRoute = async ({ params, request, redirect }) => {
   } else {
     await db().prepare("UPDATE leads SET recall_started_at = NULL WHERE id = ?").bind(page.lead_id).run();
   }
-  return redirect(`/a/${token}`, 303);
+  // The desktop pane of /app sends where to go back (only /app paths, never another site)
+  const next = String(form.get("next") ?? "");
+  return redirect(/^\/app(\?[\w=&%.-]*)?$/.test(next) ? next : `/a/${token}`, 303);
 };

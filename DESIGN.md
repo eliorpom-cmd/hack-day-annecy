@@ -5,7 +5,7 @@
 - **Surface** : app web mobile d'abord (page d'un appel ouverte depuis le message WhatsApp, liste des appels, configuration), Astro 7 + Tailwind 4 dans `web/`
 - **Base** : Material Design 3 ; écarts listés en fin de fichier
 - **Origine** : créé le 2026-10-29, chaque valeur choisie par Elior étape par étape (`docs/design-choix/`, pages 1 à 5)
-- **Mis à jour** : 2026-10-29
+- **Mis à jour** : 2026-10-29 (vue ordinateur, étape 6 option C)
 - **Fichiers de tokens** : `web/src/styles/global.css`
 - **Textes** : `COPY.md`
 
@@ -59,6 +59,10 @@ Exceptions Material : titre de fenêtre 22 px / 700 ; étiquette flottante d'un 
 - **Intérieur d'une ligne de bloc** : 12 px vertical, 14 px horizontal
 - **Barre du bas** : 12 px au-dessus, 24 px en dessous (zone du pouce), fond `--page`
 - **Largeur max** : 480 px, centrée (au-delà, l'écran mobile reste centré)
+- **Ordinateur (≥ 1024 px, `lg`)** : `layouts/AppShell.astro`. Barre latérale 240 px (fond `--surface`, trait droit 1 px `--line`, 24 px en haut et en bas, 16 px sur les côtés) avec le logo, le menu (Appels, Visibilité, Réglages) et « Se déconnecter » en bas. Sous 1024 px, rien ne change : pas de barre latérale.
+- **Logo (provisoire)** : tuile `--action` à bord 1 px `--action-line`, icône Lucide téléphone `--ink` ; 34 px (arrondi 10 px) dans la barre latérale, 64 px (arrondi 14 px) dans l'état vide, nom « Répondeur » en 17 px / 700.
+- **Lien du menu** : 48 px de haut, 12 px sur les côtés, arrondi 12 px, 17 px / 700 `--muted` ; actif : fond `--page`, trait 1 px `--line`, texte `--ink`. « Appels » porte le nombre d'urgences à rappeler dans une pastille Urgence.
+- **Appels sur ordinateur** : en haut, 3 chiffres de la semaine (blocs, nombre 30 px / 700, libellé 14 px `--muted`, « urgences » en `--urgence`), marges 24 px ; dessous, liste 380 px (24 px de marge, trait droit `--line`) et appel choisi à droite (32 px sur les côtés, 24 px en haut), chacun défilant seul. Détail : grille de blocs sur 2 colonnes à 14 px d'écart, boutons côte à côte en bas (24 px sur les côtés). Ligne choisie : trait gauche 3 px `--action-line`.
 
 ## Formes et profondeur
 

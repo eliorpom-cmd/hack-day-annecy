@@ -5,8 +5,9 @@ import Icon from "./Icon.astro";
 import { capitalize } from "../lib/callpage";
 import { statusLabel, whenLabel, type ListLead } from "../lib/leads-group";
 
-interface Props { lead: ListLead; when?: string }
-const { lead, when } = Astro.props;
+// href: where the row leads (default: the call page); selected: open in the desktop right pane
+interface Props { lead: ListLead; when?: string; href?: string; selected?: boolean }
+const { lead, when, selected = false } = Astro.props;
 
 const name = lead.name ?? "Client";
 const subject = capitalize(lead.subject ?? lead.need ?? "Appel");
@@ -15,10 +16,10 @@ const done = lead.status !== "nouveau";
 const chip = done ? null
   : lead.urgency === "urgence" ? { label: "Urgence", cls: "chip-urgence" }
   : lead.urgency === "urgent" ? { label: "Prioritaire", cls: "chip-prio" } : null;
-const href = lead.link_token ? `/a/${lead.link_token}` : null;
+const href = Astro.props.href ?? (lead.link_token ? `/a/${lead.link_token}` : null);
 const tail = [when ?? whenLabel(lead.created_at), status].filter(Boolean).join(" · ");
 ---
-<li class="row relative">
+<li class={`row relative ${selected ? "shadow-[inset_3px_0_0_var(--color-action-line)]" : ""}`} aria-current={selected ? "true" : undefined}>
   <div class="min-w-0 flex-1">
     <p class="flex items-center gap-2">
       {chip && <span class={`chip shrink-0 ${chip.cls}`}>{chip.label}</span>}

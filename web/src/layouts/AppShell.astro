@@ -1,0 +1,46 @@
+---
+// Logged-in app frame. On a computer (≥ 1024 px): left sidebar with the brand and the menu.
+// On a phone: only the page content, exactly as before (DESIGN.md « Espace et mise en page »).
+import Base from "./Base.astro";
+import Icon from "../components/Icon.astro";
+import { urgentToCallBackCount } from "../lib/leads-list";
+
+type Section = "appels" | "visibilite" | "reglages";
+interface Props { title: string; active: Section; urgent?: number }
+const { title, active } = Astro.props;
+const { business } = Astro.locals;
+const urgent = Astro.props.urgent ?? (business ? await urgentToCallBackCount(business.id) : 0);
+
+const nav: { id: Section; href: string; label: string; icon: "phone" | "globe" | "settings" }[] = [
+  { id: "appels", href: "/app", label: "Appels", icon: "phone" },
+  { id: "visibilite", href: "/app/visibilite", label: "Visibilité", icon: "globe" },
+  { id: "reglages", href: "/app/reglages", label: "Réglages", icon: "settings" },
+];
+const item = "flex min-h-12 items-center gap-3 rounded-call px-3 font-bold";
+---
+<Base title={title}>
+  <div class="lg:flex lg:min-h-dvh">
+    <aside class="sticky top-0 hidden h-dvh w-[240px] shrink-0 flex-col gap-1 border-r border-line bg-surface px-4 py-6 lg:flex">
+      <a href="/app" class="mb-6 flex items-center gap-3 px-1 text-[17px] font-bold">
+        <span class="grid size-[34px] place-items-center rounded-filter bg-action text-ink shadow-[inset_0_0_0_1px_var(--color-action-line)]"><Icon name="phone" size={18} /></span>
+        Répondeur
+      </a>
+      <nav class="flex flex-col gap-1" aria-label="Menu">
+        {nav.map((n) => (
+          <a href={n.href} aria-current={n.id === active ? "page" : undefined}
+             class={`${item} ${n.id === active ? "bg-page text-ink shadow-[inset_0_0_0_1px_var(--color-line)]" : "text-muted hover:text-ink"}`}>
+            <Icon name={n.icon} />
+            {n.label}
+            {n.id === "appels" && urgent > 0 && <span class="chip chip-urgence ml-auto self-center" aria-label={`${urgent} urgence${urgent > 1 ? "s" : ""} à rappeler`}>{urgent}</span>}
+          </a>
+        ))}
+      </nav>
+      <form method="post" action="/api/auth/logout" class="mt-auto">
+        <button class={`${item} w-full text-muted hover:text-ink`}><Icon name="log-out" />Se déconnecter</button>
+      </form>
+    </aside>
+    <div class="min-w-0 flex-1">
+      <slot />
+    </div>
+  </div>
+</Base>

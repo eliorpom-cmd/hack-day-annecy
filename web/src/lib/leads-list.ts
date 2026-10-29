@@ -9,3 +9,11 @@ export async function leadsForBusiness(businessId: string, limit = 300): Promise
   ).bind(businessId, limit).all<ListLead>();
   return results ?? [];
 }
+
+// Red count in the desktop sidebar: « Urgence » clients not called back yet
+export async function urgentToCallBackCount(businessId: string): Promise<number> {
+  const row = await db().prepare(
+    "SELECT COUNT(*) AS n FROM leads WHERE business_id = ? AND status = 'nouveau' AND urgency = 'urgence'",
+  ).bind(businessId).first<{ n: number }>();
+  return row?.n ?? 0;
+}

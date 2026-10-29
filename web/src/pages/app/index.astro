@@ -1,10 +1,13 @@
 ---
 // « Appels »: the artisan's list of calls (DESIGN.md « Ligne d'appel », « Filtre segmenté »; texts: COPY.md)
-import Base from "../../layouts/Base.astro";
+import AppShell from "../../layouts/AppShell.astro";
 import CallRow from "../../components/CallRow.astro";
 import SegmentedFilter from "../../components/SegmentedFilter.astro";
 import Icon from "../../components/Icon.astro";
+import CallDetail from "../../components/CallDetail.astro";
 import { leadsForBusiness } from "../../lib/leads-list";
+import { callPageByToken } from "../../lib/callpage";
+import { statsForBusiness } from "../../lib/stats";
 import { groupByDay, hourLabel, toCallBack } from "../../lib/leads-group";
 
 const { business } = Astro.locals;
@@ -14,8 +17,22 @@ const view = Astro.url.searchParams.get("vue") === "tous" ? "tous" : "rappeler";
 const leads = business ? await leadsForBusiness(business.id) : [];
 const pending = toCallBack(leads);
 const groups = view === "tous" ? groupByDay(leads) : [];
+
+// Computer (≥ 1024 px): weekly numbers, list and the selected call side by side (?appel=<link_token>).
+// The selected call must belong to this business; default = first client to call back.
+const stats = business ? await statsForBusiness(business.id, 7) : null;
+const visible = view === "tous" ? leads : pending;
+const wanted = Astro.url.searchParams.get("appel");
+const selectedLead = visible.find((l) => wanted && l.link_token === wanted)
+  ?? (view === "tous" ? pending[0] ?? leads[0] : pending[0]);
+const selectedToken = selectedLead?.link_token ?? null;
+const selectedCall = selectedToken ? await callPageByToken(selectedToken) : null;
+const tousQuery = view === "tous" ? "&vue=tous" : "";
+const paneHref = (token: string | null) => (token ? `/app?appel=${token}${tousQuery}` : undefined);
+const urgentCount = leads.filter((l) => l.status === "nouveau" && l.urgency === "urgence").length;
 ---
-<Base title="Appels">
+<AppShell title="Appels" active="appels" urgent={urgentCount}>
+  <div class="lg:hidden">
   <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-[14px] px-4 pt-6 pb-6">
     <div class="flex items-center justify-between">
       <h1 class="text-title font-bold">Appels</h1>
@@ -50,4 +67,54 @@ const groups = view === "tous" ? groupByDay(leads) : [];
       <button class="min-h-12 px-4 text-small text-muted underline underline-offset-2">Se déconnecter</button>
     </form>
   </main>
-</Base>
+  </div>
+
+  <div class="hidden h-dvh flex-col lg:flex">
+    {stats && (
+      <div class="grid grid-cols-3 gap-[14px] px-6 pt-6">
+        <div class="panel px-4 py-[14px]"><p class="text-title font-bold">{stats.calls}</p><p class="mt-1 text-small text-muted">appels cette semaine</p></div>
+        <div class="panel px-4 py-[14px]"><p class="text-title font-bold">{stats.handled_by_agent}</p><p class="mt-1 text-small text-muted">pris par le répondeur</p></div>
+        <div class="panel px-4 py-[14px]"><p class="text-title font-bold text-urgence">{stats.urgent}</p><p class="mt-1 text-small text-muted">urgences</p></div>
+      </div>
+    )}
+    <div class="flex min-h-0 flex-1">
+      <div class="flex w-[380px] shrink-0 flex-col gap-[14px] overflow-y-auto border-r border-line px-6 py-6">
+        <h1 class="sr-only">Appels</h1>
+        <SegmentedFilter view={view} count={pending.length} />
+        {leads.length === 0 ? (
+          <div class="panel px-4 py-6 text-center">
+            <p class="font-bold">Aucun appel</p>
+            <p class="mt-1 text-small text-muted">Vos appels s’afficheront ici.</p>
+          </div>
+        ) : view === "rappeler" ? (
+          pending.length === 0 ? (
+            <div class="panel px-4 py-6 text-center">
+              <p class="font-bold">Personne à rappeler</p>
+              <p class="mt-1 text-small text-muted">Les nouveaux appels s’afficheront ici.</p>
+            </div>
+          ) : (
+            <ul class="panel overflow-hidden">{pending.map((lead) => <CallRow lead={lead} href={paneHref(lead.link_token)} selected={lead.link_token === selectedToken} />)}</ul>
+          )
+        ) : (
+          groups.map((g) => (
+            <section>
+              <h2 class="px-[14px] pb-2 text-small font-bold text-muted">{g.label}</h2>
+              <ul class="panel overflow-hidden">{g.items.map((lead) => <CallRow lead={lead} when={hourLabel(lead.created_at)} href={paneHref(lead.link_token)} selected={lead.link_token === selectedToken} />)}</ul>
+            </section>
+          ))
+        )}
+      </div>
+      <div class="min-w-0 flex-1 overflow-y-auto px-8 py-6">
+        {selectedCall && selectedToken ? (
+          <CallDetail call={selectedCall} token={selectedToken} variant="pane" next={paneHref(selectedToken)} />
+        ) : (
+          <div class="flex h-full flex-col items-center justify-center gap-3 text-center">
+            <span class="grid size-16 place-items-center rounded-block bg-action text-ink shadow-[inset_0_0_0_1px_var(--color-action-line)]"><Icon name="phone" size={30} /></span>
+            <p class="mt-1 font-bold">Votre répondeur est en ligne</p>
+            <p class="text-small text-muted">Il répond quand vous ne décrochez pas.<br />Chaque appel arrive ici et sur votre WhatsApp.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</AppShell>

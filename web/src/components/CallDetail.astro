@@ -1,0 +1,204 @@
+---
+// Detail of one call (DESIGN.md « Page d'un appel », texts: COPY.md).
+// variant "page": the mobile page /a/[token] opened from the WhatsApp/SMS link.
+// variant "pane": the right pane of /app on a computer (2-column grid, buttons inline at the bottom).
+// Both keep « Marquer comme rappelé » and the « Avez-vous eu … ? » question after « Rappeler ».
+import Icon from "./Icon.astro";
+import { capitalize, timeAgo, type CallPage } from "../lib/callpage";
+import { formatFrPhone } from "../lib/telephony/postcall";
+
+interface Props { call: CallPage; token: string; variant?: "page" | "pane"; next?: string }
+const { call, token, variant = "page", next } = Astro.props;
+
+const title = capitalize(call.subject ?? call.need ?? call.summary ?? "Appel");
+const name = call.name ?? "Client";
+const phone = call.phone ? formatFrPhone(call.phone) : null;
+const tel = call.phone ? `tel:${call.phone}` : null;
+const maps = call.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(call.address)}` : null;
+const sms = call.phone ? `sms:${call.phone}` : null;
+const chip = call.urgency === "urgence" ? { label: "Urgence", cls: "chip-urgence" } : call.urgency === "urgent" ? { label: "Prioritaire", cls: "chip-prio" } : null;
+const reasonTitle = call.urgency === "normal" ? "Pourquoi il appelle" : "Pourquoi c'est urgent";
+const done = call.status !== "nouveau";
+const askOnLoad = !!call.recall_started_at && !done;
+const doneAction = `/a/${token}/done`;
+
+type Turn = { role: string; message: string };
+let turns: Turn[] = [];
+try { turns = call.transcript ? (JSON.parse(call.transcript) as Turn[]).filter((t) => t && t.message) : []; } catch { turns = []; }
+---
+{variant === "page" ? (
+  <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col" data-call-detail data-recall={`/a/${token}/recall`}>
+    <div class="flex flex-1 flex-col gap-[14px] px-4 pt-4">
+      <a href="/app" class="flex items-center gap-1 font-bold text-ink" style="min-height:48px"><Icon name="chevron-left" />Appels</a>
+
+      {chip && <span class={`chip ${chip.cls}`}>{chip.label}</span>}
+      <div>
+        <h1 class="text-title font-bold">{name}</h1>
+        <p class="mt-1 text-small text-muted">Appel {timeAgo(call.created_at)}</p>
+        {done && <p class="mt-1 text-small font-bold text-action-ink">Rappelé</p>}
+      </div>
+
+      {(maps || sms) && (
+        <div class="flex gap-2">
+          {maps && <a href={maps} target="_blank" rel="noopener" class="shortcut"><Icon name="navigation" class="text-action-ink" />Itinéraire</a>}
+          {sms && <a href={sms} class="shortcut"><Icon name="message" class="text-action-ink" />Message</a>}
+        </div>
+      )}
+
+      {(call.need || call.summary) && (
+        <section class="panel px-[14px] py-3">
+          <h2 class="text-small font-bold text-muted">Demande</h2>
+          <p class="mt-1">{call.need ?? call.summary}</p>
+        </section>
+      )}
+
+      {call.urgency_reason && (
+        <section class="panel px-[14px] py-3">
+          <h2 class="text-small font-bold text-muted">{reasonTitle}</h2>
+          <p class="mt-1 italic">{call.urgency_reason}</p>
+        </section>
+      )}
+
+      <section class="panel">
+        {call.address && (
+          <div class="row">
+            <span class="icon-tile"><Icon name="pin" size={18} /></span>
+            <div><p class="text-small text-muted">Adresse</p><p>{call.address}</p></div>
+          </div>
+        )}
+        <div class="row">
+          <span class="icon-tile"><Icon name="phone" size={18} /></span>
+          <div><p class="text-small text-muted">Téléphone</p><p>{phone ?? "Numéro inconnu"}</p></div>
+        </div>
+      </section>
+
+      {turns.length > 0 && (
+        <details class="panel">
+          <summary class="row cursor-pointer list-none justify-between">
+            <span>Contenu de la conversation</span><Icon name="chevron-right" class="text-muted" />
+          </summary>
+          <div class="flex flex-col gap-2 px-[14px] pb-3">
+            {turns.map((t) => (
+              <p class={t.role === "user" ? "self-end rounded-block bg-tint px-3 py-2" : "self-start rounded-block bg-neutral-bg px-3 py-2"}>
+                <span class="block text-small font-bold text-muted">{t.role === "user" ? name : "Répondeur"}</span>{t.message}
+              </p>
+            ))}
+          </div>
+        </details>
+      )}
+    </div>
+
+    <div class="sticky bottom-0 flex flex-col gap-2 bg-page px-4 pt-3 pb-6">
+      {tel && <a href={tel} data-recall-button class="btn btn-primary"><Icon name="phone" />Rappeler</a>}
+      {!done && (
+        <form method="post" action={doneAction}><input type="hidden" name="reached" value="yes" />
+          <button class="btn btn-secondary w-full">Marquer comme rappelé</button></form>
+      )}
+    </div>
+
+    <dialog data-ask class="dialog" data-open={askOnLoad ? "1" : undefined}>
+      <h2 class="text-[22px] font-bold leading-tight">Avez-vous eu {name}&nbsp;?</h2>
+      <p class="mt-2 text-small text-muted">{title}</p>
+      <form method="post" action={doneAction} class="mt-5 flex flex-col gap-2">
+        <button name="reached" value="yes" class="btn btn-primary">Oui, c'est fait</button>
+        <button name="reached" value="no" class="btn btn-secondary">Non, pas de réponse</button>
+      </form>
+    </dialog>
+  </main>
+) : (
+  <article class="flex min-h-full flex-col gap-[14px]" data-call-detail data-recall={`/a/${token}/recall`}>
+    {chip && <span class={`chip ${chip.cls}`}>{chip.label}</span>}
+    <div>
+      <h1 class="text-title font-bold">{name}</h1>
+      <p class="mt-1 text-small text-muted">{title} · Appel {timeAgo(call.created_at)}</p>
+      {done && <p class="mt-1 text-small font-bold text-action-ink">Rappelé</p>}
+    </div>
+
+    <div class="grid grid-cols-2 gap-[14px]">
+      {(call.need || call.summary) && (
+        <section class="panel row items-start">
+          <span class="icon-tile"><Icon name="file-text" size={18} /></span>
+          <div><h2 class="text-small text-muted">Demande</h2><p>{call.need ?? call.summary}</p></div>
+        </section>
+      )}
+      {call.urgency_reason && (
+        <section class="panel row items-start">
+          <span class="icon-tile"><Icon name="alert" size={18} /></span>
+          <div><h2 class="text-small text-muted">{reasonTitle}</h2><p class="italic">{call.urgency_reason}</p></div>
+        </section>
+      )}
+      {call.address && (
+        <section class="panel row items-start">
+          <span class="icon-tile"><Icon name="pin" size={18} /></span>
+          <div class="min-w-0">
+            <h2 class="text-small text-muted">Adresse</h2><p>{call.address}</p>
+            {maps && <a href={maps} target="_blank" rel="noopener" class="mt-1 inline-flex min-h-12 items-center gap-1 text-small font-bold text-action-ink"><Icon name="navigation" size={18} />Itinéraire</a>}
+          </div>
+        </section>
+      )}
+      <section class="panel row items-start">
+        <span class="icon-tile"><Icon name="phone" size={18} /></span>
+        <div><h2 class="text-small text-muted">Téléphone</h2><p>{phone ?? "Numéro inconnu"}</p></div>
+      </section>
+    </div>
+
+    {turns.length > 0 && (
+      <details class="panel">
+        <summary class="row cursor-pointer list-none justify-between">
+          <span>Contenu de la conversation</span><Icon name="chevron-right" class="text-muted" />
+        </summary>
+        <div class="flex flex-col gap-2 px-[14px] pb-3">
+          {turns.map((t) => (
+            <p class={t.role === "user" ? "max-w-[75%] self-end rounded-block bg-tint px-3 py-2" : "max-w-[75%] self-start rounded-block bg-neutral-bg px-3 py-2"}>
+              <span class="block text-small font-bold text-muted">{t.role === "user" ? name : "Répondeur"}</span>{t.message}
+            </p>
+          ))}
+        </div>
+      </details>
+    )}
+
+    <div class="mt-auto flex gap-[14px] pt-3">
+      {tel && <a href={tel} data-recall-button class="btn btn-primary px-6"><Icon name="phone" />Rappeler</a>}
+      {!done && (
+        <form method="post" action={doneAction}><input type="hidden" name="reached" value="yes" />
+          {next && <input type="hidden" name="next" value={next} />}
+          <button class="btn btn-secondary px-6">Marquer comme rappelé</button></form>
+      )}
+    </div>
+
+    <dialog data-ask class="dialog" data-open={askOnLoad ? "1" : undefined}>
+      <h2 class="text-[22px] font-bold leading-tight">Avez-vous eu {name}&nbsp;?</h2>
+      <p class="mt-2 text-small text-muted">{title}</p>
+      <form method="post" action={doneAction} class="mt-5 flex flex-col gap-2">
+        {next && <input type="hidden" name="next" value={next} />}
+        <button name="reached" value="yes" class="btn btn-primary">Oui, c'est fait</button>
+        <button name="reached" value="no" class="btn btn-secondary">Non, pas de réponse</button>
+      </form>
+    </dialog>
+  </article>
+)}
+
+<script>
+  // After « Rappeler », the phone app opens. On return, ask whether the client was reached.
+  for (const root of document.querySelectorAll<HTMLElement>("[data-call-detail]")) {
+    // On /app the pane is hidden on a phone: only a visible detail may ask
+    const visible = () => root.getClientRects().length > 0;
+    const ask = root.querySelector<HTMLDialogElement>("[data-ask]");
+    if (!ask) continue;
+    // The question can only be closed by answering it
+    ask.addEventListener("cancel", (e) => e.preventDefault());
+    if (ask.dataset.open && visible()) ask.showModal();
+    let calling = false;
+    root.querySelector("[data-recall-button]")?.addEventListener("click", () => {
+      calling = true;
+      navigator.sendBeacon(root.dataset.recall!);
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (calling && document.visibilityState === "visible" && !ask.open) { calling = false; ask.showModal(); }
+    });
+  }
+</script>
+
+<style>
+  details[open] summary :global(svg) { transform: rotate(90deg); }
+</style>
