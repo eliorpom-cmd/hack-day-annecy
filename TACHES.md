@@ -13,7 +13,7 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 - 06 · Refaire le dashboard : leads, appels, mode avancé
   - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
 - 16 · Rappel automatique + question au retour
-  - appui sur Rappeler = appel lancé (tel:) et rappel noté ; au retour dans l'app, fenêtre bloquante « Avez-vous eu Mme X ? » Oui / Non, pas répondu. Oui → statut Rappelé ; Non → reste à rappeler
+  - appui sur Rappeler = appel lancé (tel:) et rappel noté ; au retour dans l'app, fenêtre bloquante « Avez-vous eu Mme X ? » Oui / Non, pas répondu. Oui → statut Rappelé ; Non → reste à rappeler. Le bouton « Marquer comme rappelé » reste sur la fiche (le client a pu rappeler lui-même)
 
 ## En cours
 
