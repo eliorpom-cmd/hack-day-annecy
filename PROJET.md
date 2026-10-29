@@ -25,7 +25,9 @@ Specs à jour (source de vérité, écrite par l'équipe) : https://docs.google.
 - **Hors périmètre aujourd'hui** : site web, réseaux sociaux, pubs, import CRM (on les cite dans le pitch).
 
 
-## État et reprise (29/10/2026, ~18 h 30)
+## État et reprise (29/10/2026, soir) : lire d'abord `docs/reprise-29-10-soir.md`
+
+**Dernière session (Maxime + Claude, 29/10 au soir)** : tout est sur `main` et en ligne (PR #4 à #14). Déroulé de la démo, état du compte « Voir la démo » (numéro +1 863 230 2742, voix Elior, calendrier connecté, WhatsApp vers le 06 95 07 05 65), erreurs à ne pas refaire et vérifications avant la démo : `docs/reprise-29-10-soir.md`. La base de production est migrée jusqu'à 0016 par le Worker lui-même (`web/src/lib/schema-upgrade.ts`). Les paragraphes ci-dessous datent de 18 h 30 : certains points sont réglés depuis (clés posées, relais WhatsApp en ligne, barre latérale corrigée).
 
 **Passage de relais** : un coéquipier reprend le projet sur Lovable. Ce dépôt (`web/`) reste la référence de ce qui marche : routes, prompts, messages (COPY.md), design (DESIGN.md).
 
@@ -125,6 +127,13 @@ Code dans `web/`. Tables : `web/migrations/0001_init.sql`. Toutes les routes `/a
 | POST | /api/elevenlabs/post-call | webhook ElevenLabs (fin d'appel) | enregistre l'appel + le lead, SMS si urgence |
 | GET | /api/whatsapp-relay/outbox | jeton `WHATSAPP_RELAY_TOKEN` (Bearer), sans session | `{messages:[{id, to_phone, body}]}` à envoyer par le relais Mac (`relay-whatsapp/`) |
 | POST | /api/whatsapp-relay/ack | `{id, error?}`, même jeton | `{ok}` |
+| POST / GET | /api/whatsapp/test | – / `?id=` | message de test au portable de l'artisan → `{channel, sid}` / `{sent_at, error}` |
+| POST | /api/business/forwarding | `{done}` | renvoi d'appel confirmé (`forwarding_done_at`) → `{business}` |
+| POST | /api/business/calendar | `{connected}` | calendrier Google connecté (simulé, `calendar_connected_at`) → `{business}` |
+| PUT | /api/google/profile | `{state: "connected" \| "none" \| null}` | `{business}` |
+| POST | /api/google/replies | `{review_id, reply}` | réponse publiée à un avis (d'exemple) → `{reply}` |
+| PUT | /api/reseaux/links | `{network, url}` (`""` = délier) | `{links}` |
+| PATCH | /api/site | `{headline}` | accroche du site → `{site}` |
 
 Secrets (`web/.dev.vars` en local, `wrangler secret put` en prod, jamais commités) : `ELEVENLABS_API_KEY`, `ELEVENLABS_WEBHOOK_SECRET`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WEBHOOK_TOKEN`, `RESEND_API_KEY`, `MAIL_FROM` ; pour les numéros français : `TWILIO_BUNDLE_SID`, `TWILIO_ADDRESS_SID`. `APP_URL` doit être une URL publique pour que Twilio joigne les webhooks.
 
