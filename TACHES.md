@@ -20,6 +20,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - après le script de Maxime (tâche 13) ; tester au téléphone
 - 24 · Configuration : sans nom d'entreprise et sans horaires
   - nom d'entreprise facultatif (auto-entrepreneur : prénom + nom + métier) ; « Pas d'horaires fixes » possible (le portable sonne toujours d'abord)
+- 25 · Documentation par questions : le répondeur interviewe l'artisan
+  - après la lecture du site, l'IA propose les questions qui manquent (prix du déplacement, week-end, zone…) ; l'artisan répond ; remplace « Ajouter une question » vide
 
 ## En cours
 
