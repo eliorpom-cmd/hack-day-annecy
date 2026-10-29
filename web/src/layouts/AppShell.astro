@@ -31,7 +31,8 @@ const nav: { id: Section; href: string; label: string; icon: "phone" | "globe" |
 const item = "flex min-h-12 items-center gap-3 rounded-call px-3 font-bold";
 ---
 <Base title={title}>
-  <div class="lg:flex lg:min-h-dvh">
+  <!-- The sidebar column is painted on the wrapper too, so its white goes down the whole page on long pages -->
+  <div class="lg:flex lg:min-h-dvh lg:bg-[linear-gradient(to_right,var(--color-surface)_239px,var(--color-line)_239px,var(--color-line)_240px,transparent_240px)]">
     <aside class="sticky top-0 hidden h-dvh w-[240px] shrink-0 flex-col gap-1 border-r border-line bg-surface px-4 py-6 lg:flex">
       <a href="/app" class="mb-6 flex items-center gap-3 px-1 text-[17px] font-bold">
         <span class="grid size-[34px] place-items-center rounded-filter bg-action text-ink shadow-[inset_0_0_0_1px_var(--color-action-line)]"><Icon name="phone" size={18} /></span>
