@@ -1,0 +1,142 @@
+---
+// Call page opened from the link in the WhatsApp/SMS message. Public: the secret token is the key.
+// Layout and values: DESIGN.md (« Page d'un appel »), texts: COPY.md.
+import Base from "../../../layouts/Base.astro";
+import Icon from "../../../components/Icon.astro";
+import { callPageByToken, capitalize, timeAgo } from "../../../lib/callpage";
+import { formatFrPhone } from "../../../lib/telephony/postcall";
+
+const token = Astro.params.token ?? "";
+const call = await callPageByToken(token);
+if (!call) return new Response("Ce lien ne correspond à aucun appel.", { status: 404 });
+
+const title = capitalize(call.subject ?? call.need ?? call.summary ?? "Appel");
+const name = call.name ?? "Client";
+const phone = call.phone ? formatFrPhone(call.phone) : null;
+const tel = call.phone ? `tel:${call.phone}` : null;
+const maps = call.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(call.address)}` : null;
+const sms = call.phone ? `sms:${call.phone}` : null;
+const chip = call.urgency === "urgence" ? { label: "Urgence", cls: "chip-urgence" } : call.urgency === "urgent" ? { label: "Prioritaire", cls: "chip-prio" } : null;
+const reasonTitle = call.urgency === "normal" ? "Pourquoi il appelle" : "Pourquoi c'est urgent";
+const done = call.status !== "nouveau";
+const askOnLoad = !!call.recall_started_at && !done;
+
+type Turn = { role: string; message: string };
+let turns: Turn[] = [];
+try { turns = call.transcript ? (JSON.parse(call.transcript) as Turn[]).filter((t) => t && t.message) : []; } catch { turns = []; }
+---
+<Base title={`${title}, ${name}`}>
+  <main class="mx-auto flex min-h-dvh max-w-[480px] flex-col">
+    <div class="flex flex-1 flex-col gap-[14px] px-4 pt-4">
+      <a href="/app" class="flex items-center gap-1 font-bold text-ink" style="min-height:48px"><Icon name="chevron-left" />Appels</a>
+
+      {chip && <span class={`chip ${chip.cls}`}>{chip.label}</span>}
+      <div>
+        <h1 class="text-title font-bold">{title}</h1>
+        <p class="mt-1"><span class="font-bold">{name}</span> <span class="text-small text-muted">· {timeAgo(call.created_at)}</span></p>
+        {done && <p class="mt-1 text-small font-bold text-action-ink">Rappelé</p>}
+      </div>
+
+      {(maps || sms) && (
+        <div class="flex gap-2">
+          {maps && <a href={maps} target="_blank" rel="noopener" class="shortcut"><Icon name="navigation" class="text-action-ink" />Itinéraire</a>}
+          {sms && <a href={sms} class="shortcut"><Icon name="message" class="text-action-ink" />Message</a>}
+        </div>
+      )}
+
+      {call.need && call.subject && (
+        <section class="block px-[14px] py-3">
+          <h2 class="text-small font-bold text-muted">Demande</h2>
+          <p class="mt-1">{call.need}</p>
+        </section>
+      )}
+
+      {call.urgency_reason && (
+        <section class="block px-[14px] py-3">
+          <h2 class="text-small font-bold text-muted">{reasonTitle}</h2>
+          <p class="mt-1 italic">{call.urgency_reason}</p>
+        </section>
+      )}
+
+      <section class="block">
+        {call.address && (
+          <div class="row">
+            <span class="icon-tile"><Icon name="pin" size={18} /></span>
+            <div><p class="text-small text-muted">Adresse</p><p>{call.address}</p></div>
+          </div>
+        )}
+        <div class="row">
+          <span class="icon-tile"><Icon name="phone" size={18} /></span>
+          <div><p class="text-small text-muted">Téléphone</p><p>{phone ?? "Numéro inconnu"}</p></div>
+        </div>
+      </section>
+
+      {turns.length > 0 && (
+        <details class="block">
+          <summary class="row cursor-pointer list-none justify-between">
+            <span>Contenu de la conversation</span><Icon name="chevron-right" class="text-muted" />
+          </summary>
+          <div class="flex flex-col gap-2 px-[14px] pb-3">
+            {turns.map((t) => (
+              <p class={t.role === "user" ? "self-end rounded-block bg-tint px-3 py-2" : "self-start rounded-block bg-neutral-bg px-3 py-2"}>
+                <span class="block text-small font-bold text-muted">{t.role === "user" ? name : "Répondeur"}</span>{t.message}
+              </p>
+            ))}
+          </div>
+        </details>
+      )}
+    </div>
+
+    <div class="sticky bottom-0 flex flex-col gap-2 bg-page px-4 pt-3 pb-6">
+      {tel && <a href={tel} id="recall" class="btn btn-primary"><Icon name="phone" />Rappeler</a>}
+      {!done && (
+        <form method="post" action={`/a/${token}/done`}><input type="hidden" name="reached" value="yes" />
+          <button class="btn btn-secondary w-full">Marquer comme rappelé</button></form>
+      )}
+    </div>
+
+    <dialog id="ask" class="dialog" data-open={askOnLoad ? "1" : undefined}>
+      <h2 class="text-[22px] font-bold leading-tight">Avez-vous eu {name}&nbsp;?</h2>
+      <p class="mt-2 text-small text-muted">{title}</p>
+      <form method="post" action={`/a/${token}/done`} class="mt-5 flex flex-col gap-2">
+        <button name="reached" value="yes" class="btn btn-primary">Oui, c'est fait</button>
+        <button name="reached" value="no" class="btn btn-secondary">Non, pas de réponse</button>
+      </form>
+    </dialog>
+  </main>
+
+  <script>
+    // After « Rappeler », the phone app opens. On return, ask whether the client was reached.
+    const ask = document.getElementById("ask") as HTMLDialogElement;
+    // The question can only be closed by answering it
+    ask.addEventListener("cancel", (e) => e.preventDefault());
+    if (ask.dataset.open) ask.showModal();
+    const recall = document.getElementById("recall");
+    let calling = false;
+    recall?.addEventListener("click", () => {
+      calling = true;
+      navigator.sendBeacon(location.pathname.replace(/\/$/, "") + "/recall");
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (calling && document.visibilityState === "visible" && !ask.open) { calling = false; ask.showModal(); }
+    });
+  </script>
+</Base>
+
+<style>
+  .chip { align-self: flex-start; border-radius: var(--radius-chip); padding: 2px 8px; font-size: var(--text-small); font-weight: 700; }
+  .chip-urgence { color: var(--color-urgence); background: var(--color-urgence-bg); box-shadow: inset 0 0 0 1px var(--color-urgence-line); }
+  .chip-prio { color: var(--color-prio); background: var(--color-prio-bg); box-shadow: inset 0 0 0 1px var(--color-prio-line); }
+  .block { background: var(--color-surface); border-radius: var(--radius-block); box-shadow: inset 0 0 0 1px var(--color-line); }
+  .row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; min-height: 48px; }
+  .row + .row { border-top: 1px solid var(--color-line); }
+  .icon-tile { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border-radius: var(--radius-chip); background: var(--color-tint); box-shadow: inset 0 0 0 1px var(--color-tint-line); }
+  .shortcut { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px; font-size: var(--text-small); font-weight: 700; background: var(--color-surface); border-radius: var(--radius-block); box-shadow: inset 0 0 0 1px var(--color-line); }
+  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 56px; border-radius: var(--radius-button); font-size: var(--text-body); font-weight: 700; }
+  .btn:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+  .btn-primary { background: var(--color-action); color: var(--color-ink); box-shadow: inset 0 0 0 1px var(--color-action-line); }
+  .btn-secondary { background: var(--color-surface); color: var(--color-ink); box-shadow: inset 0 0 0 2px var(--color-ink); }
+  .dialog { margin: auto; width: calc(100% - 32px); max-width: 360px; border-radius: var(--radius-dialog); padding: 24px; background: var(--color-surface); color: var(--color-ink); box-shadow: inset 0 0 0 1px var(--color-line); }
+  .dialog::backdrop { background: var(--color-scrim); }
+  details[open] summary :global(svg) { transform: rotate(90deg); }
+</style>

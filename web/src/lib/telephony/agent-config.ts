@@ -12,7 +12,7 @@ export type DataCollectionField = {
 
 // Shape of ElevenLabs `platform_settings.data_collection` (key = data_collection_id)
 export const DATA_COLLECTION: Record<
-  "name" | "phone" | "address" | "need" | "urgency" | "urgency_reason",
+  "name" | "phone" | "address" | "subject" | "need" | "urgency" | "urgency_reason",
   DataCollectionField
 > = {
   name: { type: "string", description: "Nom et prénom de l'appelant, tels qu'il les donne." },
@@ -21,6 +21,7 @@ export const DATA_COLLECTION: Record<
     description: "Numéro de téléphone où rappeler l'appelant, au format international si possible (+33…). Vide s'il n'en donne pas.",
   },
   address: { type: "string", description: "Adresse de l'intervention (rue, ville). Vide si non donnée." },
+  subject: { type: "string", description: "L'objet de l'appel en 2 à 4 mots, sans majuscule (ex. : fuite d'eau, chaudière en panne, devis salle de bain)." },
   need: { type: "string", description: "Le besoin de l'appelant en une phrase courte (ex. : fuite sous l'évier)." },
   urgency: {
     type: "string",

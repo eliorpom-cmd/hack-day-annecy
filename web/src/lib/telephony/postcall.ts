@@ -16,6 +16,7 @@ export type ParsedPostCall = {
     need: string | null;
     urgency: Urgency;
     urgencyReason: string | null;
+    subject: string | null;
   };
 };
 
@@ -64,51 +65,59 @@ export function parsePostCall(payload: unknown): ParsedPostCall | null {
       need: field("need"),
       urgency: normalizeUrgency(field("urgency")),
       urgencyReason: field("urgency_reason"),
+      subject: field("subject"),
     },
   };
 }
 
 // Hard cap for the whole notification, sized for one WhatsApp or SMS body
 export const MESSAGE_MAX = 600;
-
-const PRIORITY_LABEL = {
-  urgence: "🔴 URGENCE",
-  urgent: "🟠 Prioritaire",
-  normal: "🟢 Normal",
-} as const;
-
 // Collapses whitespace and cuts a field to `max` characters with an ellipsis
 const clip = (s: string | null | undefined, max: number): string => {
   const t = (s ?? "").replace(/\s+/g, " ").trim();
   return t.length > max ? t.slice(0, max - 1) + "…" : t;
 };
 
+const PRIORITY_LABEL = {
+  urgence: "🔴 Urgence",
+  urgent: "🟠 Prioritaire",
+  normal: "🟢 Normal",
+} as const;
+
+// +33612345678 -> 06 12 34 56 78 ; other formats are returned as is
+export function formatFrPhone(phone: string | null | undefined): string {
+  const p = (phone ?? "").replace(/\s+/g, "");
+  const m = /^\+33([1-9])(\d{2})(\d{2})(\d{2})(\d{2})$/.exec(p);
+  return m ? `0${m[1]} ${m[2]} ${m[3]} ${m[4]} ${m[5]}` : p;
+}
+
 // Short French notification for the artisan, sent after every call.
-// Line 1 gives the priority, then the reason, the request, the caller and an action for urgent calls.
+// Format and wording are fixed by COPY.md (« Message après un appel »).
 export function buildCallMessage(input: {
   urgency: Urgency;
   urgencyReason: string | null;
+  subject?: string | null;
   name: string | null;
   phone: string | null;
   address: string | null;
   need: string | null;
   summary: string | null;
+  link?: string | null;
 }): string {
-  const lines: string[] = [PRIORITY_LABEL[input.urgency]];
+  // Format fixed by COPY.md: priority + subject + client, why, request, address, number, link
+  const demand = clip(input.need, 200) || clip(input.summary, 200) || "besoin non précisé";
+  const subject = clip(input.subject, 40) || clip(input.need, 40) || clip(input.summary, 40) || "appel";
+  const name = clip(input.name, 60) || "un client";
+  const lines: string[] = [`${PRIORITY_LABEL[input.urgency]} : ${subject}, ${name}`];
 
   const reason = clip(input.urgencyReason, 140);
-  if (reason) lines.push(`Pourquoi : ${reason}`);
-
-  // Fall back to the call summary when the agent did not fill the request field
-  const demand = clip(input.need, 200) || clip(input.summary, 200) || "besoin non précisé";
+  if (reason && input.urgency !== "normal") lines.push(`Pourquoi : ${reason}`);
   lines.push(`Demande : ${demand}`);
 
-  const who = [clip(input.name, 60) || "Client", clip(input.phone, 25) || "numéro inconnu"];
   const address = clip(input.address, 100);
-  if (address) who.push(address);
-  lines.push(who.join(" – "));
-
-  if (input.urgency !== "normal") lines.push("À rappeler vite.");
+  if (address) lines.push(address);
+  lines.push(`Rappeler : ${clip(formatFrPhone(input.phone), 25) || "numéro inconnu"}`);
+  if (input.link) lines.push(`Détails : ${input.link}`);
 
   const message = lines.join("\n");
   return message.length > MESSAGE_MAX ? message.slice(0, MESSAGE_MAX - 1) + "…" : message;

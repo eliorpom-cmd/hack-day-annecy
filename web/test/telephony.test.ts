@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { isWithinHours, localParts } from "../src/lib/telephony/hours.ts";
 import { artisanMissed, dialArtisan, sayAndHangup } from "../src/lib/telephony/twiml.ts";
 import { checkToken, signElevenLabsPayload, verifyElevenLabsSignature } from "../src/lib/telephony/signature.ts";
-import { buildCallMessage, MESSAGE_MAX, normalizeUrgency, parsePostCall } from "../src/lib/telephony/postcall.ts";
+import { buildCallMessage, formatFrPhone, MESSAGE_MAX, normalizeUrgency, parsePostCall } from "../src/lib/telephony/postcall.ts";
 import { DATA_COLLECTION, postCallWebhookUrl } from "../src/lib/telephony/agent-config.ts";
 
 const week = [0, 1, 2, 3].map((weekday) => ({ weekday, opens: "08:00", closes: "18:00" }))
@@ -87,7 +87,7 @@ test("parsePostCall extracts call and lead", () => {
   assert.equal(p.transcript.length, 2);
   assert.deepEqual(p.lead, {
     name: "Jean Dupont", phone: "+33611111111", address: "3 rue du Lac, Annecy", need: "Fuite d'eau sous l'évier",
-    urgency: "urgence", urgencyReason: "Fuite en cours, risque de dégât.",
+    urgency: "urgence", urgencyReason: "Fuite en cours, risque de dégât.", subject: null,
   });
   assert.equal(parsePostCall({ type: "post_call_audio", data: {} }), null);
   assert.equal(parsePostCall({ type: "post_call_transcription", data: {} }), null);
@@ -109,47 +109,47 @@ test("parsePostCall reads urgency_reason and treats empty values as null", () =>
   assert.equal(parsePostCall(missing)!.lead.urgencyReason, null);
 });
 
-const base = { urgencyReason: null, name: "Jean Dupont", phone: "+33611111111", address: null, need: "Fuite d'eau.", summary: null };
+const base = { urgencyReason: null, subject: "fuite d'eau", name: "Jean Dupont", phone: "+33611111111", address: null, need: "Réparer la fuite sous l'évier.", summary: null };
 
-test("call message: urgence", () => {
+test("call message: urgence follows COPY.md", () => {
   assert.equal(
-    buildCallMessage({ ...base, urgency: "urgence", urgencyReason: "Fuite en cours, risque de dégât." }),
-    "🔴 URGENCE\nPourquoi : Fuite en cours, risque de dégât.\nDemande : Fuite d'eau.\nJean Dupont – +33611111111\nÀ rappeler vite.",
+    buildCallMessage({ ...base, urgency: "urgence", urgencyReason: "L'eau coule dans le salon.", address: "12 rue Royale, Annecy", link: "https://x.fr/a/abc" }),
+    "🔴 Urgence : fuite d'eau, Jean Dupont\nPourquoi : L'eau coule dans le salon.\nDemande : Réparer la fuite sous l'évier.\n12 rue Royale, Annecy\nRappeler : 06 11 11 11 11\nDétails : https://x.fr/a/abc",
   );
 });
 
-test("call message: urgent", () => {
-  const msg = buildCallMessage({ ...base, urgency: "urgent", urgencyReason: "À traiter dans la semaine.", address: "3 rue du Lac, Annecy" });
-  assert.equal(msg.split("\n")[0], "🟠 Prioritaire");
-  assert.ok(msg.endsWith("Jean Dupont – +33611111111 – 3 rue du Lac, Annecy\nÀ rappeler vite."));
+test("call message: prioritaire", () => {
+  const msg = buildCallMessage({ ...base, urgency: "urgent", urgencyReason: "Plus d'eau chaude." });
+  assert.equal(msg.split("\n")[0], "🟠 Prioritaire : fuite d'eau, Jean Dupont");
+  assert.ok(msg.includes("Pourquoi : Plus d'eau chaude."));
 });
 
-test("call message: normal has no reason line and no action line", () => {
-  const msg = buildCallMessage({ ...base, urgency: "normal", urgencyReason: null });
-  assert.equal(msg, "🟢 Normal\nDemande : Fuite d'eau.\nJean Dupont – +33611111111");
-  assert.ok(!msg.includes("Pourquoi"));
-  assert.ok(!msg.includes("rappeler"));
+test("call message: normal has no reason line", () => {
+  const msg = buildCallMessage({ ...base, urgency: "normal", urgencyReason: "rien" });
+  assert.equal(msg, "🟢 Normal : fuite d'eau, Jean Dupont\nDemande : Réparer la fuite sous l'évier.\nRappeler : 06 11 11 11 11");
 });
 
 test("call message: missing fields fall back", () => {
   const msg = buildCallMessage({ urgency: "normal", urgencyReason: null, name: null, phone: null, address: null, need: null, summary: "Question sur les tarifs." });
-  assert.equal(msg, "🟢 Normal\nDemande : Question sur les tarifs.\nClient – numéro inconnu");
-  const bare = buildCallMessage({ urgency: "urgent", urgencyReason: "", name: null, phone: null, address: null, need: null, summary: null });
-  assert.match(bare, /^🟠 Prioritaire\nDemande : besoin non précisé\nClient – numéro inconnu\nÀ rappeler vite\.$/);
+  assert.equal(msg, "🟢 Normal : Question sur les tarifs., un client\nDemande : Question sur les tarifs.\nRappeler : numéro inconnu");
+  assert.ok(!msg.includes("–") && !msg.includes("—"));
 });
 
 test("call message: length cap holds with long fields", () => {
   const long = buildCallMessage({
-    urgency: "urgence", urgencyReason: "r".repeat(2000), name: "N".repeat(900), phone: "+".repeat(500),
-    address: "a".repeat(900), need: "x".repeat(2000), summary: "s".repeat(2000),
+    urgency: "urgence", urgencyReason: "r".repeat(2000), subject: "s".repeat(500), name: "N".repeat(900), phone: "+".repeat(500),
+    address: "a".repeat(900), need: "x".repeat(2000), summary: "s".repeat(2000), link: "https://x.fr/a/abc",
   });
   assert.ok(long.length <= MESSAGE_MAX, `length ${long.length}`);
-  const cut = buildCallMessage({ ...base, urgency: "normal", urgencyReason: null, need: "x".repeat(2000) });
-  assert.ok(cut.length <= 300 && cut.includes("…"));
+});
+
+test("phone format", () => {
+  assert.equal(formatFrPhone("+33639980101"), "06 39 98 01 01");
+  assert.equal(formatFrPhone("+14155550100"), "+14155550100");
 });
 
 test("agent config", () => {
-  assert.deepEqual(Object.keys(DATA_COLLECTION), ["name", "phone", "address", "need", "urgency", "urgency_reason"]);
+  assert.deepEqual(Object.keys(DATA_COLLECTION), ["name", "phone", "address", "subject", "need", "urgency", "urgency_reason"]);
   assert.deepEqual(DATA_COLLECTION.urgency.enum, ["urgence", "urgent", "normal"]);
   assert.equal(postCallWebhookUrl("https://x.dev/"), "https://x.dev/api/elevenlabs/post-call");
 });

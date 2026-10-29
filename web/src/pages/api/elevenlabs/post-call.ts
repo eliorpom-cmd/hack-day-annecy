@@ -1,7 +1,7 @@
 // ElevenLabs post-call webhook: store the call and the lead, text the artisan on emergencies.
 import type { APIRoute } from "astro";
 import { db, type Business } from "../../../lib/db";
-import { newId } from "../../../lib/tokens";
+import { newId, newToken } from "../../../lib/tokens";
 import { telEnv, type TelephonyEnv } from "../../../lib/telephony/env";
 import { verifyElevenLabsSignature } from "../../../lib/telephony/signature";
 import { buildCallMessage, parsePostCall } from "../../../lib/telephony/postcall";
@@ -56,18 +56,21 @@ export const POST: APIRoute = async ({ request }) => {
   // One lead per call: ElevenLabs may retry the webhook
   const hadLead = await db().prepare("SELECT id FROM leads WHERE call_id = ?").bind(callId).first<{ id: string }>();
   let leadId = hadLead?.id ?? null;
+  let linkToken: string | null = null;
   if (!leadId) {
     leadId = newId();
-    const { name, phone, address, need, urgency } = call.lead;
+    const { name, phone, address, need, urgency, urgencyReason, subject } = call.lead;
+    linkToken = newToken().slice(0, 16);
     await db().prepare(
-      "INSERT INTO leads (id, business_id, call_id, name, phone, address, need, urgency) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ).bind(leadId, business.id, callId, name, phone, address, need ?? call.summary, urgency).run();
+      "INSERT INTO leads (id, business_id, call_id, name, phone, address, need, urgency, urgency_reason, link_token, subject) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    ).bind(leadId, business.id, callId, name, phone, address, need ?? call.summary, urgency, urgencyReason, linkToken, subject).run();
   }
 
   // One notification per call: a retried webhook (hadLead) does not notify twice
   let notification: "whatsapp" | "sms" | "failed" | "skipped" = "skipped";
   if (!hadLead && business.artisan_phone) {
-    const message = buildCallMessage({ ...call.lead, summary: call.summary });
+    const appUrl = (env as unknown as { APP_URL?: string }).APP_URL ?? "";
+    const message = buildCallMessage({ ...call.lead, summary: call.summary, link: linkToken && appUrl ? `${appUrl}/a/${linkToken}` : null });
     const result = await sendCallNotification(
       {
         accountSid: env.TWILIO_ACCOUNT_SID,
