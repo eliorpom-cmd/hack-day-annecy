@@ -1,0 +1,9 @@
+# Copy to .dev.vars (never committed) and fill in. Production: wrangler secret put <NAME>
+ELEVENLABS_API_KEY=
+ELEVENLABS_WEBHOOK_SECRET=
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_SMS_FROM=
+TWILIO_WEBHOOK_TOKEN=
+RESEND_API_KEY=
+MAIL_FROM=
