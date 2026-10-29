@@ -12,8 +12,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - scan du site ou saisie, voix, numéro, dashboard ; voir PROJET.md « Onboarding » ; référence reception.ai
 - 06 · Refaire le dashboard : leads, appels, mode avancé
   - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
-- 13 · Script de la démo de 3 min
-  - scénario demande de devis : un appelle, un joue l'artisan
 - 14 · Slides du pitch (~5 min)
   - deck web exportable PDF/PPTX
 - 15 · Récap WhatsApp à l'artisan après chaque appel
@@ -23,6 +21,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 
 - 12 · Schéma du parcours d'un appel (vue pitch + vue technique) (Maxime)
   - page web pour le pitch + docs/schema-appel.excalidraw pour l'équipe
+- 13 · Script de la démo de 3 min (Maxime)
+  - scénario demande de devis : un appelle, un joue l'artisan
 
 ## Fait
 
