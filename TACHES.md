@@ -23,8 +23,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 
 ## En cours
 
-- 03 · Brainstorm : choisir le métier visé et ce que montre la démo (Elior)
-  - s'appuyer sur etude-marche/README.md ; remplir Problème, Démo et Hors périmètre dans PROJET.md
 - 04 · Fixer la stack, le contrat d'API et qui possède quoi (Elior)
   - après le brainstorm ; sections Stack, Contrat d'API et Ownership de PROJET.md
 
@@ -35,3 +33,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - Fait : app/ = copie du MVP Lovable (your-virtual-agent @ bf3da68), sans .env ; Prettier appliqué, lint 0 erreur, build OK ; stack décrite dans PROJET.md
 - 10 · Squelette web/ (Astro + Worker + D1, connexion démo + lien magique) (Claude)
   - Fait : web/ : Astro 7 + Worker + D1 (migrations/), connexion démo + lien magique testés ; npm run dev
+- 03 · Brainstorm : choisir le métier visé et ce que montre la démo (Elior)
+  - s'appuyer sur etude-marche/README.md ; remplir Problème, Démo et Hors périmètre dans PROJET.md
+  - Fait : générique tous artisans, démo = onboarding + vrai appel + ce que reçoit l'artisan (PROJET.md)
