@@ -2,6 +2,21 @@
 
 Projet de l'équipe au Hacktoberfest Hack Day Annecy (29/10). Spec, stack, contrat d'API et ownership : [`PROJET.md`](PROJET.md).
 
+## Qui fait quoi
+
+Le projet : un répondeur téléphonique IA + CRM pour les artisans. Brief complet et contrat d'API : `PROJET.md`. Specs : [Google Doc](https://docs.google.com/document/d/1BAAv4wFGkR5YkEVe2x0vCBMw6svuSBUsX_zLp5dOAqw/edit).
+
+| Qui | Rôle | Maintenant | Pour |
+|---|---|---|---|
+| **Mathieu** | Utilisateurs et connecteurs | Entretien avec un plombier ; dire quel numéro Twilio marche avec son agent ; donner les clés ElevenLabs et Twilio (dans `web/.dev.vars` sur le Mac d'Elior, jamais dans le chat ni dans git) ; ensuite Google Ads, Meta Ads, réseaux sociaux | 16 h 30 |
+| **Maxime** | Product manager | Schéma Excalidraw du parcours d'un appel ; script de la démo de 3 min ; slides du pitch | 20 h |
+| **Elior** | Design UI/UX, tests | Maquettes de l'onboarding (05) et du dashboard (06), web et mobile ; tester chaque fonction livrée | 18 h |
+| **Claude** (agents d'Elior) | Code | Routage des appels par horaires (07), SMS d'urgence (08), API de l'onboarding et du dashboard (11), puis mail récap (09) et intégration des maquettes | 18 h 30 |
+
+Démo (3 min) : 1) l'onboarding, 2) un vrai appel d'un client, 3) ce que reçoit l'artisan (SMS, fiche dans le dashboard).
+
+Code freeze à 22 h.
+
 ## Setup
 
 ```
