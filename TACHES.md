@@ -8,8 +8,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 
 ## À faire
 
-- 06 · Refaire le dashboard : leads, appels, mode avancé
-  - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
 - 18 · Brancher les vraies clés et faire un appel de bout en bout
   - clés de Mathieu dans web/.dev.vars puis wrangler secret ; créer l'agent, acheter ou relier un numéro, webhook post-call, bac à sable WhatsApp ; appel réel
 - 22 · Régler le prompt du répondeur sur le scénario de démo
@@ -35,6 +33,8 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - deck web exportable PDF/PPTX
 - 23 · Landing page du produit (Claude)
   - web/src/pages/index.astro : pitch, comment ça marche, configuration, Visibilité, essai gratuit et démo ; COPY.md + DESIGN.md
+- 06 · Refaire le dashboard : leads, appels, mode avancé (Claude)
+  - fiches leads remplies par les appels ; mode avancé = agenda, base de connaissances, accueil
 
 ## Fait
 
