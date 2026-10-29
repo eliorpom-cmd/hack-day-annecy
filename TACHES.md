@@ -21,8 +21,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
   - scénario demande de devis : un appelle, un joue l'artisan
 - 14 · Slides du pitch (~5 min) (Maxime)
   - deck web exportable PDF/PPTX
-- 15 · Récap WhatsApp à l'artisan après chaque appel (Claude)
-  - décision de Maxime : remplace le SMS d'urgence seul. Touche web/src/lib/telephony + post-call (agent téléphonie). Démo : sandbox WhatsApp Twilio ; prod : modèle validé par Meta. Change le contrat PROJET.md → à valider par l'intégrateur
 
 ## Fait
 
@@ -52,3 +50,6 @@ Avec un agent ou au terminal : `bin/tache liste`, `nouvelle`, `prendre`, `finir`
 - 11 · Back de l'onboarding et du dashboard (API) (Claude)
   - scan du site, voix, agent ElevenLabs, numéros, fiche, horaires, FAQ, appels, leads, stats ; voir le contrat dans PROJET.md
   - Fait : web/src/pages/api/* + web/src/lib/* : toutes les routes du contrat, scan du site via Workers AI, 39 tests ; données démo (0004) ; à tester avec les vraies clés
+- 15 · Récap WhatsApp à l'artisan après chaque appel (Claude)
+  - décision de Maxime : remplace le SMS d'urgence seul. Touche web/src/lib/telephony + post-call (agent téléphonie). Démo : sandbox WhatsApp Twilio ; prod : modèle validé par Meta. Change le contrat PROJET.md → à valider par l'intégrateur
+  - Fait : déjà fait à 16 h 20 (commit 860773e) : message après chaque appel, WhatsApp puis SMS en secours ; textes dans COPY.md
