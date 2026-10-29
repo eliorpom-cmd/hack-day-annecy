@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Étape 2 · Hiérarchie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f2f2f2;--surface:#fff;--text:#111;--muted:#6b6b6b;--line:#e6e6e6}
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--bg);color:var(--text);font:15px/1.4 'Atkinson Hyperlegible Next',sans-serif;padding:32px 16px}
+  header{max-width:1240px;margin:0 auto 24px}
+  header h1{font-size:22px;font-weight:700} header p{color:var(--muted);margin-top:6px;max-width:75ch}
+  .row{display:flex;gap:40px;justify-content:center;flex-wrap:wrap;margin-bottom:40px}
+  .opt{display:flex;flex-direction:column;gap:10px}
+  .label{font-weight:700;font-size:16px} .label span{display:block;color:var(--muted);font-weight:400;font-size:13px;max-width:620px}
+  .pair{display:flex;gap:16px}
+  .phone{width:290px;height:600px;background:var(--surface);border-radius:30px;border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column}
+  .c{padding:36px 20px 0;flex:1;display:flex;flex-direction:column}
+  .more{margin-top:auto;padding:14px 0;color:var(--muted);border-top:1px solid var(--line)}
+  .bar{padding:12px 20px 24px}
+  .btn{width:100%;height:56px;border-radius:16px;border:0;font-weight:700;background:#111;color:#fff;font-family:inherit}
+  .item{padding:14px 0;border-bottom:1px solid var(--line)}
+  /* Option A: 3 sizes */
+  .A .prio{font-size:14px;font-weight:700} .A h2{font-size:34px;line-height:1.05;font-weight:700;margin-top:10px}
+  .A .who{font-size:17px;font-weight:700;margin-top:14px} .A .meta{font-size:14px;color:var(--muted)}
+  .A .why{font-size:17px;font-style:italic;margin-top:14px} .A .addr{font-size:17px;margin-top:8px;color:var(--muted)}
+  .A .btn{font-size:17px} .A .more{font-size:14px} .A .h{font-size:34px;font-weight:700} .A .sub{font-size:14px;color:var(--muted);margin-top:4px}
+  .A .it{font-size:17px;font-weight:700} .A .il{font-size:14px;color:var(--muted)}
+  /* Option B: 2 sizes, weight and italic only */
+  .B .prio{font-size:17px;font-weight:700} .B h2{font-size:28px;line-height:1.1;font-weight:800;margin-top:6px}
+  .B .who{font-size:17px;font-weight:700;margin-top:14px} .B .meta{font-size:17px;color:var(--muted)}
+  .B .why{font-size:17px;font-style:italic;margin-top:14px} .B .addr{font-size:17px;margin-top:8px;color:var(--muted)}
+  .B .btn{font-size:17px} .B .more{font-size:17px} .B .h{font-size:28px;font-weight:800} .B .sub{font-size:17px;color:var(--muted);margin-top:4px}
+  .B .it{font-size:17px;font-weight:700} .B .il{font-size:17px;color:var(--muted)}
+  /* Option C: 4 sizes (Material-like) */
+  .C .prio{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase} .C h2{font-size:40px;line-height:1;font-weight:700;margin-top:10px}
+  .C .who{font-size:22px;font-weight:600;margin-top:16px} .C .meta{font-size:13px;color:var(--muted)}
+  .C .why{font-size:17px;font-style:italic;margin-top:14px} .C .addr{font-size:15px;margin-top:8px;color:var(--muted)}
+  .C .btn{font-size:17px} .C .more{font-size:13px} .C .h{font-size:40px;font-weight:700} .C .sub{font-size:13px;color:var(--muted);margin-top:4px}
+  .C .it{font-size:20px;font-weight:600} .C .il{font-size:13px;color:var(--muted)}
+</style></head><body>
+<header><h1>Étape 2 sur 6 · La hiérarchie du texte</h1>
+<p>Police choisie : Atkinson Hyperlegible Next. Chaque option montre la page d'un appel et la liste des appels. On compare combien de tailles de texte, et ce que font le gras et l'italique. Réponds A, B ou C.</p></header>
+<div class="row"><div class="opt A"><div class="label">A · 3 tailles (34, 17, 14)<span>Titre très gros, tout le reste en 17, les infos secondaires en 14 gris. Gras = ce qui compte, italique = la raison.</span></div><div class="pair">
+<div class="phone"><div class="c">
+  <div class="prio">● Urgence</div><h2>Fuite d'eau</h2>
+  <div class="who">Mme Lefèvre</div><div class="meta">il y a 12 min</div>
+  <p class="why">L'eau coule dans le salon.</p><p class="addr">12 rue Royale, Annecy</p>
+  <div class="more">Contenu de la conversation ›</div></div>
+  <div class="bar"><button class="btn">Rappeler</button></div></div>
+<div class="phone"><div class="c">
+  <div class="h">Appels</div><div class="sub">3 à rappeler aujourd'hui</div>
+  <div style="margin-top:18px">
+  <div class="item"><div class="il">● Urgence · il y a 12 min</div><div class="it">Fuite d'eau, Mme Lefèvre</div></div>
+  <div class="item"><div class="il">● Urgent · il y a 1 h</div><div class="it">Chaudière en panne, M. Rossi</div></div>
+  <div class="item"><div class="il">● Normal · 11 h 20</div><div class="it">Devis salle de bain, M. Durand</div></div>
+  <div class="item"><div class="il">Rappelé · hier</div><div class="it" style="font-weight:400">Robinet qui goutte, Mme Petit</div></div>
+  </div></div></div>
+</div></div></div>
+<div class="row"><div class="opt B"><div class="label">B · 2 tailles seulement (28, 17)<span>Tout le texte en 17. Seul le titre est plus grand. La hiérarchie passe uniquement par le gras, l'italique et le gris.</span></div><div class="pair">
+<div class="phone"><div class="c">
+  <div class="prio">● Urgence</div><h2>Fuite d'eau</h2>
+  <div class="who">Mme Lefèvre</div><div class="meta">il y a 12 min</div>
+  <p class="why">L'eau coule dans le salon.</p><p class="addr">12 rue Royale, Annecy</p>
+  <div class="more">Contenu de la conversation ›</div></div>
+  <div class="bar"><button class="btn">Rappeler</button></div></div>
+<div class="phone"><div class="c">
+  <div class="h">Appels</div><div class="sub">3 à rappeler aujourd'hui</div>
+  <div style="margin-top:18px">
+  <div class="item"><div class="il">● Urgence · il y a 12 min</div><div class="it">Fuite d'eau, Mme Lefèvre</div></div>
+  <div class="item"><div class="il">● Urgent · il y a 1 h</div><div class="it">Chaudière en panne, M. Rossi</div></div>
+  <div class="item"><div class="il">● Normal · 11 h 20</div><div class="it">Devis salle de bain, M. Durand</div></div>
+  <div class="item"><div class="il">Rappelé · hier</div><div class="it" style="font-weight:400">Robinet qui goutte, Mme Petit</div></div>
+  </div></div></div>
+</div></div></div>
+<div class="row"><div class="opt C"><div class="label">C · 4 tailles (40, 22, 17, 13)<span>Proche de Material : plus de contraste entre les niveaux, petites étiquettes en capitales.</span></div><div class="pair">
+<div class="phone"><div class="c">
+  <div class="prio">● Urgence</div><h2>Fuite d'eau</h2>
+  <div class="who">Mme Lefèvre</div><div class="meta">il y a 12 min</div>
+  <p class="why">L'eau coule dans le salon.</p><p class="addr">12 rue Royale, Annecy</p>
+  <div class="more">Contenu de la conversation ›</div></div>
+  <div class="bar"><button class="btn">Rappeler</button></div></div>
+<div class="phone"><div class="c">
+  <div class="h">Appels</div><div class="sub">3 à rappeler aujourd'hui</div>
+  <div style="margin-top:18px">
+  <div class="item"><div class="il">● Urgence · il y a 12 min</div><div class="it">Fuite d'eau, Mme Lefèvre</div></div>
+  <div class="item"><div class="il">● Urgent · il y a 1 h</div><div class="it">Chaudière en panne, M. Rossi</div></div>
+  <div class="item"><div class="il">● Normal · 11 h 20</div><div class="it">Devis salle de bain, M. Durand</div></div>
+  <div class="item"><div class="il">Rappelé · hier</div><div class="it" style="font-weight:400">Robinet qui goutte, Mme Petit</div></div>
+  </div></div></div>
+</div></div></div>
+</body></html>
